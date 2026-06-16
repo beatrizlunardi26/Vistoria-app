@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VistoriaApp — Beatriz Lunardi</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg:#F5F3EE;--surface:#FFF;--surface2:#F0EDE8;--border:#E2DDD6;
+  --text:#1A1714;--text2:#6B6560;--text3:#9C9590;
+  --accent:#2D5A3D;--accent2:#4A8C5C;--accent-light:#EAF2EC;
+  --ok:#2D6A4F;--ok-light:#E8F5EE;
+  --danger:#B53030;--danger-light:#FDEEEE;
+  --na:#5A4A8C;--na-light:#EEEDFE;
+  --warn:#C4621A;--warn-light:#FEF0E7;
+  --radius:14px;--radius-sm:8px;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.04);
+  --sw:260px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.shell{display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:var(--sw);background:var(--accent);display:flex;flex-direction:column;flex-shrink:0;position:fixed;top:0;left:0;bottom:0;z-index:100;transition:transform .25s}
+.sb-logo{padding:26px 22px 18px;border-bottom:1px solid rgba(255,255,255,.12)}
+.sb-logo-t{font-size:17px;font-weight:700;color:#fff}
+.sb-logo-s{font-size:11px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.1em;margin-top:2px}
+.sb-user{padding:14px 22px;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:10px}
+.avatar{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.av-name{font-size:13px;font-weight:600;color:#fff}
+.av-role{font-size:11px;color:rgba(255,255,255,.5)}
+.sb-nav{flex:1;padding:10px 0;overflow-y:auto}
+.ni{display:flex;align-items:center;gap:10px;padding:11px 22px;font-size:14px;color:rgba(255,255,255,.7);cursor:pointer;border:none;background:none;width:100%;text-align:left;font-family:'DM Sans',sans-serif;transition:background .15s,color .15s}
+.ni:hover{background:rgba(255,255,255,.08);color:#fff}
+.ni.active{background:rgba(255,255,255,.16);color:#fff;font-weight:600}
+.ni .ico{font-size:17px;width:22px;text-align:center;flex-shrink:0}
+.sb-foot{padding:14px 22px;border-top:1px solid rgba(255,255,255,.12);font-size:11px;color:rgba(255,255,255,.3)}
+.sb-status{padding:10px 22px;font-size:11px;display:flex;align-items:center;gap:6px}
+.sb-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.dot-ok{background:#4ADE80}
+.dot-err{background:#F87171}
+.dot-wait{background:#FCD34D;animation:blink 1.2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* MAIN */
+.main{flex:1;margin-left:var(--sw);display:flex;flex-direction:column;min-height:100vh}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;flex-shrink:0}
+.topbar-title{font-size:17px;font-weight:600}
+.content{flex:1;padding:28px;max-width:1100px}
+
+/* BOTÕES */
+.btn{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:8px 16px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:var(--accent2);color:var(--accent)}
+.btn:active{transform:scale(.97)}
+.btn-p{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-p:hover{background:var(--ok);border-color:var(--ok);color:#fff}
+.btn-danger{background:var(--danger-light);color:var(--danger);border-color:var(--danger)}
+
+/* PAGES */
+.page{display:none}.page.active{display:block}
+
+/* LOADING */
+.loading-screen{position:fixed;inset:0;background:var(--accent);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;color:#fff;gap:16px;transition:opacity .5s}
+.loading-screen.hide{opacity:0;pointer-events:none}
+.loading-logo{font-size:36px;font-weight:700}
+.loading-sub{font-size:14px;opacity:.65}
+.spinner{width:32px;height:32px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* HOME */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:28px}
+.stat-card{background:var(--surface);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);border:1px solid var(--border)}
+.stat-num{font-size:30px;font-weight:700;color:var(--accent)}
+.stat-label{font-size:12px;color:var(--text2);margin-top:4px}
+.sec-label{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px}
+.obras-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.obra-card{background:var(--surface);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);border:1.5px solid var(--border);transition:border-color .15s,transform .1s;position:relative}
+.obra-card:hover{border-color:var(--accent2);transform:translateY(-1px)}
+.obra-header{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.obra-icon{font-size:26px;width:46px;height:46px;display:flex;align-items:center;justify-content:center;background:var(--accent-light);border-radius:12px;flex-shrink:0}
+.obra-name{font-size:15px;font-weight:600}
+.obra-sub{font-size:12px;color:var(--text2);margin-top:2px}
+.obra-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.badge{font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px}
+.b-ok{background:var(--ok-light);color:var(--ok)}
+.b-warn{background:var(--warn-light);color:var(--warn)}
+.b-pend{background:var(--surface2);color:var(--text2)}
+.pbar-out{background:var(--border);border-radius:4px;height:5px}
+.pbar-in{height:100%;border-radius:4px;background:var(--accent2);transition:width .4s}
+.pbar-meta{font-size:11px;color:var(--text3);margin-top:4px;display:flex;justify-content:space-between}
+.obra-actions{display:flex;gap:6px;margin-top:12px}
+.add-obra-card{background:none;border:1.5px dashed var(--border);border-radius:var(--radius);padding:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;color:var(--text3);width:100%}
+.add-obra-card:hover{border-color:var(--accent2);color:var(--accent);background:var(--accent-light)}
+
+/* CHECKLIST */
+.cl-layout{display:grid;grid-template-columns:1fr 290px;gap:20px;align-items:start}
+@media(max-width:860px){.cl-layout{grid-template-columns:1fr}}
+.comodo-block{margin-bottom:20px}
+.comodo-header{display:flex;align-items:center;gap:10px;padding:11px 14px;margin-bottom:6px;background:var(--surface);border-radius:var(--radius-sm);border:1px solid var(--border);box-shadow:var(--shadow)}
+.comodo-title{font-size:14px;font-weight:700;flex:1}
+.comodo-cnt{font-size:11px;color:var(--text3)}
+.cl-item{background:var(--surface);border-radius:var(--radius-sm);margin-bottom:7px;border:1.5px solid var(--border);box-shadow:var(--shadow);transition:border-color .2s;overflow:hidden}
+.cl-item.s-conf{border-color:var(--ok)}
+.cl-item.s-nc{border-color:var(--danger)}
+.cl-item.s-na{border-color:var(--na);opacity:.75}
+.cl-item-header{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;user-select:none}
+.status-bubble{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;border:2px solid var(--border);background:var(--surface2);color:transparent;transition:all .2s}
+.s-conf .status-bubble{background:var(--ok-light);border-color:var(--ok);color:var(--ok)}
+.s-nc .status-bubble{background:var(--danger-light);border-color:var(--danger);color:var(--danger)}
+.s-na .status-bubble{background:var(--na-light);border-color:var(--na);color:var(--na)}
+.item-text{flex:1}
+.item-name{font-size:13px;font-weight:500}
+.item-detail{font-size:11px;color:var(--text2);margin-top:2px}
+.item-tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap;flex-shrink:0}
+.tag-conf{background:var(--ok-light);color:var(--ok)}
+.tag-nc{background:var(--danger-light);color:var(--danger)}
+.tag-na{background:var(--na-light);color:var(--na)}
+.tag-pend{background:var(--surface2);color:var(--text3)}
+.cycle-hint{display:flex;gap:6px;padding:0 14px 10px 54px;flex-wrap:wrap}
+.ch{font-size:11px;padding:3px 9px;border-radius:20px;border:1px solid var(--border);color:var(--text3)}
+.nc-panel{padding:0 14px 14px 54px}
+.field-label{font-size:11px;color:var(--text2);margin-bottom:5px;margin-top:10px}
+.obs-in{width:100%;font-family:'DM Sans',sans-serif;font-size:12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;background:var(--bg);color:var(--text);outline:none;transition:border-color .15s;resize:none}
+.obs-in:focus{border-color:var(--accent2);background:#fff}
+.obs-in::placeholder{color:var(--text3)}
+.photo-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.photo-thumb{width:64px;height:64px;border-radius:8px;background:var(--surface2);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;transition:border-color .15s;position:relative}
+.photo-thumb:hover{border-color:var(--accent2)}
+.add-photo{width:64px;height:64px;border-radius:8px;border:1.5px dashed var(--border);background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--text3);font-size:10px;transition:all .15s;font-family:inherit}
+.add-photo:hover{border-color:var(--accent2);color:var(--accent)}
+.add-photo-ico{font-size:22px}
+.prog-panel{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;position:sticky;top:80px}
+.pp-header{padding:14px 18px;border-bottom:1px solid var(--border);font-size:13px;font-weight:600}
+.pp-body{padding:16px 18px}
+.pp-row{display:flex;justify-content:space-between;margin-bottom:8px;font-size:13px}
+.pp-k{color:var(--text2)}.pp-v{font-weight:500}
+.sum3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:12px 0}
+.sbox{text-align:center;border-radius:var(--radius-sm);padding:10px 4px}
+.sbox-n{font-size:22px;font-weight:700}
+.sbox-l{font-size:10px;margin-top:2px}
+.legend{display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--text2);margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.leg{display:flex;align-items:center;gap:5px}
+.leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.save-indicator{font-size:11px;color:var(--ok);margin-top:8px;text-align:center;min-height:16px;transition:opacity .3s}
+
+/* RELATÓRIO */
+.rel-layout{display:grid;grid-template-columns:1fr 280px;gap:20px;align-items:start}
+@media(max-width:860px){.rel-layout{grid-template-columns:1fr}}
+.rel-doc{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden}
+.rel-head{background:var(--accent);color:#fff;padding:22px 28px;display:flex;align-items:center;gap:14px}
+.rel-logo{width:46px;height:46px;border-radius:12px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.rel-sec{padding:20px 28px;border-bottom:1px solid var(--border)}
+.rel-sec:last-child{border-bottom:none}
+.rel-sec-t{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px}
+.rel-grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px 20px}
+.rel-r{display:flex;flex-direction:column;gap:2px}
+.rk{font-size:11px;color:var(--text3)}.rv{font-size:13px;font-weight:500}
+.sum-boxes{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.sum-box{border-radius:var(--radius-sm);padding:14px;text-align:center}
+.sum-n{font-size:28px;font-weight:700}.sum-l{font-size:11px;margin-top:2px}
+.rel-comodo-block{margin-bottom:22px}
+.rel-comodo-title{font-size:13px;font-weight:700;color:var(--text2);display:flex;align-items:center;gap:8px;padding-bottom:8px;margin-bottom:10px;border-bottom:2px solid var(--border)}
+.rel-nc-item{border:1.5px solid var(--danger);border-radius:var(--radius-sm);margin-bottom:14px;overflow:hidden}
+.rel-nc-head{background:var(--danger-light);padding:10px 14px;display:flex;align-items:center;gap:8px}
+.rel-nc-name{font-size:13px;font-weight:600;color:var(--danger);flex:1}
+.rel-nc-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px;background:var(--danger);color:#fff}
+.rel-nc-body{padding:12px 14px}
+.rel-nc-obs{font-size:12px;color:var(--text2);font-style:italic;margin-bottom:10px}
+.rel-nc-photos{display:flex;gap:8px;flex-wrap:wrap}
+.rel-photo{width:90px;height:90px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:34px;cursor:pointer}
+.rel-empty{text-align:center;padding:24px;font-size:13px;color:var(--ok);background:var(--ok-light);border-radius:var(--radius-sm)}
+.sig-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.sig-lbl{font-size:11px;color:var(--text2);margin-bottom:6px}
+.sig-area{height:80px;border:1.5px dashed var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.sig-area:hover{border-color:var(--accent2)}
+.sig-done{font-size:20px;color:var(--accent2);font-family:'DM Mono',monospace;transform:rotate(-3deg);display:inline-block}
+.send-panel{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden}
+.sp-head{padding:14px 18px;border-bottom:1px solid var(--border);font-size:13px;font-weight:600}
+.si{display:flex;align-items:center;gap:12px;padding:13px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;width:100%;background:none;border-left:none;border-right:none;border-top:none;font-family:'DM Sans',sans-serif;text-align:left}
+.si:last-child{border-bottom:none}
+.si:hover{background:var(--surface2)}
+.si-ico{font-size:20px;width:30px;text-align:center;flex-shrink:0}
+.si-n{font-size:13px;font-weight:600;color:var(--text)}
+.si-d{font-size:11px;color:var(--text2)}
+.si-arr{color:var(--text3);margin-left:auto}
+
+/* CONFIGS */
+.cfg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.cfg-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden}
+.cfg-head{padding:14px 20px;border-bottom:1px solid var(--border);font-size:14px;font-weight:600}
+.cfg-body{padding:16px 20px}
+.fl{font-size:11px;color:var(--text2);margin-bottom:5px;margin-top:12px}
+.fl:first-child{margin-top:0}
+.fi{width:100%;font-family:'DM Sans',sans-serif;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;background:var(--bg);color:var(--text);outline:none;transition:border-color .15s}
+.fi:focus{border-color:var(--accent2);background:#fff}
+.fsel{width:100%;font-family:'DM Sans',sans-serif;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;background:var(--bg);color:var(--text);outline:none;cursor:pointer}
+
+/* MODAL */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9000;display:none;align-items:center;justify-content:center}
+.modal-ov.open{display:flex}
+.modal-box{background:var(--surface);border-radius:var(--radius);padding:28px;max-width:460px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.4);position:relative}
+.modal-close{position:absolute;top:14px;right:14px;background:var(--surface2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:15px;color:var(--text2)}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:16px}
+.modal-actions{display:flex;gap:8px;margin-top:20px;justify-content:flex-end}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--text);color:#fff;border-radius:var(--radius-sm);padding:12px 20px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:10px;box-shadow:0 8px 30px rgba(0,0,0,.25);z-index:9999;opacity:0;transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .25s;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+@media(max-width:720px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.main{margin-left:0}.topbar{padding:0 16px}.content{padding:16px}.mob-btn{display:flex!important}.obras-grid{grid-template-columns:1fr}.sb-ov{display:block!important}}
+.mob-btn{display:none;background:none;border:none;cursor:pointer;font-size:22px;color:var(--text2);padding:4px}
+.sb-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:99}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-screen" id="loading">
+  <div class="loading-logo">📐 VistoriaApp</div>
+  <div class="spinner"></div>
+  <div class="loading-sub" id="loading-msg">Conectando ao banco de dados...</div>
+</div>
+
+<div class="sb-ov" id="sb-ov" onclick="closeSB()"></div>
+<div class="shell">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sb-logo"><div class="sb-logo-t">📐 VistoriaApp</div><div class="sb-logo-s">Entrega de obra</div></div>
+  <div class="sb-user">
+    <div class="avatar">BL</div>
+    <div><div class="av-name" id="sb-name">Beatriz Lunardi</div><div class="av-role">Engenheira Civil</div></div>
+  </div>
+  <nav class="sb-nav">
+    <button class="ni active" onclick="goTo('p-home',this)"><span class="ico">🏠</span>Início</button>
+    <button class="ni" onclick="goTo('p-vistoria',this)"><span class="ico">📋</span>Checklist</button>
+    <button class="ni" onclick="gerarRel();goTo('p-relatorio',this)"><span class="ico">📄</span>Relatório</button>
+    <button class="ni" onclick="goTo('p-config',this)"><span class="ico">⚙️</span>Configurações</button>
+  </nav>
+  <div class="sb-status" id="sb-status">
+    <div class="sb-dot dot-wait" id="sb-dot"></div>
+    <span id="sb-status-txt" style="color:rgba(255,255,255,.5);font-size:11px">Conectando...</span>
+  </div>
+  <div class="sb-foot">VistoriaApp v2.0 · Supabase</div>
+</aside>
+
+<div class="main">
+  <header class="topbar">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="mob-btn" onclick="toggleSB()">☰</button>
+      <span class="topbar-title" id="tt">Início</span>
+    </div>
+    <div id="topbar-action"></div>
+  </header>
+  <div class="content">
+
+    <!-- HOME -->
+    <div class="page active" id="p-home">
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-num" id="h-obras">—</div><div class="stat-label">Obras cadastradas</div></div>
+        <div class="stat-card"><div class="stat-num" id="h-vis">—</div><div class="stat-label">Vistorias realizadas</div></div>
+        <div class="stat-card"><div class="stat-num" id="h-pct">—</div><div class="stat-label">Vistoria atual</div></div>
+        <div class="stat-card"><div class="stat-num" id="h-ncs">—</div><div class="stat-label">Não conformidades</div></div>
+      </div>
+      <div class="sec-label">Obras</div>
+      <div class="obras-grid" id="obras-grid">
+        <div style="padding:20px;color:var(--text3);font-size:13px">Carregando obras...</div>
+      </div>
+    </div>
+
+    <!-- CHECKLIST -->
+    <div class="page" id="p-vistoria">
+      <div class="cl-layout">
+        <div id="cl-main"><div style="padding:20px;color:var(--text3);font-size:13px">Selecione uma obra para iniciar.</div></div>
+        <div class="prog-panel">
+          <div class="pp-header">📊 Progresso</div>
+          <div class="pp-body">
+            <div class="pp-row"><span class="pp-k">Obra</span><span class="pp-v" id="pp-obra">—</span></div>
+            <div class="pp-row"><span class="pp-k">Vistoriadora</span><span class="pp-v" id="pp-nome">Engª Beatriz Lunardi</span></div>
+            <div class="pp-row"><span class="pp-k">Data</span><span class="pp-v" id="pp-data">—</span></div>
+            <div style="margin:10px 0 6px">
+              <div class="pbar-out" style="height:7px"><div class="pbar-in" id="pp-bar" style="width:0%"></div></div>
+              <div style="display:flex;justify-content:space-between;margin-top:5px;font-size:11px;color:var(--text3)">
+                <span id="pp-done">0 itens</span><span id="pp-pct">0%</span>
+              </div>
+            </div>
+            <div class="sum3">
+              <div class="sbox" style="background:var(--ok-light)"><div class="sbox-n" id="c-conf" style="color:var(--ok)">0</div><div class="sbox-l" style="color:var(--ok)">Conf.</div></div>
+              <div class="sbox" style="background:var(--danger-light)"><div class="sbox-n" id="c-nc" style="color:var(--danger)">0</div><div class="sbox-l" style="color:var(--danger)">N/Conf.</div></div>
+              <div class="sbox" style="background:var(--na-light)"><div class="sbox-n" id="c-na" style="color:var(--na)">0</div><div class="sbox-l" style="color:var(--na)">N/A</div></div>
+            </div>
+            <div class="legend">
+              <div class="leg"><div class="leg-dot" style="background:var(--border)"></div>1× = Conforme</div>
+              <div class="leg"><div class="leg-dot" style="background:var(--danger)"></div>2× = Não conforme</div>
+              <div class="leg"><div class="leg-dot" style="background:var(--na)"></div>3× = N/A</div>
+              <div class="leg"><div class="leg-dot" style="background:var(--text3)"></div>4× = Limpar</div>
+            </div>
+            <div class="save-indicator" id="save-ind"></div>
+            <button class="btn btn-p" style="width:100%;margin-top:12px;padding:11px" onclick="gerarRel();goTo('p-relatorio',document.querySelector('.ni:nth-child(3)'))">📄 Gerar relatório</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RELATÓRIO -->
+    <div class="page" id="p-relatorio">
+      <div class="rel-layout">
+        <div class="rel-doc">
+          <div class="rel-head">
+            <div class="rel-logo">📐</div>
+            <div>
+              <div style="font-size:17px;font-weight:700">Relatório de Vistoria de Entrega</div>
+              <div style="font-size:12px;opacity:.65;margin-top:2px" id="rel-sub">VistoriaApp</div>
+            </div>
+          </div>
+          <div class="rel-sec">
+            <div class="rel-sec-t">Identificação</div>
+            <div class="rel-grid2">
+              <div class="rel-r"><span class="rk">Obra</span><span class="rv" id="rel-obra">—</span></div>
+              <div class="rel-r"><span class="rk">Construtora</span><span class="rv" id="rel-const">—</span></div>
+              <div class="rel-r"><span class="rk">Cliente</span><span class="rv" id="rel-cliente">—</span></div>
+              <div class="rel-r"><span class="rk">Vistoriadora</span><span class="rv" id="rel-nome">Engª Beatriz Lunardi — CREA/SC</span></div>
+              <div class="rel-r"><span class="rk">Data</span><span class="rv" id="rel-data">—</span></div>
+              <div class="rel-r"><span class="rk">Endereço</span><span class="rv" id="rel-end">—</span></div>
+            </div>
+          </div>
+          <div class="rel-sec">
+            <div class="rel-sec-t">Resumo executivo</div>
+            <div class="sum-boxes">
+              <div class="sum-box" style="background:var(--ok-light)"><div class="sum-n" id="r-conf" style="color:var(--ok)">0</div><div class="sum-l" style="color:var(--ok)">Conformes</div></div>
+              <div class="sum-box" style="background:var(--danger-light)"><div class="sum-n" id="r-nc" style="color:var(--danger)">0</div><div class="sum-l" style="color:var(--danger)">Não conformes</div></div>
+              <div class="sum-box" style="background:var(--na-light)"><div class="sum-n" id="r-na" style="color:var(--na)">0</div><div class="sum-l" style="color:var(--na)">N/Aplicável</div></div>
+            </div>
+          </div>
+          <div class="rel-sec">
+            <div class="rel-sec-t">Não conformidades por local</div>
+            <div id="rel-nc-body"><div class="rel-empty">✅ Nenhuma não conformidade registrada.</div></div>
+          </div>
+          <div class="rel-sec">
+            <div class="rel-sec-t">Assinaturas</div>
+            <div class="sig-grid">
+              <div>
+                <div class="sig-lbl" id="sig-const-lbl">Construtora</div>
+                <div class="sig-area"><span class="sig-done">J. Matos</span></div>
+                <div style="font-size:10px;color:var(--text3);margin-top:5px;text-align:center" id="rel-data2">—</div>
+              </div>
+              <div>
+                <div class="sig-lbl" id="sig-cli-lbl">Cliente</div>
+                <div class="sig-area" onclick="showToast('✍️ Assinatura digital — em breve!')"><span style="font-size:12px;color:var(--text3)">+ Adicionar assinatura</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="send-panel">
+            <div class="sp-head">📤 Enviar relatório</div>
+            <button class="si" onclick="showToast('📧 Abrindo e-mail...')"><span class="si-ico">📧</span><div><div class="si-n">E-mail — construtora</div><div class="si-d" id="si-email">—</div></div><span class="si-arr">›</span></button>
+            <button class="si" onclick="showToast('💬 Abrindo WhatsApp...')"><span class="si-ico">💬</span><div><div class="si-n">WhatsApp — cliente</div><div class="si-d" id="si-wpp">—</div></div><span class="si-arr">›</span></button>
+            <button class="si" onclick="showToast('📎 Link copiado!')"><span class="si-ico">🔗</span><div><div class="si-n">Copiar link público</div><div class="si-d">Acesso com senha</div></div><span class="si-arr">›</span></button>
+            <button class="si" onclick="showToast('⬇️ PDF sendo gerado...')"><span class="si-ico">📄</span><div><div class="si-n">Baixar PDF</div><div class="si-d">Relatório completo</div></div><span class="si-arr">›</span></button>
+          </div>
+          <div class="send-panel">
+            <div class="sp-head">📝 Observações gerais</div>
+            <div style="padding:14px 18px"><textarea class="obs-in" rows="5" placeholder="Observações finais..."></textarea></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONFIG -->
+    <div class="page" id="p-config">
+      <div class="cfg-grid">
+        <div class="cfg-card">
+          <div class="cfg-head">👤 Seus dados</div>
+          <div class="cfg-body">
+            <div class="fl">Nome completo</div><input class="fi" id="cfg-nome" value="Beatriz Lunardi" oninput="updNome(this.value)">
+            <div class="fl">CREA / CAU</div><input class="fi" id="cfg-crea" value="CREA/SC 123456-7">
+            <div class="fl">E-mail</div><input class="fi" type="email" value="beatriz@email.com.br">
+            <div class="fl">Telefone</div><input class="fi" type="tel" value="(48) 99999-0000">
+          </div>
+        </div>
+        <div class="cfg-card">
+          <div class="cfg-head">🏢 Escritório</div>
+          <div class="cfg-body">
+            <div class="fl">Nome</div><input class="fi" value="BL Engenharia Civil">
+            <div class="fl">CNPJ</div><input class="fi" value="00.000.000/0001-00">
+            <div class="fl">Cidade</div><input class="fi" value="Florianópolis, SC">
+            <div class="fl">Logotipo</div>
+            <button class="btn" style="width:100%;justify-content:center;margin-top:4px" onclick="showToast('📎 Upload em breve!')">+ Carregar logotipo</button>
+          </div>
+        </div>
+        <div class="cfg-card">
+          <div class="cfg-head">🔌 Conexão Supabase</div>
+          <div class="cfg-body">
+            <div class="fl">Status</div>
+            <div id="cfg-status" style="font-size:13px;padding:8px 12px;border-radius:var(--radius-sm);background:var(--ok-light);color:var(--ok)">Verificando...</div>
+            <div class="fl" style="margin-top:14px">URL do projeto</div>
+            <div style="font-family:'DM Mono',monospace;font-size:11px;padding:8px;background:var(--surface2);border-radius:6px;color:var(--text2);word-break:break-all">https://biogkjjcqusdrfotkjgk.supabase.co</div>
+          </div>
+        </div>
+        <div class="cfg-card">
+          <div class="cfg-head">📋 Checklists</div>
+          <div class="cfg-body">
+            <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:14px">Modelos carregados do banco de dados. Quando enviar sua lista real, adiciono aqui.</div>
+            <button class="btn" style="width:100%;justify-content:center;margin-bottom:8px" onclick="showToast('Em breve!')">+ Novo modelo</button>
+            <button class="btn" style="width:100%;justify-content:center" onclick="showToast('Em breve!')">📥 Importar planilha</button>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:20px;display:flex;gap:10px">
+        <button class="btn btn-p" onclick="showToast('✅ Configurações salvas!')">Salvar configurações</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- MODAL OBRA -->
+<div class="modal-ov" id="modal-obra" onclick="if(event.target===this)closeObra()">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeObra()">✕</button>
+    <div class="modal-title" id="mo-title">Nova obra</div>
+    <input type="hidden" id="mo-id">
+    <div class="fl">Nome da obra / unidade</div><input class="fi" id="mo-nome" placeholder="Ex: Edifício Central — Apto 301">
+    <div class="fl">Construtora</div><input class="fi" id="mo-const" placeholder="Ex: Construtora Horizonte">
+    <div class="fl">Cliente</div><input class="fi" id="mo-cli" placeholder="Ex: João da Silva">
+    <div class="fl">Endereço</div><input class="fi" id="mo-end" placeholder="Ex: Rua das Flores, 100">
+    <div class="fl">E-mail da construtora</div><input class="fi" id="mo-email" type="email">
+    <div class="fl">WhatsApp do cliente</div><input class="fi" id="mo-wpp" placeholder="(48) 99999-0000">
+    <div class="fl">Data da vistoria</div><input class="fi" id="mo-data" type="date">
+    <div class="fl">Ícone</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px" id="ico-picker"></div>
+    <input type="hidden" id="mo-ico" value="🏢">
+    <div class="modal-actions">
+      <button class="btn" onclick="closeObra()">Cancelar</button>
+      <button class="btn btn-p" onclick="salvarObra()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL FOTO -->
+<div class="modal-ov" id="modal-foto" onclick="if(event.target===this)closeFoto()">
+  <div class="modal-box" style="text-align:center">
+    <button class="modal-close" onclick="closeFoto()">✕</button>
+    <div style="font-size:80px;margin:8px 0" id="mf-emoji">🖼️</div>
+    <div style="font-size:13px;color:var(--text2)" id="mf-label">Foto</div>
+    <div style="display:flex;gap:8px;margin-top:20px;justify-content:center">
+      <button class="btn" onclick="showToast('✏️ Anotações em breve!');closeFoto()">✏️ Anotar</button>
+      <button class="btn btn-danger" onclick="showToast('🗑️ Foto removida');closeFoto()">🗑️ Remover</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="toast-msg">✅</span></div>
+
+<script>
+// ============================================================
+// SUPABASE
+// ============================================================
+const SUPA_URL = 'https://biogkjjcqusdrfotkjgk.supabase.co';
+const SUPA_KEY = 'sb_publishable_vcalOtZBX2y-z5SmOBJwTw_uLN4bdrd';
+const { createClient } = supabase;
+const db = createClient(SUPA_URL, SUPA_KEY);
+
+// ============================================================
+// ESTADO LOCAL
+// ============================================================
+let obras = [];
+let obraAtiva = null;
+let viatoriaAtiva = null;
+let comodos = [];
+let itens = [];
+let respostas = {}; // itemId -> { status, obs, fotos[] }
+let engId = null;
+
+const EMOJIS_FOTO = ['📸','🖼️','🔍','📷','🔎'];
+const cycle = { '':'conf', conf:'nc', nc:'na', na:'' };
+const ICO_LIST = ['🏢','🏠','🏗️','🏛️','🏬','🏭','🏡'];
+
+// ============================================================
+// INICIALIZAÇÃO
+// ============================================================
+async function init() {
+  setLoading('Conectando ao banco de dados...');
+  try {
+    // Buscar engenheira
+    const { data: engs } = await db.from('engenheiras').select('*').eq('email','beatriz@email.com.br').limit(1);
+    if (engs && engs.length) {
+      engId = engs[0].id;
+    }
+    setStatus(true);
+    setLoading('Carregando obras...');
+    await carregarObras();
+    setLoading('Carregando checklist...');
+    await carregarModelo();
+    hideLoading();
+    atualizarStats();
+  } catch(e) {
+    setStatus(false);
+    hideLoading();
+    showToast('⚠️ Erro ao conectar: ' + e.message);
+  }
+}
+
+function setLoading(msg) {
+  document.getElementById('loading-msg').textContent = msg;
+}
+function hideLoading() {
+  const l = document.getElementById('loading');
+  l.classList.add('hide');
+  setTimeout(() => l.style.display='none', 600);
+}
+function setStatus(ok) {
+  const dot = document.getElementById('sb-dot');
+  const txt = document.getElementById('sb-status-txt');
+  const cfg = document.getElementById('cfg-status');
+  dot.className = 'sb-dot ' + (ok ? 'dot-ok' : 'dot-err');
+  txt.textContent = ok ? '✓ Supabase conectado' : '✗ Sem conexão';
+  txt.style.color = ok ? 'rgba(255,255,255,.7)' : '#F87171';
+  if (cfg) cfg.textContent = ok ? '✅ Conectado ao Supabase' : '❌ Sem conexão';
+  if (cfg) cfg.style.background = ok ? 'var(--ok-light)' : 'var(--danger-light)';
+  if (cfg) cfg.style.color = ok ? 'var(--ok)' : 'var(--danger)';
+}
+
+// ============================================================
+// OBRAS
+// ============================================================
+async function carregarObras() {
+  const { data, error } = await db.from('obras').select('*').order('criado_em');
+  if (error) throw error;
+  obras = data || [];
+  renderObras();
+}
+
+function renderObras() {
+  const grid = document.getElementById('obras-grid');
+  grid.innerHTML = '';
+  obras.forEach(o => {
+    const pct = 0; // calculado em tempo real
+    const statusBadge = o.status === 'em_vistoria'
+      ? `<span class="badge b-warn">Em vistoria</span>`
+      : o.status === 'concluida'
+      ? `<span class="badge b-ok">Concluída</span>`
+      : `<span class="badge b-pend">Pendente</span>`;
+    const div = document.createElement('div');
+    div.className = 'obra-card';
+    div.innerHTML = `
+      <div class="obra-header">
+        <div class="obra-icon">${o.icone||'🏢'}</div>
+        <div><div class="obra-name">${o.nome}</div><div class="obra-sub">${o.construtora||'—'} · ${(o.endereco||'').split(',')[1]?.trim()||o.endereco||''}</div></div>
+      </div>
+      <div class="obra-meta">${statusBadge}<span class="badge b-pend">${fmtData(o.data_vistoria)}</span></div>
+      <div class="pbar-out"><div class="pbar-in" style="width:0%"></div></div>
+      <div class="pbar-meta"><span>0 itens</span><span>${fmtData(o.data_vistoria)}</span></div>
+      <div class="obra-actions">
+        <button class="btn btn-p" style="flex:1" onclick="abrirVistoria('${o.id}')">▶ Abrir vistoria</button>
+        <button class="btn" onclick="editObra('${o.id}')">✏️</button>
+        <button class="btn btn-danger" onclick="delObra('${o.id}')">🗑️</button>
+      </div>`;
+    grid.appendChild(div);
+  });
+  const add = document.createElement('button');
+  add.className = 'add-obra-card';
+  add.innerHTML = '<span style="font-size:32px">＋</span><span style="font-size:13px;font-weight:600">Nova obra</span>';
+  add.onclick = () => openObra();
+  grid.appendChild(add);
+  document.getElementById('h-obras').textContent = obras.length;
+}
+
+function fmtData(s) {
+  if (!s) return '—';
+  const [y,m,d] = s.split('-');
+  return d ? `${d}/${m}/${y}` : '—';
+}
+
+async function abrirVistoria(obraId) {
+  obraAtiva = obras.find(o => o.id === obraId);
+  if (!obraAtiva) return;
+  // Atualizar status da obra
+  await db.from('obras').update({ status:'em_vistoria' }).eq('id', obraId);
+  obraAtiva.status = 'em_vistoria';
+  // Criar ou buscar vistoria
+  let { data: vis } = await db.from('vistorias')
+    .select('*').eq('obra_id', obraId).eq('status','em_andamento').limit(1);
+  if (!vis || !vis.length) {
+    const mod = await db.from('modelos_checklist').select('id').limit(1);
+    const modId = mod.data?.[0]?.id;
+    const { data: nova } = await db.from('vistorias').insert({
+      obra_id: obraId,
+      engenheira_id: engId,
+      modelo_checklist_id: modId,
+    }).select().single();
+    viatoriaAtiva = nova;
+  } else {
+    viatoriaAtiva = vis[0];
+  }
+  // Carregar respostas existentes
+  const { data: resp } = await db.from('respostas_itens')
+    .select('*').eq('vistoria_id', viatoriaAtiva.id);
+  respostas = {};
+  (resp || []).forEach(r => {
+    respostas[r.item_id] = { status: r.status === 'conforme' ? 'conf' : r.status === 'nao_conforme' ? 'nc' : r.status === 'nao_aplicavel' ? 'na' : '', obs: r.observacao || '', fotos: [] };
+  });
+  // Preencher sidebar
+  document.getElementById('pp-obra').textContent = obraAtiva.nome.split('—')[0].trim();
+  document.getElementById('pp-data').textContent = fmtData(obraAtiva.data_vistoria);
+  document.getElementById('rel-obra').textContent = obraAtiva.nome;
+  document.getElementById('rel-const').textContent = obraAtiva.construtora || '—';
+  document.getElementById('rel-cliente').textContent = obraAtiva.cliente || '—';
+  document.getElementById('rel-end').textContent = obraAtiva.endereco || '—';
+  document.getElementById('rel-data').textContent = fmtData(obraAtiva.data_vistoria);
+  document.getElementById('rel-data2').textContent = fmtData(obraAtiva.data_vistoria);
+  document.getElementById('sig-const-lbl').textContent = obraAtiva.construtora || 'Construtora';
+  document.getElementById('sig-cli-lbl').textContent = 'Cliente — ' + (obraAtiva.cliente || '');
+  document.getElementById('si-email').textContent = obraAtiva.email_const || '—';
+  document.getElementById('si-wpp').textContent = obraAtiva.whatsapp_cli || '—';
+  renderChecklist();
+  goTo('p-vistoria', document.querySelector('.ni:nth-child(2)'));
+}
+
+// ============================================================
+// MODELO / CHECKLIST
+// ============================================================
+async function carregarModelo() {
+  const { data: mods } = await db.from('modelos_checklist').select('id').limit(1);
+  if (!mods || !mods.length) return;
+  const modId = mods[0].id;
+  const { data: cms } = await db.from('comodos').select('*').eq('modelo_checklist_id', modId).order('ordem');
+  comodos = cms || [];
+  for (const c of comodos) {
+    const { data: its } = await db.from('itens_checklist').select('*').eq('comodo_id', c.id).order('ordem');
+    c.itens = its || [];
+  }
+  itens = comodos.flatMap(c => c.itens);
+}
+
+function renderChecklist() {
+  const main = document.getElementById('cl-main');
+  main.innerHTML = '';
+  if (!comodos.length) {
+    main.innerHTML = '<div style="padding:20px;color:var(--text3);font-size:13px">Nenhum checklist encontrado no banco.</div>';
+    return;
+  }
+  comodos.forEach(cm => {
+    const div = document.createElement('div');
+    div.className = 'comodo-block';
+    div.innerHTML = `<div class="comodo-header"><span style="font-size:18px">${cm.icone||'🏠'}</span><span class="comodo-title">${cm.nome}</span><span class="comodo-cnt" id="cnt-${cm.id}">0/${cm.itens.length}</span></div>`;
+    cm.itens.forEach(it => div.appendChild(buildItem(it)));
+    main.appendChild(div);
+  });
+  updProgress();
+}
+
+function buildItem(it) {
+  if (!respostas[it.id]) respostas[it.id] = { status:'', obs:'', fotos:[] };
+  const e = respostas[it.id];
+  const tagMap = {
+    conf: '<span class="item-tag tag-conf">✓ Conforme</span>',
+    nc:   '<span class="item-tag tag-nc">✗ Não conforme</span>',
+    na:   '<span class="item-tag tag-na">— N/A</span>',
+    '':   '<span class="item-tag tag-pend">Pendente</span>'
+  };
+  const bubMap = { conf:'✓', nc:'✗', na:'—', '':'' };
+  const wrap = document.createElement('div');
+  wrap.className = 'cl-item' + (e.status ? ' s-'+e.status : '');
+  wrap.id = 'item-'+it.id;
+  wrap.innerHTML = `
+    <div class="cl-item-header" onclick="cycleStatus('${it.id}')">
+      <div class="status-bubble" id="bub-${it.id}">${bubMap[e.status]}</div>
+      <div class="item-text"><div class="item-name">${it.nome}</div><div class="item-detail">${it.detalhe||''}</div></div>
+      ${tagMap[e.status]}
+    </div>
+    <div class="cycle-hint" id="hint-${it.id}"></div>
+    <div class="nc-panel" id="ncp-${it.id}" style="display:${e.status==='nc'?'block':'none'}">
+      <div class="field-label">Descrição do problema</div>
+      <textarea class="obs-in" rows="2" placeholder="Descreva a não conformidade..." id="obs-${it.id}" oninput="respostas['${it.id}'].obs=this.value;salvarResposta('${it.id}')">${e.obs}</textarea>
+      <div class="field-label">Fotos</div>
+      <div class="photo-row" id="pr-${it.id}">
+        ${e.fotos.map(f=>`<div class="photo-thumb" onclick="openFoto('${f}','${it.nome}')">${f}</div>`).join('')}
+        <button class="add-photo" onclick="addFoto('${it.id}',event)"><span class="add-photo-ico">📷</span><span>Foto</span></button>
+      </div>
+    </div>`;
+  renderHint(it.id, e.status);
+  return wrap;
+}
+
+function renderHint(id, st) {
+  const h = document.getElementById('hint-'+id);
+  if (!h || !st) { if(h) h.innerHTML=''; return; }
+  const next = { conf:'Não conforme', nc:'N/A', na:'Limpar' }[st];
+  const col  = { conf:'var(--ok)', nc:'var(--danger)', na:'var(--na)' }[st];
+  h.innerHTML = `<span class="ch" style="border-color:${col};color:${col}">Clique novamente → ${next}</span>`;
+}
+
+async function cycleStatus(id) {
+  if (!respostas[id]) respostas[id] = { status:'', obs:'', fotos:[] };
+  const e = respostas[id];
+  e.status = cycle[e.status];
+  const it = itens.find(x => x.id === id);
+  const novo = buildItem(it);
+  document.getElementById('item-'+id).replaceWith(novo);
+  updProgress();
+  await salvarResposta(id);
+  const msgs = { conf:'✓ Conforme — salvo!', nc:'📷 Não conforme — descreva o problema', na:'— Não aplicável — salvo!', '':'↩ Item desmarcado' };
+  showToast(msgs[e.status]);
+}
+
+async function salvarResposta(id) {
+  if (!viatoriaAtiva) return;
+  const e = respostas[id];
+  const statusMap = { conf:'conforme', nc:'nao_conforme', na:'nao_aplicavel', '':'pendente' };
+  const it = itens.find(x => x.id === id);
+  showSaveInd('Salvando...');
+  const { error } = await db.from('respostas_itens').upsert({
+    vistoria_id: viatoriaAtiva.id,
+    item_id: id,
+    comodo_id: it?.comodo_id,
+    status: statusMap[e.status] || 'pendente',
+    observacao: e.obs,
+    atualizado_em: new Date().toISOString()
+  }, { onConflict: 'vistoria_id,item_id' });
+  if (!error) showSaveInd('✓ Salvo automaticamente');
+}
+
+let saveIndTimer;
+function showSaveInd(msg) {
+  const el = document.getElementById('save-ind');
+  el.textContent = msg;
+  el.style.opacity = '1';
+  clearTimeout(saveIndTimer);
+  saveIndTimer = setTimeout(() => { el.style.opacity = '0'; }, 2500);
+}
+
+function addFoto(id, e) {
+  e.stopPropagation();
+  if (!respostas[id]) respostas[id] = { status:'', obs:'', fotos:[] };
+  const emoji = EMOJIS_FOTO[Math.floor(Math.random()*EMOJIS_FOTO.length)];
+  respostas[id].fotos.push(emoji);
+  const row = document.getElementById('pr-'+id);
+  const btn = row.querySelector('.add-photo');
+  const div = document.createElement('div');
+  div.className = 'photo-thumb';
+  div.textContent = emoji;
+  const nm = itens.find(x=>x.id===id)?.nome||id;
+  div.onclick = () => openFoto(emoji, nm);
+  row.insertBefore(div, btn);
+  showToast('📷 Foto adicionada!');
+}
+
+// ============================================================
+// PROGRESSO
+// ============================================================
+function updProgress() {
+  const total = itens.length;
+  const conf = itens.filter(i => respostas[i.id]?.status === 'conf').length;
+  const nc   = itens.filter(i => respostas[i.id]?.status === 'nc').length;
+  const na   = itens.filter(i => respostas[i.id]?.status === 'na').length;
+  const done = conf + nc + na;
+  const pct  = total ? Math.round(done/total*100) : 0;
+  document.getElementById('c-conf').textContent = conf;
+  document.getElementById('c-nc').textContent = nc;
+  document.getElementById('c-na').textContent = na;
+  document.getElementById('pp-bar').style.width = pct+'%';
+  document.getElementById('pp-done').textContent = done + ' de ' + total + ' itens';
+  document.getElementById('pp-pct').textContent = pct+'%';
+  document.getElementById('h-pct').textContent = pct+'%';
+  document.getElementById('h-ncs').textContent = nc;
+  comodos.forEach(cm => {
+    const c = cm.itens.filter(i => respostas[i.id]?.status && respostas[i.id].status !== '').length;
+    const el = document.getElementById('cnt-'+cm.id);
+    if (el) el.textContent = c+'/'+cm.itens.length;
+  });
+}
+
+function atualizarStats() {
+  document.getElementById('h-vis').textContent = '—';
+}
+
+// ============================================================
+// RELATÓRIO
+// ============================================================
+function gerarRel() {
+  const conf = itens.filter(i => respostas[i.id]?.status === 'conf').length;
+  const nc   = itens.filter(i => respostas[i.id]?.status === 'nc').length;
+  const na   = itens.filter(i => respostas[i.id]?.status === 'na').length;
+  document.getElementById('r-conf').textContent = conf;
+  document.getElementById('r-nc').textContent = nc;
+  document.getElementById('r-na').textContent = na;
+  const now = new Date();
+  document.getElementById('rel-sub').textContent = 'VistoriaApp · ' + now.toLocaleDateString('pt-BR') + ' às ' + now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  let html = ''; let algum = false;
+  comodos.forEach(cm => {
+    const ncItens = cm.itens.filter(i => respostas[i.id]?.status === 'nc');
+    if (!ncItens.length) return;
+    algum = true;
+    html += `<div class="rel-comodo-block"><div class="rel-comodo-title">${cm.icone||'🏠'} ${cm.nome}</div>`;
+    ncItens.forEach(it => {
+      const e = respostas[it.id];
+      const obs = e?.obs?.trim() || 'Sem observação registrada.';
+      const photos = e?.fotos?.length
+        ? e.fotos.map(f=>`<div class="rel-photo" onclick="openFoto('${f}','${it.nome}')">${f}</div>`).join('')
+        : '<span style="font-size:12px;color:var(--text3)">Nenhuma foto</span>';
+      html += `<div class="rel-nc-item"><div class="rel-nc-head"><span style="color:var(--danger)">✗</span><span class="rel-nc-name">${it.nome}</span><span class="rel-nc-badge">NÃO CONFORME</span></div><div class="rel-nc-body"><div class="rel-nc-obs">📝 ${obs}</div><div class="rel-nc-photos">${photos}</div></div></div>`;
+    });
+    html += '</div>';
+  });
+  if (!algum) html = '<div class="rel-empty">✅ Nenhuma não conformidade registrada.</div>';
+  document.getElementById('rel-nc-body').innerHTML = html;
+}
+
+// ============================================================
+// MODAL OBRA
+// ============================================================
+function openObra(id) {
+  const o = id ? obras.find(x=>x.id===id) : null;
+  document.getElementById('mo-title').textContent = o ? 'Editar obra' : 'Nova obra';
+  document.getElementById('mo-id').value = o ? o.id : '';
+  document.getElementById('mo-nome').value = o?.nome || '';
+  document.getElementById('mo-const').value = o?.construtora || '';
+  document.getElementById('mo-cli').value = o?.cliente || '';
+  document.getElementById('mo-end').value = o?.endereco || '';
+  document.getElementById('mo-email').value = o?.email_const || '';
+  document.getElementById('mo-wpp').value = o?.whatsapp_cli || '';
+  document.getElementById('mo-data').value = o?.data_vistoria || new Date().toISOString().slice(0,10);
+  const icoSel = o?.icone || '🏢';
+  document.getElementById('mo-ico').value = icoSel;
+  const picker = document.getElementById('ico-picker');
+  picker.innerHTML = '';
+  ICO_LIST.forEach(ico => {
+    const sp = document.createElement('span');
+    sp.textContent = ico; sp.style.cssText='cursor:pointer;font-size:22px;padding:4px;border-radius:6px;border:2px solid '+(ico===icoSel?'var(--accent)':'transparent');
+    sp.onclick = () => { document.getElementById('mo-ico').value=ico; picker.querySelectorAll('span').forEach(s=>s.style.borderColor='transparent'); sp.style.borderColor='var(--accent)'; };
+    picker.appendChild(sp);
+  });
+  document.getElementById('modal-obra').classList.add('open');
+}
+function editObra(id) { openObra(id); }
+function closeObra() { document.getElementById('modal-obra').classList.remove('open'); }
+
+async function salvarObra() {
+  const id = document.getElementById('mo-id').value;
+  const dados = {
+    icone: document.getElementById('mo-ico').value||'🏢',
+    nome: document.getElementById('mo-nome').value||'Nova obra',
+    construtora: document.getElementById('mo-const').value||'',
+    cliente: document.getElementById('mo-cli').value||'',
+    endereco: document.getElementById('mo-end').value||'',
+    email_const: document.getElementById('mo-email').value||'',
+    whatsapp_cli: document.getElementById('mo-wpp').value||'',
+    data_vistoria: document.getElementById('mo-data').value||null,
+    engenheira_id: engId,
+    atualizado_em: new Date().toISOString()
+  };
+  if (id) {
+    await db.from('obras').update(dados).eq('id', id);
+  } else {
+    await db.from('obras').insert(dados);
+  }
+  closeObra();
+  await carregarObras();
+  showToast('✅ Obra salva no banco!');
+}
+
+async function delObra(id) {
+  if (!confirm('Remover esta obra? Os dados serão excluídos.')) return;
+  await db.from('obras').delete().eq('id', id);
+  await carregarObras();
+  showToast('🗑️ Obra removida.');
+}
+
+// ============================================================
+// NAVEGAÇÃO
+// ============================================================
+const PT = { 'p-home':'Início','p-vistoria':'Checklist','p-relatorio':'Relatório','p-config':'Configurações' };
+function goTo(id, ni) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById('tt').textContent = PT[id]||'';
+  const act = document.getElementById('topbar-action');
+  act.innerHTML = id==='p-home' ? '<button class="btn btn-p" onclick="openObra()">+ Nova obra</button>' : '';
+  if (ni) { document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active')); ni.classList.add('active'); }
+  closeSB();
+}
+function toggleSB() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sb-ov').style.display=document.getElementById('sidebar').classList.contains('open')?'block':'none'; }
+function closeSB() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sb-ov').style.display='none'; }
+
+// ============================================================
+// TOAST / MODAL FOTO
+// ============================================================
+let toastT;
+function showToast(m) { const t=document.getElementById('toast'); document.getElementById('toast-msg').textContent=m; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2800); }
+function openFoto(emoji,label) { document.getElementById('mf-emoji').textContent=emoji; document.getElementById('mf-label').textContent=label; document.getElementById('modal-foto').classList.add('open'); }
+function closeFoto() { document.getElementById('modal-foto').classList.remove('open'); }
+function updNome(v) { document.getElementById('sb-name').textContent=v||'Beatriz Lunardi'; document.getElementById('pp-nome').textContent='Engª '+(v||'Beatriz Lunardi'); document.getElementById('rel-nome').textContent='Engª '+(v||'Beatriz Lunardi')+' — '+(document.getElementById('cfg-crea')?.value||'CREA/SC'); }
+
+// ============================================================
+// START
+// ============================================================
+init();
+</script>
+</body>
+</html>

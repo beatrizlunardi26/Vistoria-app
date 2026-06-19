@@ -58,6 +58,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .btn-p{background:var(--accent);color:#fff;border-color:var(--accent)}
 .btn-p:hover{background:var(--ok);border-color:var(--ok);color:#fff}
 .btn-danger{background:var(--danger-light);color:var(--danger);border-color:var(--danger)}
+.btn-sm{padding:5px 10px;font-size:11px}
 
 /* PAGES */
 .page{display:none}.page.active{display:block}
@@ -88,6 +89,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .b-ok{background:var(--ok-light);color:var(--ok)}
 .b-warn{background:var(--warn-light);color:var(--warn)}
 .b-pend{background:var(--surface2);color:var(--text2)}
+.b-mod{background:var(--na-light);color:var(--na)}
 .pbar-out{background:var(--border);border-radius:4px;height:5px}
 .pbar-in{height:100%;border-radius:4px;background:var(--accent2);transition:width .4s}
 .pbar-meta{font-size:11px;color:var(--text3);margin-top:4px;display:flex;justify-content:space-between}
@@ -106,6 +108,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .cl-item.s-conf{border-color:var(--ok)}
 .cl-item.s-nc{border-color:var(--danger)}
 .cl-item.s-na{border-color:var(--na);opacity:.75}
+.cl-item.s-off{opacity:.4;border-style:dashed}
 .cl-item-header{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;user-select:none}
 .status-bubble{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;border:2px solid var(--border);background:var(--surface2);color:transparent;transition:all .2s}
 .s-conf .status-bubble{background:var(--ok-light);border-color:var(--ok);color:var(--ok)}
@@ -119,6 +122,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .tag-nc{background:var(--danger-light);color:var(--danger)}
 .tag-na{background:var(--na-light);color:var(--na)}
 .tag-pend{background:var(--surface2);color:var(--text3)}
+.item-remove-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:2px 4px;flex-shrink:0;line-height:1}
+.item-remove-btn:hover{color:var(--danger)}
 .cycle-hint{display:flex;gap:6px;padding:0 14px 10px 54px;flex-wrap:wrap}
 .ch{font-size:11px;padding:3px 9px;border-radius:20px;border:1px solid var(--border);color:var(--text3)}
 .nc-panel{padding:0 14px 14px 54px}
@@ -145,6 +150,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .leg{display:flex;align-items:center;gap:5px}
 .leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .save-indicator{font-size:11px;color:var(--ok);margin-top:8px;text-align:center;min-height:16px;transition:opacity .3s}
+.add-item-row{display:flex;gap:8px;margin-top:8px}
+.add-item-row input{flex:1;font-family:'DM Sans',sans-serif;font-size:12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;background:var(--bg);outline:none}
+.add-item-row input:focus{border-color:var(--accent2);background:#fff}
+.model-select-bar{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow);padding:12px 16px;margin-bottom:16px}
+.model-select-bar select{flex:1;font-family:'DM Sans',sans-serif;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;background:var(--bg);color:var(--text);outline:none;cursor:pointer}
+.model-select-label{font-size:12px;color:var(--text2);white-space:nowrap}
 
 /* RELATÓRIO */
 .rel-layout{display:grid;grid-template-columns:1fr 280px;gap:20px;align-items:start}
@@ -198,10 +209,25 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .fi:focus{border-color:var(--accent2);background:#fff}
 .fsel{width:100%;font-family:'DM Sans',sans-serif;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;background:var(--bg);color:var(--text);outline:none;cursor:pointer}
 
+/* CHECKLIST ADMIN (editor de modelos) */
+.admin-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.admin-tab{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:8px 16px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;transition:all .15s}
+.admin-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.admin-comodo{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:14px;overflow:hidden}
+.admin-comodo-head{padding:12px 16px;background:var(--surface2);font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px}
+.admin-item-row{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--surface2)}
+.admin-item-row:last-child{border-bottom:none}
+.admin-item-name{flex:1;font-size:13px}
+.admin-item-detail{font-size:11px;color:var(--text2)}
+.admin-item-edit-input{width:100%;font-family:'DM Sans',sans-serif;font-size:13px;border:1.5px solid var(--border);border-radius:6px;padding:6px 10px;background:var(--bg);outline:none}
+.admin-item-edit-input:focus{border-color:var(--accent2);background:#fff}
+.admin-add-item{display:flex;gap:8px;padding:12px 16px;background:var(--surface2)}
+.admin-add-item input{flex:1;font-family:'DM Sans',sans-serif;font-size:12px;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;outline:none}
+
 /* MODAL */
 .modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9000;display:none;align-items:center;justify-content:center}
 .modal-ov.open{display:flex}
-.modal-box{background:var(--surface);border-radius:var(--radius);padding:28px;max-width:460px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.4);position:relative}
+.modal-box{background:var(--surface);border-radius:var(--radius);padding:28px;max-width:460px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.4);position:relative;max-height:85vh;overflow-y:auto}
 .modal-close{position:absolute;top:14px;right:14px;background:var(--surface2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:15px;color:var(--text2)}
 .modal-title{font-size:16px;font-weight:600;margin-bottom:16px}
 .modal-actions{display:flex;gap:8px;margin-top:20px;justify-content:flex-end}
@@ -214,7 +240,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 </head>
 <body>
 
-<!-- LOADING -->
 <div class="loading-screen" id="loading">
   <div class="loading-logo">📐 VistoriaApp</div>
   <div class="spinner"></div>
@@ -224,7 +249,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <div class="sb-ov" id="sb-ov" onclick="closeSB()"></div>
 <div class="shell">
 
-<!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
   <div class="sb-logo"><div class="sb-logo-t">📐 VistoriaApp</div><div class="sb-logo-s">Entrega de obra</div></div>
   <div class="sb-user">
@@ -235,13 +259,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <button class="ni active" onclick="goTo('p-home',this)"><span class="ico">🏠</span>Início</button>
     <button class="ni" onclick="goTo('p-vistoria',this)"><span class="ico">📋</span>Checklist</button>
     <button class="ni" onclick="gerarRel();goTo('p-relatorio',this)"><span class="ico">📄</span>Relatório</button>
+    <button class="ni" onclick="abrirAdminChecklist();goTo('p-admin',this)"><span class="ico">🛠️</span>Modelos de Checklist</button>
     <button class="ni" onclick="goTo('p-config',this)"><span class="ico">⚙️</span>Configurações</button>
   </nav>
   <div class="sb-status" id="sb-status">
     <div class="sb-dot dot-wait" id="sb-dot"></div>
     <span id="sb-status-txt" style="color:rgba(255,255,255,.5);font-size:11px">Conectando...</span>
   </div>
-  <div class="sb-foot">VistoriaApp v2.0 · Supabase</div>
+  <div class="sb-foot">VistoriaApp v3.0 · Supabase</div>
 </aside>
 
 <div class="main">
@@ -258,7 +283,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="page active" id="p-home">
       <div class="stats-row">
         <div class="stat-card"><div class="stat-num" id="h-obras">—</div><div class="stat-label">Obras cadastradas</div></div>
-        <div class="stat-card"><div class="stat-num" id="h-vis">—</div><div class="stat-label">Vistorias realizadas</div></div>
+        <div class="stat-card"><div class="stat-num" id="h-vis">—</div><div class="stat-label">Modelos de checklist</div></div>
         <div class="stat-card"><div class="stat-num" id="h-pct">—</div><div class="stat-label">Vistoria atual</div></div>
         <div class="stat-card"><div class="stat-num" id="h-ncs">—</div><div class="stat-label">Não conformidades</div></div>
       </div>
@@ -268,8 +293,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       </div>
     </div>
 
-    <!-- CHECKLIST -->
+    <!-- CHECKLIST (vistoria em andamento) -->
     <div class="page" id="p-vistoria">
+      <div class="model-select-bar">
+        <span class="model-select-label">📋 Modelo de checklist:</span>
+        <select id="model-select" onchange="trocarModeloVistoria(this.value)"></select>
+      </div>
       <div class="cl-layout">
         <div id="cl-main"><div style="padding:20px;color:var(--text3);font-size:13px">Selecione uma obra para iniciar.</div></div>
         <div class="prog-panel">
@@ -294,6 +323,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
               <div class="leg"><div class="leg-dot" style="background:var(--danger)"></div>2× = Não conforme</div>
               <div class="leg"><div class="leg-dot" style="background:var(--na)"></div>3× = N/A</div>
               <div class="leg"><div class="leg-dot" style="background:var(--text3)"></div>4× = Limpar</div>
+            </div>
+            <div style="font-size:11px;color:var(--text3);margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+              ✕ no item = remove da vistoria atual (não some do modelo)
             </div>
             <div class="save-indicator" id="save-ind"></div>
             <button class="btn btn-p" style="width:100%;margin-top:12px;padding:11px" onclick="gerarRel();goTo('p-relatorio',document.querySelector('.ni:nth-child(3)'))">📄 Gerar relatório</button>
@@ -321,7 +353,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
               <div class="rel-r"><span class="rk">Cliente</span><span class="rv" id="rel-cliente">—</span></div>
               <div class="rel-r"><span class="rk">Vistoriadora</span><span class="rv" id="rel-nome">Engª Beatriz Lunardi — CREA/SC</span></div>
               <div class="rel-r"><span class="rk">Data</span><span class="rv" id="rel-data">—</span></div>
-              <div class="rel-r"><span class="rk">Endereço</span><span class="rv" id="rel-end">—</span></div>
+              <div class="rel-r"><span class="rk">Modelo</span><span class="rv" id="rel-modelo">—</span></div>
             </div>
           </div>
           <div class="rel-sec">
@@ -367,6 +399,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       </div>
     </div>
 
+    <!-- ADMIN — MODELOS DE CHECKLIST -->
+    <div class="page" id="p-admin">
+      <div style="margin-bottom:16px;font-size:13px;color:var(--text2)">
+        🛠️ Aqui você edita os <strong>modelos principais</strong> de checklist. Alterações aqui afetam todas as <strong>vistorias novas</strong>. Vistorias já em andamento não são alteradas retroativamente.
+      </div>
+      <div class="admin-tabs" id="admin-tabs"></div>
+      <div id="admin-body"></div>
+    </div>
+
     <!-- CONFIG -->
     <div class="page" id="p-config">
       <div class="cfg-grid">
@@ -399,11 +440,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
           </div>
         </div>
         <div class="cfg-card">
-          <div class="cfg-head">📋 Checklists</div>
+          <div class="cfg-head">📋 Modelos de Checklist</div>
           <div class="cfg-body">
-            <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:14px">Modelos carregados do banco de dados. Quando enviar sua lista real, adiciono aqui.</div>
-            <button class="btn" style="width:100%;justify-content:center;margin-bottom:8px" onclick="showToast('Em breve!')">+ Novo modelo</button>
-            <button class="btn" style="width:100%;justify-content:center" onclick="showToast('Em breve!')">📥 Importar planilha</button>
+            <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:14px">Gerencie os modelos principais na aba <strong>"Modelos de Checklist"</strong> no menu lateral.</div>
+            <button class="btn" style="width:100%;justify-content:center" onclick="abrirAdminChecklist();goTo('p-admin',document.querySelector('.ni:nth-child(4)'))">🛠️ Ir para Modelos de Checklist</button>
           </div>
         </div>
       </div>
@@ -428,6 +468,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="fl">E-mail da construtora</div><input class="fi" id="mo-email" type="email">
     <div class="fl">WhatsApp do cliente</div><input class="fi" id="mo-wpp" placeholder="(48) 99999-0000">
     <div class="fl">Data da vistoria</div><input class="fi" id="mo-data" type="date">
+    <div class="fl">Modelo de checklist</div>
+    <select class="fsel" id="mo-modelo"></select>
     <div class="fl">Ícone</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px" id="ico-picker"></div>
     <input type="hidden" id="mo-ico" value="🏢">
@@ -466,60 +508,71 @@ const db = createClient(SUPA_URL, SUPA_KEY);
 // ESTADO LOCAL
 // ============================================================
 let obras = [];
+let modelos = [];       // todos modelos {id, nome, descricao, comodos:[{id,nome,icone,itens:[...]}]}
 let obraAtiva = null;
-let viatoriaAtiva = null;
-let comodos = [];
-let itens = [];
-let respostas = {}; // itemId -> { status, obs, fotos[] }
+let vistoriaAtiva = null;
+let modeloAtivoId = null;  // modelo usado na vistoria atual
+let comodos = [];           // comodos do modelo ativo na vistoria
+let itens = [];              // itens flat do modelo ativo
+let respostas = {};          // itemId -> { status, obs, fotos[], ativo }
 let engId = null;
+let adminModeloAtual = null;
 
 const EMOJIS_FOTO = ['📸','🖼️','🔍','📷','🔎'];
 const cycle = { '':'conf', conf:'nc', nc:'na', na:'' };
 const ICO_LIST = ['🏢','🏠','🏗️','🏛️','🏬','🏭','🏡'];
 
 // ============================================================
-// INICIALIZAÇÃO
+// INIT
 // ============================================================
 async function init() {
   setLoading('Conectando ao banco de dados...');
   try {
-    // Buscar engenheira
     const { data: engs } = await db.from('engenheiras').select('*').eq('email','beatriz@email.com.br').limit(1);
-    if (engs && engs.length) {
-      engId = engs[0].id;
-    }
+    if (engs && engs.length) engId = engs[0].id;
     setStatus(true);
+    setLoading('Carregando modelos de checklist...');
+    await carregarModelos();
     setLoading('Carregando obras...');
     await carregarObras();
-    setLoading('Carregando checklist...');
-    await carregarModelo();
     hideLoading();
-    atualizarStats();
   } catch(e) {
     setStatus(false);
     hideLoading();
     showToast('⚠️ Erro ao conectar: ' + e.message);
   }
 }
+function setLoading(msg){ document.getElementById('loading-msg').textContent = msg; }
+function hideLoading(){ const l=document.getElementById('loading'); l.classList.add('hide'); setTimeout(()=>l.style.display='none',600); }
+function setStatus(ok){
+  const dot=document.getElementById('sb-dot'), txt=document.getElementById('sb-status-txt'), cfg=document.getElementById('cfg-status');
+  dot.className='sb-dot '+(ok?'dot-ok':'dot-err');
+  txt.textContent=ok?'✓ Supabase conectado':'✗ Sem conexão';
+  txt.style.color=ok?'rgba(255,255,255,.7)':'#F87171';
+  if(cfg){ cfg.textContent=ok?'✅ Conectado ao Supabase':'❌ Sem conexão'; cfg.style.background=ok?'var(--ok-light)':'var(--danger-light)'; cfg.style.color=ok?'var(--ok)':'var(--danger)'; }
+}
 
-function setLoading(msg) {
-  document.getElementById('loading-msg').textContent = msg;
-}
-function hideLoading() {
-  const l = document.getElementById('loading');
-  l.classList.add('hide');
-  setTimeout(() => l.style.display='none', 600);
-}
-function setStatus(ok) {
-  const dot = document.getElementById('sb-dot');
-  const txt = document.getElementById('sb-status-txt');
-  const cfg = document.getElementById('cfg-status');
-  dot.className = 'sb-dot ' + (ok ? 'dot-ok' : 'dot-err');
-  txt.textContent = ok ? '✓ Supabase conectado' : '✗ Sem conexão';
-  txt.style.color = ok ? 'rgba(255,255,255,.7)' : '#F87171';
-  if (cfg) cfg.textContent = ok ? '✅ Conectado ao Supabase' : '❌ Sem conexão';
-  if (cfg) cfg.style.background = ok ? 'var(--ok-light)' : 'var(--danger-light)';
-  if (cfg) cfg.style.color = ok ? 'var(--ok)' : 'var(--danger)';
+// ============================================================
+// MODELOS (carregamento completo com comodos+itens)
+// ============================================================
+async function carregarModelos() {
+  const { data: mods } = await db.from('modelos_checklist').select('*').order('criado_em');
+  modelos = mods || [];
+  for (const m of modelos) {
+    const { data: cms } = await db.from('comodos').select('*').eq('modelo_checklist_id', m.id).order('ordem');
+    m.comodos = cms || [];
+    for (const c of m.comodos) {
+      const { data: its } = await db.from('itens_checklist').select('*').eq('comodo_id', c.id).order('ordem');
+      c.itens = its || [];
+    }
+  }
+  document.getElementById('h-vis').textContent = modelos.length;
+  // popular select do modal de obra
+  const moSel = document.getElementById('mo-modelo');
+  moSel.innerHTML = modelos.map(m=>`<option value="${m.id}">${m.nome}</option>`).join('');
+  // popular select da vistoria
+  const visSel = document.getElementById('model-select');
+  visSel.innerHTML = modelos.map(m=>`<option value="${m.id}">${m.nome}</option>`).join('');
 }
 
 // ============================================================
@@ -532,26 +585,28 @@ async function carregarObras() {
   renderObras();
 }
 
+function nomeModelo(id) {
+  const m = modelos.find(x=>x.id===id);
+  return m ? m.nome : '—';
+}
+
 function renderObras() {
   const grid = document.getElementById('obras-grid');
   grid.innerHTML = '';
   obras.forEach(o => {
-    const pct = 0; // calculado em tempo real
-    const statusBadge = o.status === 'em_vistoria'
-      ? `<span class="badge b-warn">Em vistoria</span>`
-      : o.status === 'concluida'
-      ? `<span class="badge b-ok">Concluída</span>`
+    const statusBadge = o.status === 'em_vistoria' ? `<span class="badge b-warn">Em vistoria</span>`
+      : o.status === 'concluida' ? `<span class="badge b-ok">Concluída</span>`
       : `<span class="badge b-pend">Pendente</span>`;
     const div = document.createElement('div');
     div.className = 'obra-card';
     div.innerHTML = `
       <div class="obra-header">
         <div class="obra-icon">${o.icone||'🏢'}</div>
-        <div><div class="obra-name">${o.nome}</div><div class="obra-sub">${o.construtora||'—'} · ${(o.endereco||'').split(',')[1]?.trim()||o.endereco||''}</div></div>
+        <div><div class="obra-name">${o.nome}</div><div class="obra-sub">${o.construtora||'—'}</div></div>
       </div>
-      <div class="obra-meta">${statusBadge}<span class="badge b-pend">${fmtData(o.data_vistoria)}</span></div>
+      <div class="obra-meta">${statusBadge}<span class="badge b-mod">${nomeModelo(o.modelo_checklist_id)}</span></div>
       <div class="pbar-out"><div class="pbar-in" style="width:0%"></div></div>
-      <div class="pbar-meta"><span>0 itens</span><span>${fmtData(o.data_vistoria)}</span></div>
+      <div class="pbar-meta"><span>—</span><span>${fmtData(o.data_vistoria)}</span></div>
       <div class="obra-actions">
         <button class="btn btn-p" style="flex:1" onclick="abrirVistoria('${o.id}')">▶ Abrir vistoria</button>
         <button class="btn" onclick="editObra('${o.id}')">✏️</button>
@@ -567,110 +622,117 @@ function renderObras() {
   document.getElementById('h-obras').textContent = obras.length;
 }
 
-function fmtData(s) {
-  if (!s) return '—';
-  const [y,m,d] = s.split('-');
-  return d ? `${d}/${m}/${y}` : '—';
-}
+function fmtData(s){ if(!s)return'—'; const[y,m,d]=s.split('-'); return d?`${d}/${m}/${y}`:'—'; }
 
+// ============================================================
+// VISTORIA — carregar modelo escolhido para a obra
+// ============================================================
 async function abrirVistoria(obraId) {
   obraAtiva = obras.find(o => o.id === obraId);
   if (!obraAtiva) return;
-  // Atualizar status da obra
   await db.from('obras').update({ status:'em_vistoria' }).eq('id', obraId);
   obraAtiva.status = 'em_vistoria';
-  // Criar ou buscar vistoria
-  let { data: vis } = await db.from('vistorias')
-    .select('*').eq('obra_id', obraId).eq('status','em_andamento').limit(1);
+
+  modeloAtivoId = obraAtiva.modelo_checklist_id || (modelos[0] && modelos[0].id);
+  document.getElementById('model-select').value = modeloAtivoId;
+
+  let { data: vis } = await db.from('vistorias').select('*').eq('obra_id', obraId).eq('status','em_andamento').limit(1);
   if (!vis || !vis.length) {
-    const mod = await db.from('modelos_checklist').select('id').limit(1);
-    const modId = mod.data?.[0]?.id;
     const { data: nova } = await db.from('vistorias').insert({
-      obra_id: obraId,
-      engenheira_id: engId,
-      modelo_checklist_id: modId,
+      obra_id: obraId, engenheira_id: engId, modelo_checklist_id: modeloAtivoId,
     }).select().single();
-    viatoriaAtiva = nova;
+    vistoriaAtiva = nova;
   } else {
-    viatoriaAtiva = vis[0];
+    vistoriaAtiva = vis[0];
+    modeloAtivoId = vistoriaAtiva.modelo_checklist_id || modeloAtivoId;
+    document.getElementById('model-select').value = modeloAtivoId;
   }
-  // Carregar respostas existentes
-  const { data: resp } = await db.from('respostas_itens')
-    .select('*').eq('vistoria_id', viatoriaAtiva.id);
-  respostas = {};
-  (resp || []).forEach(r => {
-    respostas[r.item_id] = { status: r.status === 'conforme' ? 'conf' : r.status === 'nao_conforme' ? 'nc' : r.status === 'nao_aplicavel' ? 'na' : '', obs: r.observacao || '', fotos: [] };
-  });
-  // Preencher sidebar
+
+  await carregarRespostasEModelo();
+
   document.getElementById('pp-obra').textContent = obraAtiva.nome.split('—')[0].trim();
   document.getElementById('pp-data').textContent = fmtData(obraAtiva.data_vistoria);
   document.getElementById('rel-obra').textContent = obraAtiva.nome;
   document.getElementById('rel-const').textContent = obraAtiva.construtora || '—';
   document.getElementById('rel-cliente').textContent = obraAtiva.cliente || '—';
-  document.getElementById('rel-end').textContent = obraAtiva.endereco || '—';
   document.getElementById('rel-data').textContent = fmtData(obraAtiva.data_vistoria);
   document.getElementById('rel-data2').textContent = fmtData(obraAtiva.data_vistoria);
+  document.getElementById('rel-modelo').textContent = nomeModelo(modeloAtivoId);
   document.getElementById('sig-const-lbl').textContent = obraAtiva.construtora || 'Construtora';
   document.getElementById('sig-cli-lbl').textContent = 'Cliente — ' + (obraAtiva.cliente || '');
   document.getElementById('si-email').textContent = obraAtiva.email_const || '—';
   document.getElementById('si-wpp').textContent = obraAtiva.whatsapp_cli || '—';
-  renderChecklist();
   goTo('p-vistoria', document.querySelector('.ni:nth-child(2)'));
 }
 
-// ============================================================
-// MODELO / CHECKLIST
-// ============================================================
-async function carregarModelo() {
-  const { data: mods } = await db.from('modelos_checklist').select('id').limit(1);
-  if (!mods || !mods.length) return;
-  const modId = mods[0].id;
-  const { data: cms } = await db.from('comodos').select('*').eq('modelo_checklist_id', modId).order('ordem');
-  comodos = cms || [];
-  for (const c of comodos) {
-    const { data: its } = await db.from('itens_checklist').select('*').eq('comodo_id', c.id).order('ordem');
-    c.itens = its || [];
-  }
+async function carregarRespostasEModelo() {
+  const modelo = modelos.find(m => m.id === modeloAtivoId);
+  comodos = modelo ? modelo.comodos : [];
   itens = comodos.flatMap(c => c.itens);
+
+  const { data: resp } = await db.from('respostas_itens').select('*').eq('vistoria_id', vistoriaAtiva.id);
+  respostas = {};
+  itens.forEach(it => { respostas[it.id] = { status:'', obs:'', fotos:[], ativo:true }; });
+  (resp || []).forEach(r => {
+    respostas[r.item_id] = {
+      status: r.status==='conforme'?'conf':r.status==='nao_conforme'?'nc':r.status==='nao_aplicavel'?'na':'',
+      obs: r.observacao||'', fotos:[], ativo: r.item_ativo!==false
+    };
+  });
+  renderChecklist();
 }
 
+async function trocarModeloVistoria(novoModeloId) {
+  if (!vistoriaAtiva) return;
+  if (novoModeloId === modeloAtivoId) return;
+  if (!confirm('Trocar o modelo de checklist desta vistoria? As respostas já preenchidas no modelo atual ficam salvas, mas a tela vai mostrar o novo modelo.')) {
+    document.getElementById('model-select').value = modeloAtivoId;
+    return;
+  }
+  modeloAtivoId = novoModeloId;
+  await db.from('vistorias').update({ modelo_checklist_id: modeloAtivoId }).eq('id', vistoriaAtiva.id);
+  await db.from('obras').update({ modelo_checklist_id: modeloAtivoId }).eq('id', obraAtiva.id);
+  document.getElementById('rel-modelo').textContent = nomeModelo(modeloAtivoId);
+  await carregarRespostasEModelo();
+  showToast('🔄 Modelo trocado!');
+}
+
+// ============================================================
+// CHECKLIST (vistoria)
+// ============================================================
 function renderChecklist() {
   const main = document.getElementById('cl-main');
   main.innerHTML = '';
-  if (!comodos.length) {
-    main.innerHTML = '<div style="padding:20px;color:var(--text3);font-size:13px">Nenhum checklist encontrado no banco.</div>';
-    return;
-  }
+  if (!comodos.length) { main.innerHTML = '<div style="padding:20px;color:var(--text3);font-size:13px">Nenhum checklist encontrado neste modelo.</div>'; return; }
   comodos.forEach(cm => {
+    const ativos = cm.itens.filter(i => respostas[i.id]?.ativo !== false);
+    if (!ativos.length) return;
     const div = document.createElement('div');
     div.className = 'comodo-block';
-    div.innerHTML = `<div class="comodo-header"><span style="font-size:18px">${cm.icone||'🏠'}</span><span class="comodo-title">${cm.nome}</span><span class="comodo-cnt" id="cnt-${cm.id}">0/${cm.itens.length}</span></div>`;
-    cm.itens.forEach(it => div.appendChild(buildItem(it)));
+    div.innerHTML = `<div class="comodo-header"><span style="font-size:18px">${cm.icone||'🏠'}</span><span class="comodo-title">${cm.nome}</span><span class="comodo-cnt" id="cnt-${cm.id}">0/${ativos.length}</span></div>`;
+    ativos.forEach(it => div.appendChild(buildItem(it)));
     main.appendChild(div);
   });
   updProgress();
 }
 
 function buildItem(it) {
-  if (!respostas[it.id]) respostas[it.id] = { status:'', obs:'', fotos:[] };
+  if (!respostas[it.id]) respostas[it.id] = { status:'', obs:'', fotos:[], ativo:true };
   const e = respostas[it.id];
-  const tagMap = {
-    conf: '<span class="item-tag tag-conf">✓ Conforme</span>',
-    nc:   '<span class="item-tag tag-nc">✗ Não conforme</span>',
-    na:   '<span class="item-tag tag-na">— N/A</span>',
-    '':   '<span class="item-tag tag-pend">Pendente</span>'
-  };
+  const tagMap = { conf:'<span class="item-tag tag-conf">✓ Conforme</span>', nc:'<span class="item-tag tag-nc">✗ Não conforme</span>', na:'<span class="item-tag tag-na">— N/A</span>', '':'<span class="item-tag tag-pend">Pendente</span>' };
   const bubMap = { conf:'✓', nc:'✗', na:'—', '':'' };
   const wrap = document.createElement('div');
   wrap.className = 'cl-item' + (e.status ? ' s-'+e.status : '');
   wrap.id = 'item-'+it.id;
   wrap.innerHTML = `
-    <div class="cl-item-header" onclick="cycleStatus('${it.id}')">
-      <div class="status-bubble" id="bub-${it.id}">${bubMap[e.status]}</div>
-      <div class="item-text"><div class="item-name">${it.nome}</div><div class="item-detail">${it.detalhe||''}</div></div>
+    <div class="cl-item-header">
+      <div onclick="cycleStatus('${it.id}')" style="display:flex;align-items:center;gap:10px;flex:1;cursor:pointer">
+        <div class="status-bubble" id="bub-${it.id}">${bubMap[e.status]}</div>
+        <div class="item-text"><div class="item-name">${it.nome}</div><div class="item-detail">${it.detalhe||''}${it.criterio?' — '+it.criterio:''}</div></div>
+      </div>
       ${tagMap[e.status]}
+      <button class="item-remove-btn" title="Remover desta vistoria" onclick="removerItemVistoria('${it.id}',event)">✕</button>
     </div>
-    <div class="cycle-hint" id="hint-${it.id}"></div>
     <div class="nc-panel" id="ncp-${it.id}" style="display:${e.status==='nc'?'block':'none'}">
       <div class="field-label">Descrição do problema</div>
       <textarea class="obs-in" rows="2" placeholder="Descreva a não conformidade..." id="obs-${it.id}" oninput="respostas['${it.id}'].obs=this.value;salvarResposta('${it.id}')">${e.obs}</textarea>
@@ -680,20 +742,20 @@ function buildItem(it) {
         <button class="add-photo" onclick="addFoto('${it.id}',event)"><span class="add-photo-ico">📷</span><span>Foto</span></button>
       </div>
     </div>`;
-  renderHint(it.id, e.status);
   return wrap;
 }
 
-function renderHint(id, st) {
-  const h = document.getElementById('hint-'+id);
-  if (!h || !st) { if(h) h.innerHTML=''; return; }
-  const next = { conf:'Não conforme', nc:'N/A', na:'Limpar' }[st];
-  const col  = { conf:'var(--ok)', nc:'var(--danger)', na:'var(--na)' }[st];
-  h.innerHTML = `<span class="ch" style="border-color:${col};color:${col}">Clique novamente → ${next}</span>`;
+async function removerItemVistoria(id, ev) {
+  ev.stopPropagation();
+  if (!confirm('Remover este item desta vistoria? Ele continuará no modelo principal para as próximas vistorias.')) return;
+  respostas[id].ativo = false;
+  await salvarResposta(id);
+  renderChecklist();
+  showToast('✕ Item removido desta vistoria');
 }
 
 async function cycleStatus(id) {
-  if (!respostas[id]) respostas[id] = { status:'', obs:'', fotos:[] };
+  if (!respostas[id]) respostas[id] = { status:'', obs:'', fotos:[], ativo:true };
   const e = respostas[id];
   e.status = cycle[e.status];
   const it = itens.find(x => x.id === id);
@@ -706,55 +768,43 @@ async function cycleStatus(id) {
 }
 
 async function salvarResposta(id) {
-  if (!viatoriaAtiva) return;
+  if (!vistoriaAtiva) return;
   const e = respostas[id];
   const statusMap = { conf:'conforme', nc:'nao_conforme', na:'nao_aplicavel', '':'pendente' };
   const it = itens.find(x => x.id === id);
   showSaveInd('Salvando...');
   const { error } = await db.from('respostas_itens').upsert({
-    vistoria_id: viatoriaAtiva.id,
-    item_id: id,
-    comodo_id: it?.comodo_id,
-    status: statusMap[e.status] || 'pendente',
-    observacao: e.obs,
+    vistoria_id: vistoriaAtiva.id, item_id: id, comodo_id: it?.comodo_id,
+    status: statusMap[e.status] || 'pendente', observacao: e.obs, item_ativo: e.ativo,
     atualizado_em: new Date().toISOString()
   }, { onConflict: 'vistoria_id,item_id' });
   if (!error) showSaveInd('✓ Salvo automaticamente');
 }
 
 let saveIndTimer;
-function showSaveInd(msg) {
-  const el = document.getElementById('save-ind');
-  el.textContent = msg;
-  el.style.opacity = '1';
-  clearTimeout(saveIndTimer);
-  saveIndTimer = setTimeout(() => { el.style.opacity = '0'; }, 2500);
-}
+function showSaveInd(msg){ const el=document.getElementById('save-ind'); el.textContent=msg; el.style.opacity='1'; clearTimeout(saveIndTimer); saveIndTimer=setTimeout(()=>{el.style.opacity='0';},2500); }
 
 function addFoto(id, e) {
   e.stopPropagation();
-  if (!respostas[id]) respostas[id] = { status:'', obs:'', fotos:[] };
+  if (!respostas[id]) respostas[id] = { status:'', obs:'', fotos:[], ativo:true };
   const emoji = EMOJIS_FOTO[Math.floor(Math.random()*EMOJIS_FOTO.length)];
   respostas[id].fotos.push(emoji);
   const row = document.getElementById('pr-'+id);
   const btn = row.querySelector('.add-photo');
   const div = document.createElement('div');
-  div.className = 'photo-thumb';
-  div.textContent = emoji;
+  div.className = 'photo-thumb'; div.textContent = emoji;
   const nm = itens.find(x=>x.id===id)?.nome||id;
   div.onclick = () => openFoto(emoji, nm);
   row.insertBefore(div, btn);
   showToast('📷 Foto adicionada!');
 }
 
-// ============================================================
-// PROGRESSO
-// ============================================================
 function updProgress() {
-  const total = itens.length;
-  const conf = itens.filter(i => respostas[i.id]?.status === 'conf').length;
-  const nc   = itens.filter(i => respostas[i.id]?.status === 'nc').length;
-  const na   = itens.filter(i => respostas[i.id]?.status === 'na').length;
+  const ativosIds = itens.filter(i => respostas[i.id]?.ativo !== false).map(i=>i.id);
+  const total = ativosIds.length;
+  const conf = ativosIds.filter(id => respostas[id]?.status === 'conf').length;
+  const nc   = ativosIds.filter(id => respostas[id]?.status === 'nc').length;
+  const na   = ativosIds.filter(id => respostas[id]?.status === 'na').length;
   const done = conf + nc + na;
   const pct  = total ? Math.round(done/total*100) : 0;
   document.getElementById('c-conf').textContent = conf;
@@ -766,23 +816,21 @@ function updProgress() {
   document.getElementById('h-pct').textContent = pct+'%';
   document.getElementById('h-ncs').textContent = nc;
   comodos.forEach(cm => {
-    const c = cm.itens.filter(i => respostas[i.id]?.status && respostas[i.id].status !== '').length;
+    const ativosComodo = cm.itens.filter(i => respostas[i.id]?.ativo !== false);
+    const c = ativosComodo.filter(i => respostas[i.id]?.status && respostas[i.id].status !== '').length;
     const el = document.getElementById('cnt-'+cm.id);
-    if (el) el.textContent = c+'/'+cm.itens.length;
+    if (el) el.textContent = c+'/'+ativosComodo.length;
   });
-}
-
-function atualizarStats() {
-  document.getElementById('h-vis').textContent = '—';
 }
 
 // ============================================================
 // RELATÓRIO
 // ============================================================
 function gerarRel() {
-  const conf = itens.filter(i => respostas[i.id]?.status === 'conf').length;
-  const nc   = itens.filter(i => respostas[i.id]?.status === 'nc').length;
-  const na   = itens.filter(i => respostas[i.id]?.status === 'na').length;
+  const ativosIds = itens.filter(i => respostas[i.id]?.ativo !== false).map(i=>i.id);
+  const conf = ativosIds.filter(id => respostas[id]?.status === 'conf').length;
+  const nc   = ativosIds.filter(id => respostas[id]?.status === 'nc').length;
+  const na   = ativosIds.filter(id => respostas[id]?.status === 'na').length;
   document.getElementById('r-conf').textContent = conf;
   document.getElementById('r-nc').textContent = nc;
   document.getElementById('r-na').textContent = na;
@@ -790,22 +838,106 @@ function gerarRel() {
   document.getElementById('rel-sub').textContent = 'VistoriaApp · ' + now.toLocaleDateString('pt-BR') + ' às ' + now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
   let html = ''; let algum = false;
   comodos.forEach(cm => {
-    const ncItens = cm.itens.filter(i => respostas[i.id]?.status === 'nc');
+    const ncItens = cm.itens.filter(i => respostas[i.id]?.status === 'nc' && respostas[i.id]?.ativo !== false);
     if (!ncItens.length) return;
     algum = true;
     html += `<div class="rel-comodo-block"><div class="rel-comodo-title">${cm.icone||'🏠'} ${cm.nome}</div>`;
     ncItens.forEach(it => {
       const e = respostas[it.id];
       const obs = e?.obs?.trim() || 'Sem observação registrada.';
-      const photos = e?.fotos?.length
-        ? e.fotos.map(f=>`<div class="rel-photo" onclick="openFoto('${f}','${it.nome}')">${f}</div>`).join('')
-        : '<span style="font-size:12px;color:var(--text3)">Nenhuma foto</span>';
+      const photos = e?.fotos?.length ? e.fotos.map(f=>`<div class="rel-photo" onclick="openFoto('${f}','${it.nome}')">${f}</div>`).join('') : '<span style="font-size:12px;color:var(--text3)">Nenhuma foto</span>';
       html += `<div class="rel-nc-item"><div class="rel-nc-head"><span style="color:var(--danger)">✗</span><span class="rel-nc-name">${it.nome}</span><span class="rel-nc-badge">NÃO CONFORME</span></div><div class="rel-nc-body"><div class="rel-nc-obs">📝 ${obs}</div><div class="rel-nc-photos">${photos}</div></div></div>`;
     });
     html += '</div>';
   });
   if (!algum) html = '<div class="rel-empty">✅ Nenhuma não conformidade registrada.</div>';
   document.getElementById('rel-nc-body').innerHTML = html;
+}
+
+// ============================================================
+// ADMIN — EDIÇÃO DE MODELOS (visão admin)
+// ============================================================
+function abrirAdminChecklist() {
+  if (!adminModeloAtual && modelos.length) adminModeloAtual = modelos[0].id;
+  renderAdminTabs();
+  renderAdminBody();
+}
+function renderAdminTabs() {
+  const tabs = document.getElementById('admin-tabs');
+  tabs.innerHTML = modelos.map(m =>
+    `<button class="admin-tab ${m.id===adminModeloAtual?'active':''}" onclick="selecionarAdminModelo('${m.id}')">${m.nome}</button>`
+  ).join('') + `<button class="admin-tab" style="border-style:dashed" onclick="novoModelo()">+ Novo modelo</button>`;
+}
+function selecionarAdminModelo(id) { adminModeloAtual = id; renderAdminTabs(); renderAdminBody(); }
+
+function renderAdminBody() {
+  const body = document.getElementById('admin-body');
+  const modelo = modelos.find(m => m.id === adminModeloAtual);
+  if (!modelo) { body.innerHTML = '<div style="color:var(--text3);font-size:13px">Nenhum modelo selecionado.</div>'; return; }
+  let html = `<div style="font-size:13px;color:var(--text2);margin-bottom:14px">${modelo.descricao||''}</div>`;
+  modelo.comodos.forEach(cm => {
+    html += `<div class="admin-comodo">
+      <div class="admin-comodo-head"><span>${cm.icone||'🏠'}</span><span>${cm.nome}</span></div>`;
+    cm.itens.forEach(it => {
+      html += `<div class="admin-item-row">
+        <div class="admin-item-name">
+          <input class="admin-item-edit-input" value="${it.nome.replace(/"/g,'&quot;')}" onchange="editarItemNome('${it.id}',this.value)">
+        </div>
+        <button class="btn btn-sm btn-danger" onclick="removerItemModelo('${it.id}','${cm.id}')">✕ remover do modelo</button>
+      </div>`;
+    });
+    html += `<div class="admin-add-item">
+      <input type="text" placeholder="Nome do novo item de verificação..." id="newitem-${cm.id}">
+      <button class="btn btn-sm btn-p" onclick="adicionarItemModelo('${cm.id}')">+ Adicionar</button>
+    </div></div>`;
+  });
+  body.innerHTML = html;
+}
+
+async function editarItemNome(itemId, novoNome) {
+  await db.from('itens_checklist').update({ nome: novoNome }).eq('id', itemId);
+  // atualiza estado local
+  modelos.forEach(m => m.comodos.forEach(c => c.itens.forEach(i => { if(i.id===itemId) i.nome = novoNome; })));
+  showToast('✅ Item atualizado no modelo!');
+}
+
+async function removerItemModelo(itemId, comodoId) {
+  if (!confirm('Remover este item permanentemente do modelo? Vistorias futuras não terão mais essa verificação.')) return;
+  await db.from('itens_checklist').delete().eq('id', itemId);
+  modelos.forEach(m => { m.comodos.forEach(c => { if(c.id===comodoId) c.itens = c.itens.filter(i=>i.id!==itemId); }); });
+  renderAdminBody();
+  showToast('🗑️ Item removido do modelo!');
+}
+
+async function adicionarItemModelo(comodoId) {
+  const input = document.getElementById('newitem-'+comodoId);
+  const nome = input.value.trim();
+  if (!nome) { showToast('⚠️ Digite o nome do item'); return; }
+  const modelo = modelos.find(m=>m.id===adminModeloAtual);
+  const comodo = modelo.comodos.find(c=>c.id===comodoId);
+  const ordem = comodo.itens.length + 1;
+  const { data, error } = await db.from('itens_checklist').insert({ comodo_id: comodoId, nome, ordem }).select().single();
+  if (!error && data) {
+    comodo.itens.push(data);
+    input.value = '';
+    renderAdminBody();
+    showToast('✅ Item adicionado ao modelo!');
+  }
+}
+
+async function novoModelo() {
+  const nome = prompt('Nome do novo modelo de checklist:');
+  if (!nome) return;
+  const { data, error } = await db.from('modelos_checklist').insert({ engenheira_id: engId, nome, descricao:'' }).select().single();
+  if (!error && data) {
+    data.comodos = [];
+    modelos.push(data);
+    adminModeloAtual = data.id;
+    document.getElementById('mo-modelo').innerHTML = modelos.map(m=>`<option value="${m.id}">${m.nome}</option>`).join('');
+    document.getElementById('model-select').innerHTML = modelos.map(m=>`<option value="${m.id}">${m.nome}</option>`).join('');
+    renderAdminTabs(); renderAdminBody();
+    showToast('✅ Novo modelo criado! Adicione cômodos no Supabase ou peça ajuda no chat.');
+  }
 }
 
 // ============================================================
@@ -822,6 +954,7 @@ function openObra(id) {
   document.getElementById('mo-email').value = o?.email_const || '';
   document.getElementById('mo-wpp').value = o?.whatsapp_cli || '';
   document.getElementById('mo-data').value = o?.data_vistoria || new Date().toISOString().slice(0,10);
+  document.getElementById('mo-modelo').value = o?.modelo_checklist_id || (modelos[0] && modelos[0].id) || '';
   const icoSel = o?.icone || '🏢';
   document.getElementById('mo-ico').value = icoSel;
   const picker = document.getElementById('ico-picker');
@@ -848,14 +981,12 @@ async function salvarObra() {
     email_const: document.getElementById('mo-email').value||'',
     whatsapp_cli: document.getElementById('mo-wpp').value||'',
     data_vistoria: document.getElementById('mo-data').value||null,
+    modelo_checklist_id: document.getElementById('mo-modelo').value||null,
     engenheira_id: engId,
     atualizado_em: new Date().toISOString()
   };
-  if (id) {
-    await db.from('obras').update(dados).eq('id', id);
-  } else {
-    await db.from('obras').insert(dados);
-  }
+  if (id) { await db.from('obras').update(dados).eq('id', id); }
+  else { await db.from('obras').insert(dados); }
   closeObra();
   await carregarObras();
   showToast('✅ Obra salva no banco!');
@@ -871,7 +1002,7 @@ async function delObra(id) {
 // ============================================================
 // NAVEGAÇÃO
 // ============================================================
-const PT = { 'p-home':'Início','p-vistoria':'Checklist','p-relatorio':'Relatório','p-config':'Configurações' };
+const PT = { 'p-home':'Início','p-vistoria':'Checklist','p-relatorio':'Relatório','p-admin':'Modelos de Checklist','p-config':'Configurações' };
 function goTo(id, ni) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -881,17 +1012,17 @@ function goTo(id, ni) {
   if (ni) { document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active')); ni.classList.add('active'); }
   closeSB();
 }
-function toggleSB() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sb-ov').style.display=document.getElementById('sidebar').classList.contains('open')?'block':'none'; }
-function closeSB() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sb-ov').style.display='none'; }
+function toggleSB(){ document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sb-ov').style.display=document.getElementById('sidebar').classList.contains('open')?'block':'none'; }
+function closeSB(){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('sb-ov').style.display='none'; }
 
 // ============================================================
 // TOAST / MODAL FOTO
 // ============================================================
 let toastT;
-function showToast(m) { const t=document.getElementById('toast'); document.getElementById('toast-msg').textContent=m; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2800); }
-function openFoto(emoji,label) { document.getElementById('mf-emoji').textContent=emoji; document.getElementById('mf-label').textContent=label; document.getElementById('modal-foto').classList.add('open'); }
-function closeFoto() { document.getElementById('modal-foto').classList.remove('open'); }
-function updNome(v) { document.getElementById('sb-name').textContent=v||'Beatriz Lunardi'; document.getElementById('pp-nome').textContent='Engª '+(v||'Beatriz Lunardi'); document.getElementById('rel-nome').textContent='Engª '+(v||'Beatriz Lunardi')+' — '+(document.getElementById('cfg-crea')?.value||'CREA/SC'); }
+function showToast(m){ const t=document.getElementById('toast'); document.getElementById('toast-msg').textContent=m; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2800); }
+function openFoto(emoji,label){ document.getElementById('mf-emoji').textContent=emoji; document.getElementById('mf-label').textContent=label; document.getElementById('modal-foto').classList.add('open'); }
+function closeFoto(){ document.getElementById('modal-foto').classList.remove('open'); }
+function updNome(v){ document.getElementById('sb-name').textContent=v||'Beatriz Lunardi'; document.getElementById('pp-nome').textContent='Engª '+(v||'Beatriz Lunardi'); document.getElementById('rel-nome').textContent='Engª '+(v||'Beatriz Lunardi')+' — '+(document.getElementById('cfg-crea')?.value||'CREA/SC'); }
 
 // ============================================================
 // START

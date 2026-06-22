@@ -528,8 +528,10 @@ const ICO_LIST = ['🏢','🏠','🏗️','🏛️','🏬','🏭','🏡'];
 async function init() {
   setLoading('Conectando ao banco de dados...');
   try {
-    const { data: engs } = await db.from('engenheiras').select('*').eq('email','beatriz@email.com.br').limit(1);
-    if (engs && engs.length) engId = engs[0].id;
+    const { data: engs, error: engErr } = await db.from('engenheiras').select('*').eq('email','beatriz@email.com.br').limit(1);
+    if (engErr) console.warn('Aviso engenheira:', engErr.message);
+    if (engs && engs.length) { engId = engs[0].id; console.log('engId carregado:', engId); }
+    else console.warn('Engenheira não encontrada — obras serão salvas sem engenheira_id');
     setStatus(true);
     setLoading('Carregando modelos de checklist...');
     await carregarModelos();
@@ -972,6 +974,7 @@ function closeObra() { document.getElementById('modal-obra').classList.remove('o
 
 async function salvarObra() {
   const id = document.getElementById('mo-id').value;
+  const modeloVal = document.getElementById('mo-modelo').value;
   const dados = {
     icone: document.getElementById('mo-ico').value||'🏢',
     nome: document.getElementById('mo-nome').value||'Nova obra',
@@ -981,12 +984,25 @@ async function salvarObra() {
     email_const: document.getElementById('mo-email').value||'',
     whatsapp_cli: document.getElementById('mo-wpp').value||'',
     data_vistoria: document.getElementById('mo-data').value||null,
-    modelo_checklist_id: document.getElementById('mo-modelo').value||null,
-    engenheira_id: engId,
+    modelo_checklist_id: modeloVal||null,
     atualizado_em: new Date().toISOString()
   };
-  if (id) { await db.from('obras').update(dados).eq('id', id); }
-  else { await db.from('obras').insert(dados); }
+  // só inclui engenheira_id se tiver valor
+  if (engId) dados.engenheira_id = engId;
+
+  let error;
+  if (id) {
+    const res = await db.from('obras').update(dados).eq('id', id);
+    error = res.error;
+  } else {
+    const res = await db.from('obras').insert(dados);
+    error = res.error;
+  }
+  if (error) {
+    console.error('Erro ao salvar obra:', error);
+    showToast('❌ Erro: ' + error.message);
+    return;
+  }
   closeObra();
   await carregarObras();
   showToast('✅ Obra salva no banco!');

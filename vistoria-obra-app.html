@@ -6,6 +6,7 @@
 <title>VistoriaApp — Beatriz Lunardi</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{
   --bg:#F5F3EE;--surface:#FFF;--surface2:#F0EDE8;--border:#E2DDD6;
@@ -22,6 +23,23 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 .shell{display:flex;min-height:100vh}
+
+
+/* LOGIN */
+.login-screen{position:fixed;inset:0;background:var(--accent);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10000;color:#fff;gap:0;transition:opacity .4s}
+.login-screen.hide{opacity:0;pointer-events:none}
+.login-box{background:rgba(255,255,255,.1);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:36px 32px;width:100%;max-width:360px;display:flex;flex-direction:column;gap:16px}
+.login-logo{text-align:center;margin-bottom:8px}
+.login-logo-t{font-size:22px;font-weight:700;color:#fff}
+.login-logo-s{font-size:12px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.1em;margin-top:4px}
+.login-label{font-size:12px;color:rgba(255,255,255,.65);margin-bottom:4px}
+.login-input{width:100%;font-family:inherit;font-size:15px;padding:12px 16px;border-radius:10px;border:1.5px solid rgba(255,255,255,.25);background:rgba(255,255,255,.12);color:#fff;outline:none;transition:border-color .2s}
+.login-input::placeholder{color:rgba(255,255,255,.35)}
+.login-input:focus{border-color:rgba(255,255,255,.7);background:rgba(255,255,255,.2)}
+.login-btn{width:100%;padding:13px;border-radius:10px;border:none;background:#fff;color:var(--accent);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;transition:opacity .15s;margin-top:4px}
+.login-btn:hover{opacity:.9}
+.login-err{font-size:12px;color:#FF6B6B;text-align:center;min-height:18px;transition:opacity .2s}
+.login-version{font-size:11px;color:rgba(255,255,255,.3);text-align:center;margin-top:8px}
 
 /* SIDEBAR */
 .sidebar{width:var(--sw);background:var(--accent);display:flex;flex-direction:column;flex-shrink:0;position:fixed;top:0;left:0;bottom:0;z-index:100;transition:transform .25s}
@@ -268,6 +286,23 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 </head>
 <body>
 
+<div class="login-screen" id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div style="font-size:36px;margin-bottom:8px">📐</div>
+      <div class="login-logo-t">VistoriaApp</div>
+      <div class="login-logo-s">Entrega de Obra</div>
+    </div>
+    <div>
+      <div class="login-label">Senha de acesso</div>
+      <input class="login-input" type="password" id="login-senha" placeholder="Digite sua senha..." onkeydown="if(event.key==='Enter')fazerLogin()">
+    </div>
+    <button class="login-btn" onclick="fazerLogin()">Entrar →</button>
+    <div class="login-err" id="login-err"></div>
+    <div class="login-version">VistoriaApp v3.0 · BL Engenharia Civil</div>
+  </div>
+</div>
+
 <div class="loading-screen" id="loading">
   <div class="loading-logo">📐 VistoriaApp</div>
   <div class="spinner"></div>
@@ -417,7 +452,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
             <button class="si" onclick="showToast('📧 Abrindo e-mail...')"><span class="si-ico">📧</span><div><div class="si-n">E-mail — construtora</div><div class="si-d" id="si-email">—</div></div><span class="si-arr">›</span></button>
             <button class="si" onclick="showToast('💬 Abrindo WhatsApp...')"><span class="si-ico">💬</span><div><div class="si-n">WhatsApp — cliente</div><div class="si-d" id="si-wpp">—</div></div><span class="si-arr">›</span></button>
             <button class="si" onclick="showToast('📎 Link copiado!')"><span class="si-ico">🔗</span><div><div class="si-n">Copiar link público</div><div class="si-d">Acesso com senha</div></div><span class="si-arr">›</span></button>
-            <button class="si" onclick="showToast('⬇️ PDF sendo gerado...')"><span class="si-ico">📄</span><div><div class="si-n">Baixar PDF</div><div class="si-d">Relatório completo</div></div><span class="si-arr">›</span></button>
+            <button class="si" onclick="gerarPDF()"><span class="si-ico">📄</span><div><div class="si-n">Baixar PDF</div><div class="si-d">Relatório completo</div></div><span class="si-arr">›</span></button>
           </div>
           <div class="send-panel">
             <div class="sp-head">📝 Observações gerais</div>
@@ -1245,7 +1280,274 @@ function updNome(v){ document.getElementById('sb-name').textContent=v||'Beatriz 
 // ============================================================
 // START
 // ============================================================
-init();
+checkLogin();
+
+// ============================================================
+// LOGIN
+// ============================================================
+const SENHA_ACESSO = 'vistoria2024'; // ← mude aqui se quiser
+
+function checkLogin() {
+  const ok = sessionStorage.getItem('vistoria_auth') === '1';
+  if (ok) {
+    document.getElementById('login-screen').style.display = 'none';
+    init();
+  } else {
+    // mostra login, esconde loading
+    document.getElementById('loading').style.display = 'none';
+    setTimeout(() => document.getElementById('login-senha').focus(), 100);
+  }
+}
+
+function fazerLogin() {
+  const v = document.getElementById('login-senha').value;
+  const err = document.getElementById('login-err');
+  if (v === SENHA_ACESSO) {
+    sessionStorage.setItem('vistoria_auth', '1');
+    const ls = document.getElementById('login-screen');
+    ls.classList.add('hide');
+    setTimeout(() => { ls.style.display = 'none'; init(); }, 400);
+  } else {
+    err.textContent = '❌ Senha incorreta. Tente novamente.';
+    document.getElementById('login-senha').value = '';
+    document.getElementById('login-senha').focus();
+    setTimeout(() => err.textContent = '', 3000);
+  }
+}
+
+// ============================================================
+// PDF REAL
+// ============================================================
+async function gerarPDF() {
+  showToast('⏳ Gerando PDF...');
+  await new Promise(r => setTimeout(r, 100));
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const PW = 210, PH = 297, ML = 18, MR = 18, MT = 18;
+  let y = MT;
+  const CW = PW - ML - MR;
+
+  // cores
+  const VERDE = [45, 90, 61];
+  const DANGER = [181, 48, 48];
+  const CINZA = [107, 101, 96];
+  const CINZA_CLARO = [240, 237, 232];
+  const TEXTO = [26, 23, 20];
+
+  function checkY(needed = 20) {
+    if (y + needed > PH - 18) { doc.addPage(); y = MT; }
+  }
+
+  function linha(color = CINZA_CLARO) {
+    doc.setDrawColor(...color);
+    doc.setLineWidth(0.3);
+    doc.line(ML, y, PW - MR, y);
+    y += 5;
+  }
+
+  // ── CABEÇALHO ──
+  doc.setFillColor(...VERDE);
+  doc.roundedRect(0, 0, PW, 36, 0, 0, 'F');
+  doc.setFontSize(18); doc.setFont('helvetica', 'bold');
+  doc.setTextColor(255, 255, 255);
+  doc.text('📐 Relatório de Vistoria de Obra', ML, 16);
+  doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+  doc.setTextColor(200, 220, 210);
+  const obra = vistoriaAtiva?.obras?.nome || document.getElementById('rel-obra')?.textContent || '—';
+  doc.text('BL Engenharia Civil · ' + obra, ML, 25);
+  const dataRel = new Date().toLocaleDateString('pt-BR');
+  doc.text('Emitido em ' + dataRel, PW - MR, 25, { align: 'right' });
+  y = 44;
+
+  // ── IDENTIFICAÇÃO ──
+  doc.setFontSize(8); doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...CINZA);
+  doc.text('IDENTIFICAÇÃO', ML, y); y += 5;
+  linha();
+
+  const campos = [
+    ['Obra', document.getElementById('rel-obra')?.textContent || '—'],
+    ['Construtora', document.getElementById('rel-const')?.textContent || '—'],
+    ['Cliente', document.getElementById('rel-cliente')?.textContent || '—'],
+    ['Vistoriadora', 'Engª Beatriz Lunardi — ' + (document.getElementById('cfg-crea')?.value || 'CREA/SC')],
+    ['Data da vistoria', document.getElementById('rel-data')?.textContent || '—'],
+    ['Modelo de checklist', document.getElementById('rel-modelo')?.textContent || '—'],
+  ];
+  doc.setFontSize(9);
+  const colW = CW / 2;
+  campos.forEach((([k, v], i) => {
+    const cx = ML + (i % 2) * colW;
+    if (i % 2 === 0 && i > 0) y += 9;
+    doc.setFont('helvetica', 'normal'); doc.setTextColor(...CINZA);
+    doc.text(k, cx, y);
+    doc.setFont('helvetica', 'bold'); doc.setTextColor(...TEXTO);
+    doc.text(v, cx, y + 4);
+  }));
+  y += 14;
+  linha();
+
+  // ── RESUMO ──
+  checkY(30);
+  doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...CINZA);
+  doc.text('RESUMO EXECUTIVO', ML, y); y += 5;
+  linha();
+
+  const conf = parseInt(document.getElementById('r-conf')?.textContent || '0');
+  const nc   = parseInt(document.getElementById('r-nc')?.textContent || '0');
+  const na   = parseInt(document.getElementById('r-na')?.textContent || '0');
+  const total = conf + nc + na;
+  const pct = total > 0 ? Math.round((conf / total) * 100) : 0;
+
+  const boxes = [
+    { label: 'Conformes', val: conf, cor: [46, 106, 79], fundo: [232, 245, 238] },
+    { label: 'Não conformes', val: nc, cor: [181, 48, 48], fundo: [253, 238, 238] },
+    { label: 'N/Aplicável', val: na, cor: [90, 74, 140], fundo: [238, 237, 254] },
+  ];
+  const bw = (CW - 8) / 3;
+  boxes.forEach((b, i) => {
+    const bx = ML + i * (bw + 4);
+    doc.setFillColor(...b.fundo);
+    doc.roundedRect(bx, y, bw, 18, 3, 3, 'F');
+    doc.setFontSize(18); doc.setFont('helvetica', 'bold'); doc.setTextColor(...b.cor);
+    doc.text(String(b.val), bx + bw / 2, y + 11, { align: 'center' });
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+    doc.text(b.label, bx + bw / 2, y + 16, { align: 'center' });
+  });
+  y += 24;
+
+  // barra de progresso
+  doc.setFillColor(...CINZA_CLARO);
+  doc.roundedRect(ML, y, CW, 5, 2, 2, 'F');
+  if (pct > 0) {
+    doc.setFillColor(...VERDE);
+    doc.roundedRect(ML, y, CW * pct / 100, 5, 2, 2, 'F');
+  }
+  doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...CINZA);
+  doc.text(pct + '% de conformidade', PW - MR, y + 4, { align: 'right' });
+  y += 12;
+  linha();
+
+  // ── NÃO CONFORMIDADES ──
+  checkY(20);
+  doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...CINZA);
+  doc.text('NÃO CONFORMIDADES POR LOCAL', ML, y); y += 5;
+  linha();
+
+  if (nc === 0) {
+    doc.setFillColor(232, 245, 238);
+    doc.roundedRect(ML, y, CW, 12, 3, 3, 'F');
+    doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(...VERDE);
+    doc.text('✅  Nenhuma não conformidade registrada!', ML + CW / 2, y + 8, { align: 'center' });
+    y += 18;
+  } else {
+    comodos.forEach(cm => {
+      const ncs = cm.itens.filter(it => respostas[it.id]?.status === 'nc');
+      if (!ncs.length) return;
+
+      checkY(16);
+      doc.setFillColor(...CINZA_CLARO);
+      doc.roundedRect(ML, y, CW, 8, 2, 2, 'F');
+      doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(...TEXTO);
+      doc.text((cm.icone || '') + '  ' + cm.nome, ML + 3, y + 5.5);
+      y += 12;
+
+      ncs.forEach(it => {
+        checkY(24);
+        const e = respostas[it.id];
+        // cabeçalho item
+        doc.setFillColor(253, 238, 238);
+        doc.roundedRect(ML, y, CW, 8, 2, 2, 'F');
+        doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(...DANGER);
+        doc.text('✗  ' + it.nome, ML + 3, y + 5.5);
+        doc.setFontSize(7); doc.setFont('helvetica', 'bold');
+        doc.setFillColor(...DANGER); doc.setTextColor(255,255,255);
+        doc.roundedRect(PW - MR - 22, y + 1.5, 22, 5, 2, 2, 'F');
+        doc.text('NÃO CONFORME', PW - MR - 11, y + 5.3, { align: 'center' });
+        y += 10;
+
+        // critério
+        if (it.criterio) {
+          doc.setFontSize(8); doc.setFont('helvetica', 'italic'); doc.setTextColor(...CINZA);
+          const linsCrit = doc.splitTextToSize('Critério: ' + it.criterio, CW - 4);
+          doc.text(linsCrit, ML + 2, y);
+          y += linsCrit.length * 4 + 1;
+        }
+
+        // observação
+        if (e.obs) {
+          checkY(10);
+          doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...TEXTO);
+          const linsObs = doc.splitTextToSize('📝 ' + e.obs, CW - 4);
+          linsObs.forEach(l => {
+            checkY(6);
+            doc.text(l, ML + 2, y); y += 5;
+          });
+        }
+
+        // fotos
+        if (e.fotos?.length) {
+          checkY(36);
+          const fW = 42, fH = 32, gap = 4;
+          let fx = ML;
+          e.fotos.forEach((foto, fi) => {
+            if (fx + fW > PW - MR) { fx = ML; y += fH + gap + (foto.legenda ? 5 : 0); checkY(fH + 10); }
+            try {
+              doc.addImage(foto.data, 'JPEG', fx, y, fW, fH);
+              doc.setDrawColor(...CINZA_CLARO);
+              doc.roundedRect(fx, y, fW, fH, 2, 2);
+              if (foto.legenda) {
+                doc.setFillColor(0,0,0); doc.setTextColor(0,0,0);
+                doc.setFontSize(6); doc.setFont('helvetica', 'italic');
+                const leg = doc.splitTextToSize(foto.legenda, fW);
+                doc.text(leg[0], fx, y + fH + 3.5);
+              }
+            } catch(e2) { console.warn('Erro foto PDF', e2); }
+            fx += fW + gap;
+          });
+          y += fH + (e.fotos.some(f=>f.legenda) ? 8 : 4);
+        }
+        y += 5;
+        checkY(4);
+        doc.setDrawColor(...CINZA_CLARO); doc.setLineWidth(0.2);
+        doc.line(ML, y, PW - MR, y); y += 5;
+      });
+    });
+  }
+
+  // ── ASSINATURAS ──
+  checkY(36);
+  linha();
+  doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...CINZA);
+  doc.text('ASSINATURAS', ML, y); y += 8;
+  const sw = (CW - 8) / 2;
+  doc.setDrawColor(...CINZA_CLARO); doc.setLineWidth(0.4);
+  ['Construtora', 'Cliente'].forEach((label, i) => {
+    const sx = ML + i * (sw + 8);
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...CINZA);
+    doc.text(label, sx, y);
+    doc.rect(sx, y + 3, sw, 18);
+    doc.line(sx, y + 24, sx + sw, y + 24);
+    doc.setFontSize(7); doc.text('Assinatura e carimbo', sx + sw / 2, y + 28, { align: 'center' });
+  });
+  y += 34;
+
+  // ── RODAPÉ ──
+  const pageCount = doc.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFillColor(...CINZA_CLARO);
+    doc.rect(0, PH - 12, PW, 12, 'F');
+    doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(...CINZA);
+    doc.text('VistoriaApp · BL Engenharia Civil · beatriz@email.com.br', ML, PH - 5);
+    doc.text('Página ' + i + ' de ' + pageCount, PW - MR, PH - 5, { align: 'right' });
+  }
+
+  const nomeArq = 'Vistoria_' + (obra.replace(/[^a-zA-Z0-9]/g, '_')) + '_' + dataRel.replace(/\//g, '-') + '.pdf';
+  doc.save(nomeArq);
+  showToast('✅ PDF gerado!');
+}
+
 </script>
 </body>
 </html>

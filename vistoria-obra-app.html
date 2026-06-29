@@ -264,6 +264,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .unid-input-row{display:flex;gap:8px}
 .unid-input{flex:1;font-family:inherit;font-size:13px;border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;outline:none}
 .unid-input:focus{border-color:var(--accent)}
+.unid-input-row{display:flex;gap:8px}
 .unid-gen-row{display:flex;gap:8px;flex-wrap:wrap}
 .unid-gen-btn{font-family:inherit;font-size:12px;border:1px solid var(--border);border-radius:6px;padding:5px 10px;background:var(--surface2);cursor:pointer;color:var(--text2);transition:all .15s}
 .unid-gen-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--surface)}
@@ -393,7 +394,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <select class="unid-select" id="unid-select" onchange="trocarUnidade(this.value)">
           <option value="">— sem unidade —</option>
         </select>
-        <button class="unid-add-btn" onclick="abrirModalUnidades()">+ Gerenciar unidades</button>
+        <button class="unid-add-btn" onclick="abrirModalUnidades()">✏️ Editar unidades</button>
       </div>
       <div class="cl-layout">
         <div id="cl-main"><div style="padding:20px;color:var(--text3);font-size:13px">Selecione uma obra para iniciar.</div></div>
@@ -574,6 +575,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="fl">Ícone</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px" id="ico-picker"></div>
     <input type="hidden" id="mo-ico" value="🏢">
+    <div class="fl" style="margin-top:16px">Unidades / Apartamentos <span style="font-size:11px;color:var(--text3);font-weight:400">(opcional — para relatório por unidade)</span></div>
+    <div id="mo-unid-section" style="display:none">
+      <div class="unid-gen-row" style="margin-bottom:8px">
+        <button class="unid-gen-btn" onclick="moGerarUnidades('Apto',101,110)">Apto 101–110</button>
+        <button class="unid-gen-btn" onclick="moGerarUnidades('Apto',201,210)">Apto 201–210</button>
+        <button class="unid-gen-btn" onclick="moGerarUnidades('Casa',1,10)">Casa 1–10</button>
+        <button class="unid-gen-btn" onclick="moGerarUnidades('Loja',1,10)">Loja 1–10</button>
+      </div>
+      <div class="unid-list" id="mo-unid-list" style="margin-bottom:8px"></div>
+    </div>
+    <div class="unid-input-row">
+      <input class="unid-input" id="mo-unid-input" type="text" placeholder="Ex: Apto 201, Casa 5..." maxlength="40" onkeydown="if(event.key==='Enter'){event.preventDefault();moAdicionarUnidade()}">
+      <button class="btn" onclick="moAdicionarUnidade()">+ Add</button>
+    </div>
     <div class="modal-actions">
       <button class="btn" onclick="closeObra()">Cancelar</button>
       <button class="btn btn-p" onclick="salvarObra()">💾 Salvar</button>
@@ -655,6 +670,7 @@ let comodos = [];           // comodos do modelo ativo na vistoria
 let itens = [];              // itens flat do modelo ativo
 let respostas = {};          // itemId -> { status, obs, fotos[], ativo }
 let unidades = [];           // [{id, nome, ordem}]
+let moUnidsTmp = [];         // unidades temporárias no modal de obra (antes de salvar)
 let unidadeAtiva = null;     // id da unidade sendo vistoriada agora
 let respostasUnid = {};      // unidadeId+itemId -> resposta (para unidades)
 let engId = null;
@@ -1276,6 +1292,16 @@ function openObra(id) {
     sp.onclick = () => { document.getElementById('mo-ico').value=ico; picker.querySelectorAll('span').forEach(s=>s.style.borderColor='transparent'); sp.style.borderColor='var(--accent)'; };
     picker.appendChild(sp);
   });
+  // Carregar unidades da obra se estiver editando
+  moUnidsTmp = [];
+  if (o && o.id) {
+    db.from('unidades').select('*').eq('obra_id', o.id).order('ordem').then(({data}) => {
+      moUnidsTmp = (data||[]).map(u => ({id: u.id, nome: u.nome, ordem: u.ordem}));
+      moRenderUnidades();
+    });
+  } else {
+    moRenderUnidades();
+  }
   document.getElementById('modal-obra').classList.add('open');
 }
 function editObra(id) { openObra(id); }
@@ -1311,6 +1337,17 @@ async function salvarObra() {
     console.error('Erro ao salvar obra:', error);
     showToast('❌ Erro: ' + error.message);
     return;
+  }
+  // Salvar unidades
+  if (moUnidsTmp.length) {
+    // buscar ID da obra salva
+    const { data: obrasSalvas } = await db.from('obras').select('id').eq('nome', dados.nome).order('criado_em', {ascending:false}).limit(1);
+    const obraId = id || (obrasSalvas && obrasSalvas[0]?.id);
+    if (obraId) {
+      // inserir apenas as novas (sem id)
+      const novas = moUnidsTmp.filter(u => !u.id).map(u => ({obra_id: obraId, nome: u.nome, ordem: u.ordem}));
+      if (novas.length) await db.from('unidades').insert(novas);
+    }
   }
   closeObra();
   await carregarObras();
@@ -1389,6 +1426,46 @@ function fazerLogin() {
 // ============================================================
 // PDF REAL
 // ============================================================
+
+
+// ============================================================
+// UNIDADES NO MODAL DE OBRA
+// ============================================================
+function moRenderUnidades() {
+  const section = document.getElementById('mo-unid-section');
+  const list = document.getElementById('mo-unid-list');
+  section.style.display = moUnidsTmp.length ? 'block' : 'none';
+  list.innerHTML = moUnidsTmp.map((u, i) => `
+    <div class="unid-item">
+      <span class="unid-item-name">${u.nome}</span>
+      <button class="unid-del" onclick="moRemoverUnidade(${i})">✕</button>
+    </div>`).join('');
+}
+
+function moAdicionarUnidade() {
+  const inp = document.getElementById('mo-unid-input');
+  const nome = inp.value.trim();
+  if (!nome) return;
+  if (moUnidsTmp.find(u => u.nome === nome)) { showToast('Já existe!'); return; }
+  moUnidsTmp.push({ nome, ordem: moUnidsTmp.length });
+  inp.value = '';
+  moRenderUnidades();
+  document.getElementById('mo-unid-section').style.display = 'block';
+}
+
+function moRemoverUnidade(idx) {
+  moUnidsTmp.splice(idx, 1);
+  moRenderUnidades();
+}
+
+function moGerarUnidades(prefixo, inicio, fim) {
+  for (let i = inicio; i <= fim; i++) {
+    const nome = prefixo + ' ' + i;
+    if (!moUnidsTmp.find(u => u.nome === nome)) moUnidsTmp.push({ nome, ordem: moUnidsTmp.length });
+  }
+  moRenderUnidades();
+  document.getElementById('mo-unid-section').style.display = 'block';
+}
 
 // ============================================================
 // SISTEMA DE UNIDADES

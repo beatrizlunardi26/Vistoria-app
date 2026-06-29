@@ -243,6 +243,31 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .admin-add-item{display:flex;gap:8px;padding:12px 16px;background:var(--surface2)}
 .admin-add-item input{flex:1;font-family:'DM Sans',sans-serif;font-size:12px;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;outline:none}
 
+
+/* UNIDADES */
+.unid-bar{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.unid-bar-label{font-size:12px;color:var(--text3);white-space:nowrap}
+.unid-select{font-family:inherit;font-size:13px;font-weight:600;color:var(--accent);border:1.5px solid var(--accent2);border-radius:8px;padding:6px 10px;background:var(--surface);cursor:pointer;outline:none;min-width:140px}
+.unid-select:focus{border-color:var(--accent)}
+.unid-add-btn{font-family:inherit;font-size:12px;font-weight:600;border:1.5px dashed var(--border);border-radius:8px;padding:6px 12px;background:none;cursor:pointer;color:var(--text2);white-space:nowrap;transition:all .15s}
+.unid-add-btn:hover{border-color:var(--accent);color:var(--accent)}
+.unid-badge{display:inline-flex;align-items:center;gap:4px;background:var(--accent);color:#fff;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600}
+
+/* MODAL UNIDADES */
+.unid-modal-body{display:flex;flex-direction:column;gap:12px}
+.unid-list{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto}
+.unid-item{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);font-size:13px}
+.unid-item-name{font-weight:500}
+.unid-item-nc{font-size:11px;color:var(--danger);font-weight:600}
+.unid-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;padding:2px 6px;border-radius:4px}
+.unid-del:hover{color:var(--danger);background:var(--danger-light)}
+.unid-input-row{display:flex;gap:8px}
+.unid-input{flex:1;font-family:inherit;font-size:13px;border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;outline:none}
+.unid-input:focus{border-color:var(--accent)}
+.unid-gen-row{display:flex;gap:8px;flex-wrap:wrap}
+.unid-gen-btn{font-family:inherit;font-size:12px;border:1px solid var(--border);border-radius:6px;padding:5px 10px;background:var(--surface2);cursor:pointer;color:var(--text2);transition:all .15s}
+.unid-gen-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--surface)}
+
 /* SEÇÃO COLAPSÁVEL */
 .comodo-header{cursor:pointer;user-select:none}
 .comodo-header:hover{background:var(--surface2)}
@@ -363,6 +388,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <span class="model-select-label">📋 Modelo de checklist:</span>
         <select id="model-select" onchange="trocarModeloVistoria(this.value)"></select>
       </div>
+      <div class="unid-bar" id="unid-bar" style="display:none">
+        <span class="unid-bar-label">🏠 Vistoriando:</span>
+        <select class="unid-select" id="unid-select" onchange="trocarUnidade(this.value)">
+          <option value="">— sem unidade —</option>
+        </select>
+        <button class="unid-add-btn" onclick="abrirModalUnidades()">+ Gerenciar unidades</button>
+      </div>
       <div class="cl-layout">
         <div id="cl-main"><div style="padding:20px;color:var(--text3);font-size:13px">Selecione uma obra para iniciar.</div></div>
         <div class="prog-panel">
@@ -457,6 +489,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
             <div class="sp-head">⬇️ Exportar relatório</div>
             <button class="si" onclick="gerarPDF()"><span class="si-ico">📋</span><div><div class="si-n">PDF — Parecer geral</div><div class="si-d">Visão completa da vistoria</div></div><span class="si-arr">›</span></button>
             <button class="si" onclick="gerarPDFApto()"><span class="si-ico">🏠</span><div><div class="si-n">PDF — Detalhado por cômodo</div><div class="si-d">Um bloco por ambiente, com fotos</div></div><span class="si-arr">›</span></button>
+            <button class="si" onclick="gerarPDFUnidade()"><span class="si-ico">🏠</span><div><div class="si-n">PDF — Por unidade/apartamento</div><div class="si-d">NCs agrupadas por apto</div></div><span class="si-arr">›</span></button>
             <button class="si" onclick="gerarExcel()"><span class="si-ico">📊</span><div><div class="si-n">Excel — Checklist de pendências</div><div class="si-d">Planilha para controle da obra</div></div><span class="si-arr">›</span></button>
           </div>
           <div class="send-panel">
@@ -548,6 +581,27 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   </div>
 </div>
 
+<!-- MODAL UNIDADES -->
+<div class="modal-ov" id="modal-unidades" onclick="if(event.target===this)fecharModalUnidades()">
+  <div class="modal-box">
+    <button class="modal-close" onclick="fecharModalUnidades()">✕</button>
+    <div class="modal-title">🏠 Unidades / Apartamentos</div>
+    <div class="unid-modal-body">
+      <div class="unid-gen-row">
+        <button class="unid-gen-btn" onclick="gerarUnidades('Apto',101,110)">Apto 101–110</button>
+        <button class="unid-gen-btn" onclick="gerarUnidades('Apto',201,210)">Apto 201–210</button>
+        <button class="unid-gen-btn" onclick="gerarUnidades('Casa',1,10)">Casa 1–10</button>
+        <button class="unid-gen-btn" onclick="gerarUnidades('Loja',1,10)">Loja 1–10</button>
+      </div>
+      <div class="unid-list" id="unid-list"></div>
+      <div class="unid-input-row">
+        <input class="unid-input" id="unid-nova-input" type="text" placeholder="Ex: Apto 301, Casa 5, Área comum..." maxlength="40" onkeydown="if(event.key==='Enter')adicionarUnidade()">
+        <button class="btn btn-p" onclick="adicionarUnidade()">+ Adicionar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- INPUT ARQUIVO OCULTO -->
 <input type="file" id="foto-file-in" accept="image/*" style="display:none" onchange="onFileSelected(event)">
 
@@ -600,6 +654,9 @@ let modeloAtivoId = null;  // modelo usado na vistoria atual
 let comodos = [];           // comodos do modelo ativo na vistoria
 let itens = [];              // itens flat do modelo ativo
 let respostas = {};          // itemId -> { status, obs, fotos[], ativo }
+let unidades = [];           // [{id, nome, ordem}]
+let unidadeAtiva = null;     // id da unidade sendo vistoriada agora
+let respostasUnid = {};      // unidadeId+itemId -> resposta (para unidades)
 let engId = null;
 let adminModeloAtual = null;
 
@@ -736,6 +793,7 @@ async function abrirVistoria(obraId) {
   }
 
   await carregarRespostasEModelo();
+  await carregarUnidades();
 
   document.getElementById('pp-obra').textContent = obraAtiva.nome.split('—')[0].trim();
   document.getElementById('pp-data').textContent = fmtData(obraAtiva.data_vistoria);
@@ -749,6 +807,7 @@ async function abrirVistoria(obraId) {
   document.getElementById('sig-cli-lbl').textContent = 'Cliente — ' + (obraAtiva.cliente || '');
   document.getElementById('si-email').textContent = obraAtiva.email_const || '—';
   document.getElementById('si-wpp').textContent = obraAtiva.whatsapp_cli || '—';
+  renderUnidadeBar();
   goTo('p-vistoria', document.querySelector('.ni:nth-child(2)'));
 }
 
@@ -757,7 +816,11 @@ async function carregarRespostasEModelo() {
   comodos = modelo ? modelo.comodos : [];
   itens = comodos.flatMap(c => c.itens);
 
-  const { data: resp } = await db.from('respostas_itens').select('*').eq('vistoria_id', vistoriaAtiva.id);
+  // Buscar respostas filtradas por unidade ativa (ou geral se sem unidade)
+  let query = db.from('respostas_itens').select('*').eq('vistoria_id', vistoriaAtiva.id);
+  if (unidadeAtiva) query = query.eq('unidade_id', unidadeAtiva);
+  else query = query.is('unidade_id', null);
+  const { data: resp } = await query;
   respostas = {};
   itens.forEach(it => { respostas[it.id] = { status:'', obs:'', fotos:[], ativo:true }; });
   (resp || []).forEach(r => {
@@ -781,6 +844,7 @@ async function trocarModeloVistoria(novoModeloId) {
   await db.from('obras').update({ modelo_checklist_id: modeloAtivoId }).eq('id', obraAtiva.id);
   document.getElementById('rel-modelo').textContent = nomeModelo(modeloAtivoId);
   await carregarRespostasEModelo();
+  await carregarUnidades();
   showToast('🔄 Modelo trocado!');
 }
 
@@ -858,11 +922,13 @@ async function cycleStatus(id) {
 async function salvarResposta(id) {
   if (!vistoriaAtiva) return;
   const e = respostas[id];
+  // chave inclui unidade se houver
+  const chavUnid = unidadeAtiva ? unidadeAtiva : '__geral__';
   const statusMap = { conf:'conforme', nc:'nao_conforme', na:'nao_aplicavel', '':'pendente' };
   const it = itens.find(x => x.id === id);
   showSaveInd('Salvando...');
   const { error } = await db.from('respostas_itens').upsert({
-    vistoria_id: vistoriaAtiva.id, item_id: id, comodo_id: it?.comodo_id,
+    vistoria_id: vistoriaAtiva.id, item_id: id, comodo_id: it?.comodo_id, unidade_id: unidadeAtiva || null,
     status: statusMap[e.status] || 'pendente', observacao: e.obs, item_ativo: e.ativo,
     atualizado_em: new Date().toISOString()
   }, { onConflict: 'vistoria_id,item_id' });
@@ -1323,6 +1389,201 @@ function fazerLogin() {
 // ============================================================
 // PDF REAL
 // ============================================================
+
+// ============================================================
+// SISTEMA DE UNIDADES
+// ============================================================
+async function carregarUnidades() {
+  if (!obraAtiva) return;
+  const { data } = await db.from('unidades').select('*').eq('obra_id', obraAtiva.id).order('ordem');
+  unidades = data || [];
+}
+
+function renderUnidadeBar() {
+  const bar = document.getElementById('unid-bar');
+  const sel = document.getElementById('unid-select');
+  bar.style.display = 'flex';
+  // rebuild options
+  sel.innerHTML = '<option value="">— sem unidade (geral) —</option>';
+  unidades.forEach(u => {
+    const opt = document.createElement('option');
+    opt.value = u.id; opt.textContent = u.nome;
+    if (u.id === unidadeAtiva) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+async function trocarUnidade(uid) {
+  unidadeAtiva = uid || null;
+  // recarregar respostas da nova unidade
+  await carregarRespostasEModelo();
+  const label = unidades.find(u => u.id === uid)?.nome || 'Geral';
+  showToast('🏠 ' + label);
+}
+
+function abrirModalUnidades() {
+  renderListaUnidades();
+  document.getElementById('modal-unidades').classList.add('open');
+  setTimeout(() => document.getElementById('unid-nova-input').focus(), 100);
+}
+
+function fecharModalUnidades() {
+  document.getElementById('modal-unidades').classList.remove('open');
+}
+
+function renderListaUnidades() {
+  const list = document.getElementById('unid-list');
+  if (!unidades.length) {
+    list.innerHTML = '<div style="font-size:12px;color:var(--text3);padding:8px">Nenhuma unidade cadastrada ainda.</div>';
+    return;
+  }
+  list.innerHTML = unidades.map(u => {
+    // contar NCs desta unidade (aproximado — do que está carregado)
+    return `<div class="unid-item">
+      <span class="unid-item-name">${u.nome}</span>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button class="unid-del" onclick="removerUnidade('${u.id}')" title="Remover">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function adicionarUnidade() {
+  const inp = document.getElementById('unid-nova-input');
+  const nome = inp.value.trim();
+  if (!nome || !obraAtiva) return;
+  const { data, error } = await db.from('unidades').insert({
+    obra_id: obraAtiva.id, nome, ordem: unidades.length
+  }).select().single();
+  if (error) { showToast('Erro: ' + error.message); return; }
+  unidades.push(data);
+  inp.value = '';
+  renderListaUnidades();
+  renderUnidadeBar();
+  showToast('✅ ' + nome + ' adicionada!');
+}
+
+async function removerUnidade(uid) {
+  if (!confirm('Remover esta unidade? As respostas vinculadas a ela serão mantidas no banco.')) return;
+  await db.from('unidades').delete().eq('id', uid);
+  unidades = unidades.filter(u => u.id !== uid);
+  if (unidadeAtiva === uid) { unidadeAtiva = null; await carregarRespostasEModelo(); }
+  renderListaUnidades();
+  renderUnidadeBar();
+  showToast('Unidade removida.');
+}
+
+async function gerarUnidades(prefixo, inicio, fim) {
+  if (!obraAtiva) return;
+  const novas = [];
+  for (let i = inicio; i <= fim; i++) {
+    const nome = prefixo + ' ' + i;
+    if (!unidades.find(u => u.nome === nome)) novas.push({ obra_id: obraAtiva.id, nome, ordem: unidades.length + novas.length });
+  }
+  if (!novas.length) { showToast('Todas já existem!'); return; }
+  const { data } = await db.from('unidades').insert(novas).select();
+  unidades = [...unidades, ...(data || [])];
+  renderListaUnidades();
+  renderUnidadeBar();
+  showToast('✅ ' + novas.length + ' unidades adicionadas!');
+}
+
+// ============================================================
+// PDF 3 — POR UNIDADE
+// ============================================================
+async function gerarPDFUnidade() {
+  if (!unidades.length) { showToast('Cadastre unidades primeiro!'); return; }
+  showToast('Gerando PDF por unidade...');
+  await new Promise(r => setTimeout(r, 80));
+
+  const p = pdfSetup();
+  const { doc, ML, MR, PW, CW, VERDE, DANGER, CINZA, CINZA_CLARO, TEXTO } = p;
+  const obra = document.getElementById('rel-obra')?.textContent || 'Vistoria';
+  p.cabecalho('Relatorio por Unidade', 'BL Engenharia Civil  |  ' + obra);
+  p.blocoIdent();
+
+  // Para cada unidade, buscar respostas no banco
+  for (let ui = 0; ui < unidades.length; ui++) {
+    const u = unidades[ui];
+    // buscar respostas desta unidade
+    const { data: resp } = await db.from('respostas_itens')
+      .select('*').eq('vistoria_id', vistoriaAtiva.id).eq('unidade_id', u.id);
+
+    const mapa = {};
+    (resp || []).forEach(r => {
+      mapa[r.item_id] = {
+        status: r.status==='conforme'?'conf':r.status==='nao_conforme'?'nc':r.status==='nao_aplicavel'?'na':'',
+        obs: r.observacao||'', fotos: r.fotos||[], ativo: r.item_ativo!==false
+      };
+    });
+
+    const ncs = itens.filter(it => mapa[it.id]?.status === 'nc');
+    const conf = itens.filter(it => mapa[it.id]?.status === 'conf').length;
+    const total = Object.keys(mapa).length;
+    const pct = total > 0 ? Math.round(conf/total*100) : 0;
+
+    // cabeçalho da unidade
+    p.checkY(22);
+    if (ui > 0) { p.y += 4; }
+    doc.setFillColor(...VERDE); doc.roundedRect(ML, p.y, CW, 10, 3, 3, 'F');
+    doc.setFontSize(12); doc.setFont('helvetica', 'bold'); doc.setTextColor(255,255,255);
+    doc.text(u.nome, ML + 5, p.y + 7);
+    doc.setFontSize(9);
+    doc.text(ncs.length + ' NC  |  ' + conf + ' conf.  |  ' + pct + '% ok', PW-MR-2, p.y+7, {align:'right'});
+    p.y += 14;
+
+    if (!ncs.length && total === 0) {
+      doc.setFontSize(9); doc.setFont('helvetica','italic'); doc.setTextColor(...CINZA);
+      doc.text('Nenhum item preenchido para esta unidade.', ML+2, p.y); p.y += 8;
+      continue;
+    }
+    if (!ncs.length) {
+      doc.setFillColor(232,245,238); doc.roundedRect(ML, p.y, CW, 10, 2, 2, 'F');
+      doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(46,106,79);
+      doc.text('Sem nao conformidades!', ML+CW/2, p.y+7, {align:'center'});
+      p.y += 14; continue;
+    }
+
+    // listar NCs por comodo
+    comodos.forEach(cm => {
+      const ncsCm = cm.itens.filter(it => mapa[it.id]?.status === 'nc');
+      if (!ncsCm.length) return;
+      p.checkY(14);
+      doc.setFillColor(...CINZA_CLARO); doc.roundedRect(ML, p.y, CW, 7, 1, 1, 'F');
+      doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(...TEXTO);
+      doc.text(cm.nome, ML+3, p.y+5);
+      p.y += 10;
+
+      ncsCm.forEach(it => {
+        p.checkY(18);
+        const e = mapa[it.id];
+        doc.setFillColor(253,238,238); doc.roundedRect(ML, p.y, CW, 7, 1, 1, 'F');
+        doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(...DANGER);
+        doc.text(doc.splitTextToSize(it.nome, CW-28)[0], ML+3, p.y+5);
+        doc.setFontSize(6); doc.setFillColor(...DANGER); doc.setTextColor(255,255,255);
+        doc.roundedRect(PW-MR-22, p.y+1.5, 22, 4, 1, 1, 'F');
+        doc.text('NAO CONFORME', PW-MR-11, p.y+5, {align:'center'});
+        p.y += 9;
+        if (e.obs) {
+          doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(...TEXTO);
+          const lo = doc.splitTextToSize('Obs: '+e.obs, CW-6);
+          lo.forEach(l => { p.checkY(5); doc.text(l, ML+3, p.y); p.y += 4.5; });
+        }
+        if (e.fotos?.length) p.blocoFotos(e.fotos);
+        p.y += 3;
+      });
+    });
+    p.y += 4;
+    doc.setDrawColor(...CINZA_CLARO); doc.setLineWidth(0.3);
+    doc.line(ML, p.y, PW-MR, p.y); p.y += 4;
+  }
+
+  p.rodape();
+  const dataStr = new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
+  doc.save('Vistoria_PorUnidade_' + obra.replace(/[^a-zA-Z0-9]/g,'_') + '_' + dataStr + '.pdf');
+  showToast('PDF por unidade gerado!');
+}
+
 // ============================================================
 // HELPERS PDF COMPARTILHADOS
 // ============================================================

@@ -181,7 +181,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .rel-nc-body{padding:12px 14px}
 .rel-nc-obs{font-size:12px;color:var(--text2);font-style:italic;margin-bottom:10px}
 .rel-nc-photos{display:flex;gap:8px;flex-wrap:wrap}
-.rel-photo{width:90px;height:90px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:34px;cursor:pointer}
+.rel-photo{width:100px;height:100px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);cursor:pointer;position:relative;overflow:hidden}
 .rel-empty{text-align:center;padding:24px;font-size:13px;color:var(--ok);background:var(--ok-light);border-radius:var(--radius-sm)}
 .sig-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .sig-lbl{font-size:11px;color:var(--text2);margin-bottom:6px}
@@ -223,6 +223,34 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .admin-item-edit-input:focus{border-color:var(--accent2);background:#fff}
 .admin-add-item{display:flex;gap:8px;padding:12px 16px;background:var(--surface2)}
 .admin-add-item input{flex:1;font-family:'DM Sans',sans-serif;font-size:12px;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;outline:none}
+
+/* SEÇÃO COLAPSÁVEL */
+.comodo-header{cursor:pointer;user-select:none}
+.comodo-header:hover{background:var(--surface2)}
+.comodo-toggle{margin-left:auto;font-size:14px;color:var(--text3);transition:transform .25s;flex-shrink:0}
+.comodo-collapsed .comodo-toggle{transform:rotate(-90deg)}
+.comodo-collapsed .comodo-body{display:none}
+.photo-thumb{width:72px;height:72px;border-radius:8px;background:var(--surface2);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:border-color .15s;position:relative;overflow:hidden;flex-direction:column;flex-shrink:0}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;border-radius:6px;display:block}
+.photo-thumb .photo-legend-badge{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.6);color:#fff;font-size:9px;padding:2px 4px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.add-photo{width:72px;height:72px;border-radius:8px;border:1.5px dashed var(--border);background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--text3);font-size:10px;transition:all .15s;font-family:inherit;flex-shrink:0}
+.add-photo:hover{border-color:var(--accent2);color:var(--accent)}
+.add-photo-ico{font-size:22px}
+.foto-modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:9500;display:none;flex-direction:column;align-items:center;justify-content:center;padding:16px}
+.foto-modal-ov.open{display:flex}
+.foto-toolbar{display:flex;gap:8px;padding:10px 14px;background:rgba(255,255,255,.1);border-radius:12px;margin-bottom:10px;align-items:center;flex-wrap:wrap;justify-content:center}
+.ft-btn{background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.2);color:#fff;border-radius:8px;padding:6px 13px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;transition:all .15s}
+.ft-btn:hover{background:rgba(255,255,255,.25)}
+.ft-btn.active{background:var(--accent);border-color:var(--accent2)}
+.ft-color{width:24px;height:24px;border-radius:50%;cursor:pointer;flex-shrink:0;border:2.5px solid rgba(255,255,255,.3);transition:all .15s}
+.ft-color.sel{border-color:#fff;transform:scale(1.25)}
+.foto-canvas-wrap{position:relative;display:flex;align-items:center;justify-content:center}
+#foto-canvas{border-radius:10px;cursor:crosshair;max-width:min(90vw,700px);max-height:55vh;display:block;touch-action:none}
+.foto-bottom{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:10px;width:100%;max-width:520px}
+.foto-legend-in{width:100%;font-family:inherit;font-size:13px;border:1.5px solid rgba(255,255,255,.25);border-radius:8px;padding:9px 12px;background:rgba(255,255,255,.1);color:#fff;outline:none}
+.foto-legend-in::placeholder{color:rgba(255,255,255,.35)}
+.foto-legend-in:focus{border-color:rgba(255,255,255,.65)}
+.foto-actions{display:flex;gap:10px;justify-content:center}
 
 /* MODAL */
 .modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9000;display:none;align-items:center;justify-content:center}
@@ -480,15 +508,32 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   </div>
 </div>
 
-<!-- MODAL FOTO -->
-<div class="modal-ov" id="modal-foto" onclick="if(event.target===this)closeFoto()">
-  <div class="modal-box" style="text-align:center">
-    <button class="modal-close" onclick="closeFoto()">✕</button>
-    <div style="font-size:80px;margin:8px 0" id="mf-emoji">🖼️</div>
-    <div style="font-size:13px;color:var(--text2)" id="mf-label">Foto</div>
-    <div style="display:flex;gap:8px;margin-top:20px;justify-content:center">
-      <button class="btn" onclick="showToast('✏️ Anotações em breve!');closeFoto()">✏️ Anotar</button>
-      <button class="btn btn-danger" onclick="showToast('🗑️ Foto removida');closeFoto()">🗑️ Remover</button>
+<!-- INPUT ARQUIVO OCULTO -->
+<input type="file" id="foto-file-in" accept="image/*" style="display:none" onchange="onFileSelected(event)">
+
+<!-- MODAL EDITOR DE FOTO -->
+<div class="foto-modal-ov" id="modal-foto">
+  <div class="foto-toolbar">
+    <button class="ft-btn active" id="ft-draw" onclick="setTool('draw')">✏️ Lápis</button>
+    <button class="ft-btn" id="ft-arrow" onclick="setTool('arrow')">➡️ Seta</button>
+    <button class="ft-btn" id="ft-erase" onclick="setTool('erase')">🧹 Apagar</button>
+    <div style="width:1px;height:24px;background:rgba(255,255,255,.2);margin:0 4px"></div>
+    <div class="ft-color sel" style="background:#FF3B30" onclick="setColor('#FF3B30',this)" title="Vermelho"></div>
+    <div class="ft-color" style="background:#FFD60A" onclick="setColor('#FFD60A',this)" title="Amarelo"></div>
+    <div class="ft-color" style="background:#30D158" onclick="setColor('#30D158',this)" title="Verde"></div>
+    <div class="ft-color" style="background:#fff" onclick="setColor('#fff',this)" title="Branco"></div>
+    <div style="width:1px;height:24px;background:rgba(255,255,255,.2);margin:0 4px"></div>
+    <button class="ft-btn" onclick="undoCanvas()">↩️ Desfazer</button>
+    <button class="ft-btn" onclick="closeFoto()">✕ Fechar</button>
+  </div>
+  <div class="foto-canvas-wrap">
+    <canvas id="foto-canvas"></canvas>
+  </div>
+  <div class="foto-bottom">
+    <input class="foto-legend-in" id="foto-legend-in" type="text" placeholder="Legenda da foto (opcional)..." maxlength="120">
+    <div class="foto-actions">
+      <button class="ft-btn" style="background:var(--danger);border-color:var(--danger)" onclick="removeFotoAtual()">🗑️ Remover foto</button>
+      <button class="ft-btn" style="background:var(--ok);border-color:var(--ok)" onclick="saveFotoEdits()">💾 Salvar</button>
     </div>
   </div>
 </div>
@@ -711,8 +756,9 @@ function renderChecklist() {
     if (!ativos.length) return;
     const div = document.createElement('div');
     div.className = 'comodo-block';
-    div.innerHTML = `<div class="comodo-header"><span style="font-size:18px">${cm.icone||'🏠'}</span><span class="comodo-title">${cm.nome}</span><span class="comodo-cnt" id="cnt-${cm.id}">0/${ativos.length}</span></div>`;
-    ativos.forEach(it => div.appendChild(buildItem(it)));
+    div.innerHTML = `<div class="comodo-header" onclick="toggleComodo('${cm.id}')"><span style="font-size:18px">${cm.icone||'🏠'}</span><span class="comodo-title">${cm.nome}</span><span class="comodo-cnt" id="cnt-${cm.id}">0/${ativos.length}</span><span class="comodo-toggle">▼</span></div><div class="comodo-body" id="cb-${cm.id}"></div>`;
+    const body = div.querySelector('.comodo-body');
+    ativos.forEach(it => body.appendChild(buildItem(it)));
     main.appendChild(div);
   });
   updProgress();
@@ -740,8 +786,8 @@ function buildItem(it) {
       <textarea class="obs-in" rows="2" placeholder="Descreva a não conformidade..." id="obs-${it.id}" oninput="respostas['${it.id}'].obs=this.value;salvarResposta('${it.id}')">${e.obs}</textarea>
       <div class="field-label">Fotos</div>
       <div class="photo-row" id="pr-${it.id}">
-        ${e.fotos.map(f=>`<div class="photo-thumb" onclick="openFoto('${f}','${it.nome}')">${f}</div>`).join('')}
-        <button class="add-photo" onclick="addFoto('${it.id}',event)"><span class="add-photo-ico">📷</span><span>Foto</span></button>
+        ${e.fotos.map((f,fi)=>`<div class="photo-thumb" onclick="openFoto('${it.id}',${fi})" title="${f.legenda||''}"><img src="${f.data}" alt="foto"><span class="photo-legend-badge" style="display:${f.legenda?'block':'none'}">${f.legenda||''}</span></div>`).join('')}
+        <button class="add-photo" onclick="triggerFotoUpload('${it.id}',event)"><span class="add-photo-ico">📷</span><span>Foto</span></button>
       </div>
     </div>`;
   return wrap;
@@ -786,19 +832,176 @@ async function salvarResposta(id) {
 let saveIndTimer;
 function showSaveInd(msg){ const el=document.getElementById('save-ind'); el.textContent=msg; el.style.opacity='1'; clearTimeout(saveIndTimer); saveIndTimer=setTimeout(()=>{el.style.opacity='0';},2500); }
 
-function addFoto(id, e) {
-  e.stopPropagation();
-  if (!respostas[id]) respostas[id] = { status:'', obs:'', fotos:[], ativo:true };
-  const emoji = EMOJIS_FOTO[Math.floor(Math.random()*EMOJIS_FOTO.length)];
-  respostas[id].fotos.push(emoji);
-  const row = document.getElementById('pr-'+id);
-  const btn = row.querySelector('.add-photo');
-  const div = document.createElement('div');
-  div.className = 'photo-thumb'; div.textContent = emoji;
-  const nm = itens.find(x=>x.id===id)?.nome||id;
-  div.onclick = () => openFoto(emoji, nm);
-  row.insertBefore(div, btn);
-  showToast('📷 Foto adicionada!');
+// ---- SISTEMA DE FOTOS ----
+let fotoItemAtual = null;
+let fotoIdxAtual = null;
+let canvasHistory = [];
+let drawTool = 'draw';
+let drawColor = '#FF3B30';
+let isDrawing = false;
+let lastX = 0, lastY = 0;
+
+function triggerFotoUpload(id, ev) {
+  ev && ev.stopPropagation();
+  fotoItemAtual = id;
+  fotoIdxAtual = null;
+  document.getElementById('foto-file-in').value = '';
+  document.getElementById('foto-file-in').click();
+}
+
+function onFileSelected(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    if (!respostas[fotoItemAtual]) respostas[fotoItemAtual] = { status:'', obs:'', fotos:[], ativo:true };
+    const novaFoto = { data: e.target.result, legenda: '' };
+    respostas[fotoItemAtual].fotos.push(novaFoto);
+    fotoIdxAtual = respostas[fotoItemAtual].fotos.length - 1;
+    const it = itens.find(x => x.id === fotoItemAtual);
+    // Re-render item para mostrar miniatura
+    const novo = buildItem(it);
+    document.getElementById('item-'+fotoItemAtual).replaceWith(novo);
+    // Abrir editor
+    abrirEditorFoto(fotoItemAtual, fotoIdxAtual);
+    salvarResposta(fotoItemAtual);
+    showToast('📷 Foto adicionada!');
+  };
+  reader.readAsDataURL(file);
+}
+
+function openFoto(itemId, idx) {
+  fotoItemAtual = itemId;
+  fotoIdxAtual = idx;
+  abrirEditorFoto(itemId, idx);
+}
+
+function abrirEditorFoto(itemId, idx) {
+  const foto = respostas[itemId]?.fotos[idx];
+  if (!foto) return;
+  const modal = document.getElementById('modal-foto');
+  modal.classList.add('open');
+  document.getElementById('foto-legend-in').value = foto.legenda || '';
+  const canvas = document.getElementById('foto-canvas');
+  const ctx = canvas.getContext('2d');
+  const img = new Image();
+  img.onload = () => {
+    const maxW = Math.min(window.innerWidth * 0.88, 700);
+    const maxH = window.innerHeight * 0.52;
+    const scale = Math.min(maxW / img.width, maxH / img.height, 1);
+    canvas.width = img.width * scale;
+    canvas.height = img.height * scale;
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    canvasHistory = [canvas.toDataURL()];
+    setupDrawing(canvas, ctx);
+  };
+  img.src = foto.data;
+  setTool('draw');
+}
+
+function setupDrawing(canvas, ctx) {
+  canvas.onmousedown = e => startDraw(e, canvas, ctx);
+  canvas.onmousemove = e => doDraw(e, canvas, ctx);
+  canvas.onmouseup = () => endDraw(canvas);
+  canvas.onmouseleave = () => endDraw(canvas);
+  canvas.ontouchstart = e => { e.preventDefault(); startDraw(e.touches[0], canvas, ctx); };
+  canvas.ontouchmove = e => { e.preventDefault(); doDraw(e.touches[0], canvas, ctx); };
+  canvas.ontouchend = () => endDraw(canvas);
+}
+
+function getPos(e, canvas) {
+  const r = canvas.getBoundingClientRect();
+  return { x: (e.clientX - r.left) * (canvas.width / r.width), y: (e.clientY - r.top) * (canvas.height / r.height) };
+}
+
+function startDraw(e, canvas, ctx) {
+  isDrawing = true;
+  const p = getPos(e, canvas);
+  lastX = p.x; lastY = p.y;
+  if (drawTool === 'arrow') { lastX = p.x; lastY = p.y; }
+}
+
+function doDraw(e, canvas, ctx) {
+  if (!isDrawing) return;
+  const p = getPos(e, canvas);
+  ctx.lineWidth = drawTool === 'erase' ? 20 : 3;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  if (drawTool === 'erase') {
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.strokeStyle = 'rgba(0,0,0,1)';
+  } else {
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.strokeStyle = drawColor;
+  }
+  if (drawTool === 'draw' || drawTool === 'erase') {
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+  }
+  lastX = p.x; lastY = p.y;
+}
+
+function endDraw(canvas) {
+  if (!isDrawing) return;
+  isDrawing = false;
+  ctx_global = canvas.getContext('2d');
+  ctx_global.globalCompositeOperation = 'source-over';
+  canvasHistory.push(canvas.toDataURL());
+}
+
+function undoCanvas() {
+  if (canvasHistory.length <= 1) return;
+  canvasHistory.pop();
+  const canvas = document.getElementById('foto-canvas');
+  const ctx = canvas.getContext('2d');
+  const img = new Image();
+  img.onload = () => ctx.drawImage(img, 0, 0);
+  img.src = canvasHistory[canvasHistory.length - 1];
+}
+
+function setTool(t) {
+  drawTool = t;
+  ['draw','arrow','erase'].forEach(x => document.getElementById('ft-'+x)?.classList.toggle('active', x===t));
+}
+
+function setColor(c, el) {
+  drawColor = c;
+  document.querySelectorAll('.ft-color').forEach(x => x.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function saveFotoEdits() {
+  const canvas = document.getElementById('foto-canvas');
+  const legenda = document.getElementById('foto-legend-in').value.trim();
+  if (!respostas[fotoItemAtual]?.fotos[fotoIdxAtual]) { closeFoto(); return; }
+  respostas[fotoItemAtual].fotos[fotoIdxAtual].data = canvas.toDataURL('image/jpeg', 0.85);
+  respostas[fotoItemAtual].fotos[fotoIdxAtual].legenda = legenda;
+  salvarResposta(fotoItemAtual);
+  const it = itens.find(x => x.id === fotoItemAtual);
+  const novo = buildItem(it);
+  document.getElementById('item-'+fotoItemAtual).replaceWith(novo);
+  closeFoto();
+  showToast('✅ Foto salva!');
+}
+
+function removeFotoAtual() {
+  if (!respostas[fotoItemAtual]) { closeFoto(); return; }
+  respostas[fotoItemAtual].fotos.splice(fotoIdxAtual, 1);
+  salvarResposta(fotoItemAtual);
+  const it = itens.find(x => x.id === fotoItemAtual);
+  const novo = buildItem(it);
+  document.getElementById('item-'+fotoItemAtual).replaceWith(novo);
+  closeFoto();
+  showToast('🗑️ Foto removida');
+}
+
+function closeFoto() { document.getElementById('modal-foto').classList.remove('open'); }
+
+function toggleComodo(id) {
+  const block = document.getElementById('cb-'+id)?.closest('.comodo-block');
+  if (block) block.classList.toggle('comodo-collapsed');
 }
 
 function updProgress() {
@@ -847,7 +1050,7 @@ function gerarRel() {
     ncItens.forEach(it => {
       const e = respostas[it.id];
       const obs = e?.obs?.trim() || 'Sem observação registrada.';
-      const photos = e?.fotos?.length ? e.fotos.map(f=>`<div class="rel-photo" onclick="openFoto('${f}','${it.nome}')">${f}</div>`).join('') : '<span style="font-size:12px;color:var(--text3)">Nenhuma foto</span>';
+      const photos = e?.fotos?.length ? e.fotos.map((f,fi)=>`<div class="rel-photo" onclick="openFoto('${it.id}',${fi})" style="position:relative;overflow:hidden"><img src="${f.data}" style="width:100%;height:100%;object-fit:cover;border-radius:7px">${f.legenda?`<span style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.6);color:#fff;font-size:9px;padding:2px 4px;text-align:center">${f.legenda}</span>`:''}</div>`).join('') : '<span style="font-size:12px;color:var(--text3)">Nenhuma foto</span>';
       html += `<div class="rel-nc-item"><div class="rel-nc-head"><span style="color:var(--danger)">✗</span><span class="rel-nc-name">${it.nome}</span><span class="rel-nc-badge">NÃO CONFORME</span></div><div class="rel-nc-body"><div class="rel-nc-obs">📝 ${obs}</div><div class="rel-nc-photos">${photos}</div></div></div>`;
     });
     html += '</div>';
@@ -1036,8 +1239,7 @@ function closeSB(){ document.getElementById('sidebar').classList.remove('open');
 // ============================================================
 let toastT;
 function showToast(m){ const t=document.getElementById('toast'); document.getElementById('toast-msg').textContent=m; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2800); }
-function openFoto(emoji,label){ document.getElementById('mf-emoji').textContent=emoji; document.getElementById('mf-label').textContent=label; document.getElementById('modal-foto').classList.add('open'); }
-function closeFoto(){ document.getElementById('modal-foto').classList.remove('open'); }
+// openFoto e closeFoto movidos para sistema de fotos acima
 function updNome(v){ document.getElementById('sb-name').textContent=v||'Beatriz Lunardi'; document.getElementById('pp-nome').textContent='Engª '+(v||'Beatriz Lunardi'); document.getElementById('rel-nome').textContent='Engª '+(v||'Beatriz Lunardi')+' — '+(document.getElementById('cfg-crea')?.value||'CREA/SC'); }
 
 // ============================================================

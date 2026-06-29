@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{
   --bg:#F5F3EE;--surface:#FFF;--surface2:#F0EDE8;--border:#E2DDD6;
@@ -448,11 +449,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         </div>
         <div style="display:flex;flex-direction:column;gap:14px">
           <div class="send-panel">
-            <div class="sp-head">📤 Enviar relatório</div>
+            <div class="sp-head">📤 Enviar</div>
             <button class="si" onclick="showToast('📧 Abrindo e-mail...')"><span class="si-ico">📧</span><div><div class="si-n">E-mail — construtora</div><div class="si-d" id="si-email">—</div></div><span class="si-arr">›</span></button>
             <button class="si" onclick="showToast('💬 Abrindo WhatsApp...')"><span class="si-ico">💬</span><div><div class="si-n">WhatsApp — cliente</div><div class="si-d" id="si-wpp">—</div></div><span class="si-arr">›</span></button>
-            <button class="si" onclick="showToast('📎 Link copiado!')"><span class="si-ico">🔗</span><div><div class="si-n">Copiar link público</div><div class="si-d">Acesso com senha</div></div><span class="si-arr">›</span></button>
-            <button class="si" onclick="gerarPDF()"><span class="si-ico">📄</span><div><div class="si-n">Baixar PDF</div><div class="si-d">Relatório completo</div></div><span class="si-arr">›</span></button>
+          </div>
+          <div class="send-panel">
+            <div class="sp-head">⬇️ Exportar relatório</div>
+            <button class="si" onclick="gerarPDF()"><span class="si-ico">📋</span><div><div class="si-n">PDF — Parecer geral</div><div class="si-d">Visão completa da vistoria</div></div><span class="si-arr">›</span></button>
+            <button class="si" onclick="gerarPDFApto()"><span class="si-ico">🏠</span><div><div class="si-n">PDF — Detalhado por cômodo</div><div class="si-d">Um bloco por ambiente, com fotos</div></div><span class="si-arr">›</span></button>
+            <button class="si" onclick="gerarExcel()"><span class="si-ico">📊</span><div><div class="si-n">Excel — Checklist de pendências</div><div class="si-d">Planilha para controle da obra</div></div><span class="si-arr">›</span></button>
           </div>
           <div class="send-panel">
             <div class="sp-head">📝 Observações gerais</div>
@@ -1318,235 +1323,417 @@ function fazerLogin() {
 // ============================================================
 // PDF REAL
 // ============================================================
-async function gerarPDF() {
-  showToast('⏳ Gerando PDF...');
-  await new Promise(r => setTimeout(r, 100));
-
+// ============================================================
+// HELPERS PDF COMPARTILHADOS
+// ============================================================
+function pdfSetup() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
   const PW = 210, PH = 297, ML = 18, MR = 18, MT = 18;
-  let y = MT;
   const CW = PW - ML - MR;
-
-  // cores
   const VERDE = [45, 90, 61];
   const DANGER = [181, 48, 48];
   const CINZA = [107, 101, 96];
   const CINZA_CLARO = [240, 237, 232];
   const TEXTO = [26, 23, 20];
+  let y = MT;
 
   function checkY(needed = 20) {
-    if (y + needed > PH - 18) { doc.addPage(); y = MT; }
+    if (y + needed > PH - 18) { doc.addPage(); y = MT; return true; }
+    return false;
   }
-
-  function linha(color = CINZA_CLARO) {
-    doc.setDrawColor(...color);
+  function hLine(color) {
+    doc.setDrawColor(...(color || CINZA_CLARO));
     doc.setLineWidth(0.3);
     doc.line(ML, y, PW - MR, y);
     y += 5;
   }
-
-  // ── CABEÇALHO ──
-  doc.setFillColor(...VERDE);
-  doc.roundedRect(0, 0, PW, 36, 0, 0, 'F');
-  doc.setFontSize(18); doc.setFont('helvetica', 'bold');
-  doc.setTextColor(255, 255, 255);
-  doc.text('📐 Relatório de Vistoria de Obra', ML, 16);
-  doc.setFontSize(9); doc.setFont('helvetica', 'normal');
-  doc.setTextColor(200, 220, 210);
-  const obra = vistoriaAtiva?.obras?.nome || document.getElementById('rel-obra')?.textContent || '—';
-  doc.text('BL Engenharia Civil · ' + obra, ML, 25);
-  const dataRel = new Date().toLocaleDateString('pt-BR');
-  doc.text('Emitido em ' + dataRel, PW - MR, 25, { align: 'right' });
-  y = 44;
-
-  // ── IDENTIFICAÇÃO ──
-  doc.setFontSize(8); doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...CINZA);
-  doc.text('IDENTIFICAÇÃO', ML, y); y += 5;
-  linha();
-
-  const campos = [
-    ['Obra', document.getElementById('rel-obra')?.textContent || '—'],
-    ['Construtora', document.getElementById('rel-const')?.textContent || '—'],
-    ['Cliente', document.getElementById('rel-cliente')?.textContent || '—'],
-    ['Vistoriadora', 'Engª Beatriz Lunardi — ' + (document.getElementById('cfg-crea')?.value || 'CREA/SC')],
-    ['Data da vistoria', document.getElementById('rel-data')?.textContent || '—'],
-    ['Modelo de checklist', document.getElementById('rel-modelo')?.textContent || '—'],
-  ];
-  doc.setFontSize(9);
-  const colW = CW / 2;
-  campos.forEach((([k, v], i) => {
-    const cx = ML + (i % 2) * colW;
-    if (i % 2 === 0 && i > 0) y += 9;
-    doc.setFont('helvetica', 'normal'); doc.setTextColor(...CINZA);
-    doc.text(k, cx, y);
-    doc.setFont('helvetica', 'bold'); doc.setTextColor(...TEXTO);
-    doc.text(v, cx, y + 4);
-  }));
-  y += 14;
-  linha();
-
-  // ── RESUMO ──
-  checkY(30);
-  doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...CINZA);
-  doc.text('RESUMO EXECUTIVO', ML, y); y += 5;
-  linha();
-
-  const conf = parseInt(document.getElementById('r-conf')?.textContent || '0');
-  const nc   = parseInt(document.getElementById('r-nc')?.textContent || '0');
-  const na   = parseInt(document.getElementById('r-na')?.textContent || '0');
-  const total = conf + nc + na;
-  const pct = total > 0 ? Math.round((conf / total) * 100) : 0;
-
-  const boxes = [
-    { label: 'Conformes', val: conf, cor: [46, 106, 79], fundo: [232, 245, 238] },
-    { label: 'Não conformes', val: nc, cor: [181, 48, 48], fundo: [253, 238, 238] },
-    { label: 'N/Aplicável', val: na, cor: [90, 74, 140], fundo: [238, 237, 254] },
-  ];
-  const bw = (CW - 8) / 3;
-  boxes.forEach((b, i) => {
-    const bx = ML + i * (bw + 4);
-    doc.setFillColor(...b.fundo);
-    doc.roundedRect(bx, y, bw, 18, 3, 3, 'F');
-    doc.setFontSize(18); doc.setFont('helvetica', 'bold'); doc.setTextColor(...b.cor);
-    doc.text(String(b.val), bx + bw / 2, y + 11, { align: 'center' });
-    doc.setFontSize(8); doc.setFont('helvetica', 'normal');
-    doc.text(b.label, bx + bw / 2, y + 16, { align: 'center' });
-  });
-  y += 24;
-
-  // barra de progresso
-  doc.setFillColor(...CINZA_CLARO);
-  doc.roundedRect(ML, y, CW, 5, 2, 2, 'F');
-  if (pct > 0) {
-    doc.setFillColor(...VERDE);
-    doc.roundedRect(ML, y, CW * pct / 100, 5, 2, 2, 'F');
+  function secTitle(txt) {
+    checkY(14);
+    doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...CINZA);
+    doc.text(txt, ML, y); y += 5;
+    hLine();
   }
-  doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...CINZA);
-  doc.text(pct + '% de conformidade', PW - MR, y + 4, { align: 'right' });
-  y += 12;
-  linha();
+  function cabecalho(titulo, subtitulo) {
+    doc.setFillColor(...VERDE);
+    doc.rect(0, 0, PW, 36, 'F');
+    doc.setFontSize(15); doc.setFont('helvetica', 'bold'); doc.setTextColor(255, 255, 255);
+    doc.text(titulo, ML, 15);
+    doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(200, 230, 210);
+    doc.text(subtitulo, ML, 24);
+    const dataRel = new Date().toLocaleDateString('pt-BR');
+    doc.text('Emitido em ' + dataRel, PW - MR, 24, { align: 'right' });
+    y = 44;
+  }
+  function rodape() {
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFillColor(...CINZA_CLARO);
+      doc.rect(0, PH - 11, PW, 11, 'F');
+      doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(...CINZA);
+      const nome = document.getElementById('cfg-nome')?.value || 'Beatriz Lunardi';
+      const crea = document.getElementById('cfg-crea')?.value || 'CREA/SC';
+      doc.text('VistoriaApp  |  ' + nome + '  |  ' + crea, ML, PH - 5);
+      doc.text('Pag. ' + i + ' / ' + pageCount, PW - MR, PH - 5, { align: 'right' });
+    }
+  }
+  function blocoIdent() {
+    secTitle('IDENTIFICACAO');
+    const obraEl = document.getElementById('rel-obra')?.textContent || '';
+    const fields = [
+      ['Obra', obraEl],
+      ['Construtora', document.getElementById('rel-const')?.textContent || ''],
+      ['Cliente', document.getElementById('rel-cliente')?.textContent || ''],
+      ['Vistoriadora', (document.getElementById('cfg-nome')?.value||'Beatriz Lunardi') + '  ' + (document.getElementById('cfg-crea')?.value||'CREA/SC')],
+      ['Data', document.getElementById('rel-data')?.textContent || ''],
+      ['Modelo', document.getElementById('rel-modelo')?.textContent || ''],
+    ];
+    const cw2 = CW / 2;
+    fields.forEach(([k, v], i) => {
+      if (i % 2 === 0 && i > 0) y += 10;
+      const cx = ML + (i % 2) * cw2;
+      doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(...CINZA);
+      doc.text(k, cx, y);
+      doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(...TEXTO);
+      const vStr = doc.splitTextToSize(v, cw2 - 4);
+      doc.text(vStr[0], cx, y + 4);
+    });
+    y += 14; hLine();
+  }
+  function blocoResumo() {
+    secTitle('RESUMO EXECUTIVO');
+    const conf = parseInt(document.getElementById('r-conf')?.textContent || '0');
+    const nc   = parseInt(document.getElementById('r-nc')?.textContent || '0');
+    const na   = parseInt(document.getElementById('r-na')?.textContent || '0');
+    const total = conf + nc + na;
+    const pct = total > 0 ? Math.round((conf / total) * 100) : 0;
+    const bw = (CW - 8) / 3;
+    const boxes = [
+      { label: 'Conformes', val: conf, cor: [46,106,79], fundo: [232,245,238] },
+      { label: 'Nao conformes', val: nc, cor: [181,48,48], fundo: [253,238,238] },
+      { label: 'N/Aplicavel', val: na, cor: [90,74,140], fundo: [238,237,254] },
+    ];
+    boxes.forEach((b, i) => {
+      const bx = ML + i * (bw + 4);
+      doc.setFillColor(...b.fundo); doc.roundedRect(bx, y, bw, 18, 3, 3, 'F');
+      doc.setFontSize(18); doc.setFont('helvetica', 'bold'); doc.setTextColor(...b.cor);
+      doc.text(String(b.val), bx + bw / 2, y + 11, { align: 'center' });
+      doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...b.cor);
+      doc.text(b.label, bx + bw / 2, y + 16.5, { align: 'center' });
+    });
+    y += 24;
+    doc.setFillColor(...CINZA_CLARO); doc.roundedRect(ML, y, CW, 5, 2, 2, 'F');
+    if (pct > 0) { doc.setFillColor(...VERDE); doc.roundedRect(ML, y, CW * pct / 100, 5, 2, 2, 'F'); }
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...CINZA);
+    doc.text(pct + '% de conformidade', PW - MR, y + 4, { align: 'right' });
+    y += 12; hLine();
+  }
+  function blocoFotos(fotos) {
+    if (!fotos?.length) return;
+    checkY(40);
+    const fW = 40, fH = 30, gap = 4;
+    let fx = ML;
+    fotos.forEach(foto => {
+      if (fx + fW > PW - MR) { fx = ML; y += fH + (foto.legenda ? 8 : gap); checkY(fH + 12); }
+      try {
+        doc.addImage(foto.data, 'JPEG', fx, y, fW, fH);
+        doc.setDrawColor(...CINZA_CLARO); doc.setLineWidth(0.3);
+        doc.roundedRect(fx, y, fW, fH, 2, 2);
+        if (foto.legenda) {
+          doc.setFontSize(6); doc.setFont('helvetica', 'italic'); doc.setTextColor(...CINZA);
+          doc.text(doc.splitTextToSize(foto.legenda, fW)[0], fx, y + fH + 3.5);
+        }
+      } catch(e) { console.warn('Erro foto', e); }
+      fx += fW + gap;
+    });
+    y += fH + (fotos.some(f => f.legenda) ? 9 : 5);
+  }
 
-  // ── NÃO CONFORMIDADES ──
-  checkY(20);
-  doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...CINZA);
-  doc.text('NÃO CONFORMIDADES POR LOCAL', ML, y); y += 5;
-  linha();
+  return { doc, PW, PH, ML, MR, MT, CW, VERDE, DANGER, CINZA, CINZA_CLARO, TEXTO,
+           get y() { return y; }, set y(v) { y = v; },
+           checkY, hLine, secTitle, cabecalho, rodape, blocoIdent, blocoResumo, blocoFotos };
+}
+
+// ============================================================
+// PDF 1 — PARECER GERAL (corrigido)
+// ============================================================
+async function gerarPDF() {
+  showToast('Gerando PDF...');
+  await new Promise(r => setTimeout(r, 80));
+  const p = pdfSetup();
+  const { doc, ML, MR, PW, CW, VERDE, DANGER, CINZA, CINZA_CLARO, TEXTO } = p;
+
+  const obra = document.getElementById('rel-obra')?.textContent || 'Vistoria';
+  p.cabecalho('Relatorio de Vistoria de Obra', 'BL Engenharia Civil  |  ' + obra);
+  p.blocoIdent();
+  p.blocoResumo();
+
+  p.secTitle('NAO CONFORMIDADES POR LOCAL');
+  const nc = parseInt(document.getElementById('r-nc')?.textContent || '0');
 
   if (nc === 0) {
-    doc.setFillColor(232, 245, 238);
-    doc.roundedRect(ML, y, CW, 12, 3, 3, 'F');
+    doc.setFillColor(232,245,238); doc.roundedRect(ML, p.y, CW, 12, 3, 3, 'F');
     doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(...VERDE);
-    doc.text('✅  Nenhuma não conformidade registrada!', ML + CW / 2, y + 8, { align: 'center' });
-    y += 18;
+    doc.text('Nenhuma nao conformidade registrada!', ML + CW / 2, p.y + 8, { align: 'center' });
+    p.y += 18;
   } else {
     comodos.forEach(cm => {
       const ncs = cm.itens.filter(it => respostas[it.id]?.status === 'nc');
       if (!ncs.length) return;
-
-      checkY(16);
-      doc.setFillColor(...CINZA_CLARO);
-      doc.roundedRect(ML, y, CW, 8, 2, 2, 'F');
+      p.checkY(18);
+      doc.setFillColor(...CINZA_CLARO); doc.roundedRect(ML, p.y, CW, 8, 2, 2, 'F');
       doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(...TEXTO);
-      doc.text((cm.icone || '') + '  ' + cm.nome, ML + 3, y + 5.5);
-      y += 12;
+      doc.text(cm.nome, ML + 3, p.y + 5.5);
+      p.y += 12;
 
       ncs.forEach(it => {
-        checkY(24);
+        p.checkY(22);
         const e = respostas[it.id];
-        // cabeçalho item
-        doc.setFillColor(253, 238, 238);
-        doc.roundedRect(ML, y, CW, 8, 2, 2, 'F');
+        doc.setFillColor(253,238,238); doc.roundedRect(ML, p.y, CW, 8, 2, 2, 'F');
         doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(...DANGER);
-        doc.text('✗  ' + it.nome, ML + 3, y + 5.5);
-        doc.setFontSize(7); doc.setFont('helvetica', 'bold');
-        doc.setFillColor(...DANGER); doc.setTextColor(255,255,255);
-        doc.roundedRect(PW - MR - 22, y + 1.5, 22, 5, 2, 2, 'F');
-        doc.text('NÃO CONFORME', PW - MR - 11, y + 5.3, { align: 'center' });
-        y += 10;
+        const nomeIt = doc.splitTextToSize(it.nome, CW - 30);
+        doc.text(nomeIt[0], ML + 3, p.y + 5.5);
+        doc.setFontSize(7); doc.setFillColor(...DANGER); doc.setTextColor(255,255,255);
+        doc.roundedRect(PW - MR - 24, p.y + 1.5, 24, 5, 2, 2, 'F');
+        doc.text('NAO CONFORME', PW - MR - 12, p.y + 5.2, { align: 'center' });
+        p.y += 10;
 
-        // critério
         if (it.criterio) {
           doc.setFontSize(8); doc.setFont('helvetica', 'italic'); doc.setTextColor(...CINZA);
-          const linsCrit = doc.splitTextToSize('Critério: ' + it.criterio, CW - 4);
-          doc.text(linsCrit, ML + 2, y);
-          y += linsCrit.length * 4 + 1;
+          const lc = doc.splitTextToSize('Criterio: ' + it.criterio, CW - 4);
+          doc.text(lc, ML + 2, p.y); p.y += lc.length * 4.2 + 1;
         }
-
-        // observação
         if (e.obs) {
-          checkY(10);
+          p.checkY(8);
           doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...TEXTO);
-          const linsObs = doc.splitTextToSize('📝 ' + e.obs, CW - 4);
-          linsObs.forEach(l => {
-            checkY(6);
-            doc.text(l, ML + 2, y); y += 5;
-          });
+          const lo = doc.splitTextToSize('Obs: ' + e.obs, CW - 4);
+          lo.forEach(l => { p.checkY(6); doc.text(l, ML + 2, p.y); p.y += 5; });
         }
-
-        // fotos
-        if (e.fotos?.length) {
-          checkY(36);
-          const fW = 42, fH = 32, gap = 4;
-          let fx = ML;
-          e.fotos.forEach((foto, fi) => {
-            if (fx + fW > PW - MR) { fx = ML; y += fH + gap + (foto.legenda ? 5 : 0); checkY(fH + 10); }
-            try {
-              doc.addImage(foto.data, 'JPEG', fx, y, fW, fH);
-              doc.setDrawColor(...CINZA_CLARO);
-              doc.roundedRect(fx, y, fW, fH, 2, 2);
-              if (foto.legenda) {
-                doc.setFillColor(0,0,0); doc.setTextColor(0,0,0);
-                doc.setFontSize(6); doc.setFont('helvetica', 'italic');
-                const leg = doc.splitTextToSize(foto.legenda, fW);
-                doc.text(leg[0], fx, y + fH + 3.5);
-              }
-            } catch(e2) { console.warn('Erro foto PDF', e2); }
-            fx += fW + gap;
-          });
-          y += fH + (e.fotos.some(f=>f.legenda) ? 8 : 4);
-        }
-        y += 5;
-        checkY(4);
+        p.blocoFotos(e.fotos);
+        p.y += 3;
         doc.setDrawColor(...CINZA_CLARO); doc.setLineWidth(0.2);
-        doc.line(ML, y, PW - MR, y); y += 5;
+        doc.line(ML, p.y, PW - MR, p.y); p.y += 5;
       });
     });
   }
 
-  // ── ASSINATURAS ──
-  checkY(36);
-  linha();
+  // assinaturas
+  p.checkY(36);
+  p.hLine();
   doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...CINZA);
-  doc.text('ASSINATURAS', ML, y); y += 8;
+  doc.text('ASSINATURAS', ML, p.y); p.y += 8;
   const sw = (CW - 8) / 2;
   doc.setDrawColor(...CINZA_CLARO); doc.setLineWidth(0.4);
   ['Construtora', 'Cliente'].forEach((label, i) => {
     const sx = ML + i * (sw + 8);
     doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...CINZA);
-    doc.text(label, sx, y);
-    doc.rect(sx, y + 3, sw, 18);
-    doc.line(sx, y + 24, sx + sw, y + 24);
-    doc.setFontSize(7); doc.text('Assinatura e carimbo', sx + sw / 2, y + 28, { align: 'center' });
+    doc.text(label, sx, p.y);
+    doc.rect(sx, p.y + 3, sw, 18);
+    doc.setFontSize(7); doc.text('Assinatura e carimbo', sx + sw/2, p.y + 25, { align: 'center' });
   });
-  y += 34;
 
-  // ── RODAPÉ ──
-  const pageCount = doc.getNumberOfPages();
-  for (let i = 1; i <= pageCount; i++) {
-    doc.setPage(i);
-    doc.setFillColor(...CINZA_CLARO);
-    doc.rect(0, PH - 12, PW, 12, 'F');
-    doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(...CINZA);
-    doc.text('VistoriaApp · BL Engenharia Civil · beatriz@email.com.br', ML, PH - 5);
-    doc.text('Página ' + i + ' de ' + pageCount, PW - MR, PH - 5, { align: 'right' });
-  }
-
-  const nomeArq = 'Vistoria_' + (obra.replace(/[^a-zA-Z0-9]/g, '_')) + '_' + dataRel.replace(/\//g, '-') + '.pdf';
-  doc.save(nomeArq);
-  showToast('✅ PDF gerado!');
+  p.rodape();
+  const dataStr = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
+  doc.save('Vistoria_Geral_' + obra.replace(/[^a-zA-Z0-9]/g,'_') + '_' + dataStr + '.pdf');
+  showToast('PDF gerado!');
 }
+
+// ============================================================
+// PDF 2 — DETALHADO POR COMODO
+// ============================================================
+async function gerarPDFApto() {
+  showToast('Gerando PDF detalhado...');
+  await new Promise(r => setTimeout(r, 80));
+  const p = pdfSetup();
+  const { doc, ML, MR, PW, CW, VERDE, DANGER, CINZA, CINZA_CLARO, TEXTO } = p;
+
+  const obra = document.getElementById('rel-obra')?.textContent || 'Vistoria';
+  p.cabecalho('Relatorio Detalhado por Ambiente', 'BL Engenharia Civil  |  ' + obra);
+  p.blocoIdent();
+  p.blocoResumo();
+
+  // todos os comodos, todos os status
+  comodos.forEach(cm => {
+    const ativos = cm.itens.filter(it => respostas[it.id]?.ativo !== false);
+    if (!ativos.length) return;
+
+    const ncCount = ativos.filter(it => respostas[it.id]?.status === 'nc').length;
+    const confCount = ativos.filter(it => respostas[it.id]?.status === 'conf').length;
+
+    p.checkY(20);
+    // cabeçalho do cômodo
+    doc.setFillColor(...VERDE); doc.roundedRect(ML, p.y, CW, 9, 2, 2, 'F');
+    doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(255,255,255);
+    doc.text(cm.nome, ML + 4, p.y + 6.3);
+    doc.setFontSize(8);
+    doc.text(confCount + ' conf.  |  ' + ncCount + ' n.conf.  |  ' + ativos.length + ' total', PW - MR - 2, p.y + 6.3, { align: 'right' });
+    p.y += 13;
+
+    ativos.forEach(it => {
+      const e = respostas[it.id] || {};
+      const st = e.status || '';
+      const isNC = st === 'nc';
+      const isConf = st === 'conf';
+      const isNA = st === 'na';
+
+      p.checkY(14);
+      // linha do item
+      const cor = isNC ? [253,238,238] : isConf ? [232,245,238] : isNA ? [238,237,254] : [248,246,242];
+      doc.setFillColor(...cor); doc.roundedRect(ML, p.y, CW, 7, 1, 1, 'F');
+
+      // badge status
+      const badgeCol = isNC ? DANGER : isConf ? [46,106,79] : isNA ? [90,74,140] : [160,155,150];
+      const badgeTxt = isNC ? 'N.CONFORME' : isConf ? 'CONFORME' : isNA ? 'N/A' : 'PENDENTE';
+      doc.setFillColor(...badgeCol); doc.roundedRect(PW - MR - 22, p.y + 1, 22, 5, 2, 2, 'F');
+      doc.setFontSize(6); doc.setFont('helvetica', 'bold'); doc.setTextColor(255,255,255);
+      doc.text(badgeTxt, PW - MR - 11, p.y + 4.7, { align: 'center' });
+
+      doc.setFontSize(8); doc.setFont('helvetica', isNC ? 'bold' : 'normal');
+      doc.setTextColor(...TEXTO);
+      const nomeIt = doc.splitTextToSize(it.nome, CW - 28);
+      doc.text(nomeIt[0], ML + 3, p.y + 5);
+      p.y += 9;
+
+      // detalhes só para NC
+      if (isNC) {
+        if (it.criterio) {
+          doc.setFontSize(7); doc.setFont('helvetica', 'italic'); doc.setTextColor(...CINZA);
+          const lc = doc.splitTextToSize('Criterio: ' + it.criterio, CW - 6);
+          doc.text(lc, ML + 4, p.y); p.y += lc.length * 3.8 + 1;
+        }
+        if (e.obs) {
+          p.checkY(8);
+          doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...TEXTO);
+          const lo = doc.splitTextToSize('Obs: ' + e.obs, CW - 6);
+          lo.forEach(l => { p.checkY(5); doc.text(l, ML + 4, p.y); p.y += 4.5; });
+        }
+        p.blocoFotos(e.fotos);
+        p.y += 2;
+      }
+    });
+    p.y += 6;
+  });
+
+  // rodapé
+  p.checkY(30);
+  p.hLine();
+  doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...CINZA);
+  doc.text('ASSINATURAS', ML, p.y); p.y += 8;
+  const sw = (CW - 8) / 2;
+  doc.setDrawColor(...CINZA_CLARO); doc.setLineWidth(0.4);
+  ['Construtora', 'Cliente'].forEach((label, i) => {
+    const sx = ML + i * (sw + 8);
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...CINZA);
+    doc.text(label, sx, p.y);
+    doc.rect(sx, p.y + 3, sw, 18);
+    doc.setFontSize(7); doc.text('Assinatura e carimbo', sx + sw/2, p.y + 25, { align: 'center' });
+  });
+
+  p.rodape();
+  const dataStr = new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
+  doc.save('Vistoria_Detalhado_' + obra.replace(/[^a-zA-Z0-9]/g,'_') + '_' + dataStr + '.pdf');
+  showToast('PDF detalhado gerado!');
+}
+
+// ============================================================
+// EXCEL — CHECKLIST DE PENDENCIAS
+// ============================================================
+function gerarExcel() {
+  if (!window.XLSX) { showToast('Aguarde, carregando Excel...'); return; }
+  showToast('Gerando planilha...');
+
+  const obra = document.getElementById('rel-obra')?.textContent || 'Vistoria';
+  const construtora = document.getElementById('rel-const')?.textContent || '';
+  const cliente = document.getElementById('rel-cliente')?.textContent || '';
+  const dataVist = document.getElementById('rel-data')?.textContent || '';
+  const vistoriadora = (document.getElementById('cfg-nome')?.value || 'Beatriz Lunardi');
+
+  // Montar linhas — apenas NÃO CONFORMES primeiro, depois conformes, depois NA/pendente
+  const ordemStatus = { nc: 0, conf: 1, na: 2, '': 3 };
+  const linhas = [];
+  comodos.forEach(cm => {
+    cm.itens.filter(it => respostas[it.id]?.ativo !== false).forEach(it => {
+      const e = respostas[it.id] || {};
+      linhas.push({ comodo: cm.nome, item: it.nome, criterio: it.criterio || '', obs: e.obs || '', status: e.status || '', _ord: ordemStatus[e.status || ''] });
+    });
+  });
+  linhas.sort((a, b) => a._ord - b._ord);
+
+  const statusLabel = { nc: 'Nao Conforme', conf: 'Conforme', na: 'N/A', '': 'Pendente' };
+
+  const wb = XLSX.utils.book_new();
+
+  // ── ABA 1: PENDENCIAS (não conformes) ──
+  const rowsNC = [
+    ['CHECK LIST - VISTORIA DE OBRA'],
+    [],
+    ['Obra:', obra, '', 'Construtora:', construtora],
+    ['Cliente:', cliente, '', 'Data:', dataVist],
+    ['Vistoriadora:', vistoriadora],
+    [],
+    ['SERVICO / ITEM', 'AMBIENTE', 'CRITERIO', 'OBSERVACAO', 'RESPONSAVEL', 'PAVTO/LOCAL', 'STATUS'],
+  ];
+  linhas.filter(l => l.status === 'nc').forEach(l => {
+    rowsNC.push([l.item, l.comodo, l.criterio, l.obs, '', '', 'Pendente']);
+  });
+  if (rowsNC.length === 8) rowsNC.push(['Nenhuma nao conformidade registrada.']);
+
+  const wsNC = XLSX.utils.aoa_to_sheet(rowsNC);
+  wsNC['!cols'] = [{ wch: 40 }, { wch: 22 }, { wch: 35 }, { wch: 35 }, { wch: 18 }, { wch: 18 }, { wch: 14 }];
+  wsNC['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 6 } }];
+  XLSX.utils.book_append_sheet(wb, wsNC, 'Pendencias');
+
+  // ── ABA 2: CHECKLIST COMPLETO ──
+  const rowsAll = [
+    ['CHECKLIST COMPLETO - VISTORIA'],
+    [],
+    ['Obra:', obra, '', 'Data:', dataVist],
+    [],
+    ['ITEM', 'AMBIENTE', 'CRITERIO', 'OBSERVACAO', 'STATUS'],
+  ];
+  linhas.forEach(l => {
+    rowsAll.push([l.item, l.comodo, l.criterio, l.obs, statusLabel[l.status]]);
+  });
+
+  const wsAll = XLSX.utils.aoa_to_sheet(rowsAll);
+  wsAll['!cols'] = [{ wch: 40 }, { wch: 22 }, { wch: 35 }, { wch: 35 }, { wch: 14 }];
+  wsAll['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }];
+  XLSX.utils.book_append_sheet(wb, wsAll, 'Checklist Completo');
+
+  // ── ABA 3: RESUMO ──
+  const conf = linhas.filter(l => l.status === 'conf').length;
+  const nc   = linhas.filter(l => l.status === 'nc').length;
+  const na   = linhas.filter(l => l.status === 'na').length;
+  const pend = linhas.filter(l => l.status === '').length;
+  const total = linhas.length;
+  const pct = total > 0 ? Math.round((conf / total) * 100) : 0;
+
+  const rowsRes = [
+    ['RESUMO DA VISTORIA'],
+    [],
+    ['Obra', obra],
+    ['Construtora', construtora],
+    ['Cliente', cliente],
+    ['Data', dataVist],
+    ['Vistoriadora', vistoriadora],
+    [],
+    ['RESULTADO', 'QTD', '% DO TOTAL'],
+    ['Conformes', conf, pct + '%'],
+    ['Nao conformes', nc, total > 0 ? Math.round(nc/total*100)+'%' : '0%'],
+    ['N/Aplicavel', na, total > 0 ? Math.round(na/total*100)+'%' : '0%'],
+    ['Pendentes', pend, total > 0 ? Math.round(pend/total*100)+'%' : '0%'],
+    ['TOTAL', total, '100%'],
+  ];
+  const wsRes = XLSX.utils.aoa_to_sheet(rowsRes);
+  wsRes['!cols'] = [{ wch: 20 }, { wch: 30 }, { wch: 12 }];
+  XLSX.utils.book_append_sheet(wb, wsRes, 'Resumo');
+
+  const dataStr = new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
+  XLSX.writeFile(wb, 'Checklist_' + obra.replace(/[^a-zA-Z0-9]/g,'_') + '_' + dataStr + '.xlsx');
+  showToast('Planilha Excel gerada!');
+}
+
 
 </script>
 </body>

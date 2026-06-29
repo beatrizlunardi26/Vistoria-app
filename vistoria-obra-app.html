@@ -1325,28 +1325,26 @@ async function salvarObra() {
   // só inclui engenheira_id se tiver valor
   if (engId) dados.engenheira_id = engId;
 
-  let error;
+  let error, obraId = id;
   if (id) {
     const res = await db.from('obras').update(dados).eq('id', id);
     error = res.error;
   } else {
-    const res = await db.from('obras').insert(dados);
+    const res = await db.from('obras').insert(dados).select('id').single();
     error = res.error;
+    if (res.data) obraId = res.data.id;
   }
   if (error) {
     console.error('Erro ao salvar obra:', error);
     showToast('❌ Erro: ' + error.message);
     return;
   }
-  // Salvar unidades
-  if (moUnidsTmp.length) {
-    // buscar ID da obra salva
-    const { data: obrasSalvas } = await db.from('obras').select('id').eq('nome', dados.nome).order('criado_em', {ascending:false}).limit(1);
-    const obraId = id || (obrasSalvas && obrasSalvas[0]?.id);
-    if (obraId) {
-      // inserir apenas as novas (sem id)
-      const novas = moUnidsTmp.filter(u => !u.id).map(u => ({obra_id: obraId, nome: u.nome, ordem: u.ordem}));
-      if (novas.length) await db.from('unidades').insert(novas);
+  // Salvar unidades novas (sem id ainda)
+  if (moUnidsTmp.length && obraId) {
+    const novas = moUnidsTmp.filter(u => !u.id).map(u => ({obra_id: obraId, nome: u.nome, ordem: u.ordem}));
+    if (novas.length) {
+      const { error: eU } = await db.from('unidades').insert(novas);
+      if (eU) console.error('Erro unidades:', eU);
     }
   }
   closeObra();

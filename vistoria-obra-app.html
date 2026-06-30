@@ -757,10 +757,10 @@ async function abrirVistoria(obraId) {
   document.getElementById('rel-data').textContent = fmtData(obraAtiva.data_vistoria);
   document.getElementById('rel-data2').textContent = fmtData(obraAtiva.data_vistoria);
   document.getElementById('rel-modelo').textContent = nomeModelo(modeloAtivoId);
-  document.getElementById('sig-const-lbl').textContent = obraAtiva.construtora || 'Construtora';
-  document.getElementById('sig-cli-lbl').textContent = 'Cliente — ' + (obraAtiva.cliente || '');
-  document.getElementById('si-email').textContent = obraAtiva.email_const || '—';
-  document.getElementById('si-wpp').textContent = obraAtiva.whatsapp_cli || '—';
+  const sigConst = document.getElementById('sig-const-lbl');
+  const sigCli = document.getElementById('sig-cli-lbl');
+  if (sigConst) sigConst.textContent = obraAtiva.construtora || 'Construtora';
+  if (sigCli) sigCli.textContent = 'Cliente — ' + (obraAtiva.cliente || '');
   renderUnidadeBar();
   goTo('p-vistoria', document.querySelector('.ni:nth-child(2)'));
 }

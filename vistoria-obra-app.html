@@ -24,9 +24,6 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 .shell{display:flex;min-height:100vh}
-
-
-/* LOGIN */
 .login-screen{position:fixed;inset:0;background:var(--accent);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10000;color:#fff;gap:0;transition:opacity .4s}
 .login-screen.hide{opacity:0;pointer-events:none}
 .login-box{background:rgba(255,255,255,.1);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:36px 32px;width:100%;max-width:360px;display:flex;flex-direction:column;gap:16px}
@@ -41,8 +38,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .login-btn:hover{opacity:.9}
 .login-err{font-size:12px;color:#FF6B6B;text-align:center;min-height:18px;transition:opacity .2s}
 .login-version{font-size:11px;color:rgba(255,255,255,.3);text-align:center;margin-top:8px}
-
-/* SIDEBAR */
 .sidebar{width:var(--sw);background:var(--accent);display:flex;flex-direction:column;flex-shrink:0;position:fixed;top:0;left:0;bottom:0;z-index:100;transition:transform .25s}
 .sb-logo{padding:26px 22px 18px;border-bottom:1px solid rgba(255,255,255,.12)}
 .sb-logo-t{font-size:17px;font-weight:700;color:#fff}
@@ -63,14 +58,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .dot-err{background:#F87171}
 .dot-wait{background:#FCD34D;animation:blink 1.2s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
-
-/* MAIN */
 .main{flex:1;margin-left:var(--sw);display:flex;flex-direction:column;min-height:100vh}
 .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;flex-shrink:0}
 .topbar-title{font-size:17px;font-weight:600}
 .content{flex:1;padding:28px;max-width:1100px}
-
-/* BOTÕES */
 .btn{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:8px 16px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
 .btn:hover{border-color:var(--accent2);color:var(--accent)}
 .btn:active{transform:scale(.97)}
@@ -78,19 +69,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .btn-p:hover{background:var(--ok);border-color:var(--ok);color:#fff}
 .btn-danger{background:var(--danger-light);color:var(--danger);border-color:var(--danger)}
 .btn-sm{padding:5px 10px;font-size:11px}
-
-/* PAGES */
 .page{display:none}.page.active{display:block}
-
-/* LOADING */
 .loading-screen{position:fixed;inset:0;background:var(--accent);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;color:#fff;gap:16px;transition:opacity .5s}
 .loading-screen.hide{opacity:0;pointer-events:none}
 .loading-logo{font-size:36px;font-weight:700}
 .loading-sub{font-size:14px;opacity:.65}
 .spinner{width:32px;height:32px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-
-/* HOME */
 .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:28px}
 .stat-card{background:var(--surface);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);border:1px solid var(--border)}
 .stat-num{font-size:30px;font-weight:700;color:var(--accent)}
@@ -115,14 +100,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .obra-actions{display:flex;gap:6px;margin-top:12px}
 .add-obra-card{background:none;border:1.5px dashed var(--border);border-radius:var(--radius);padding:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;color:var(--text3);width:100%}
 .add-obra-card:hover{border-color:var(--accent2);color:var(--accent);background:var(--accent-light)}
-
-/* CHECKLIST */
 .cl-layout{display:grid;grid-template-columns:1fr 290px;gap:20px;align-items:start}
 @media(max-width:860px){.cl-layout{grid-template-columns:1fr}}
 .comodo-block{margin-bottom:20px}
-.comodo-header{display:flex;align-items:center;gap:10px;padding:11px 14px;margin-bottom:6px;background:var(--surface);border-radius:var(--radius-sm);border:1px solid var(--border);box-shadow:var(--shadow)}
+.comodo-header{display:flex;align-items:center;gap:10px;padding:11px 14px;margin-bottom:6px;background:var(--surface);border-radius:var(--radius-sm);border:1px solid var(--border);box-shadow:var(--shadow);cursor:pointer;user-select:none}
+.comodo-header:hover{background:var(--surface2)}
 .comodo-title{font-size:14px;font-weight:700;flex:1}
 .comodo-cnt{font-size:11px;color:var(--text3)}
+.comodo-toggle{margin-left:auto;font-size:14px;color:var(--text3);transition:transform .25s;flex-shrink:0}
+.comodo-collapsed .comodo-toggle{transform:rotate(-90deg)}
+.comodo-collapsed .comodo-body{display:none}
 .cl-item{background:var(--surface);border-radius:var(--radius-sm);margin-bottom:7px;border:1.5px solid var(--border);box-shadow:var(--shadow);transition:border-color .2s;overflow:hidden}
 .cl-item.s-conf{border-color:var(--ok)}
 .cl-item.s-nc{border-color:var(--danger)}
@@ -143,17 +130,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .tag-pend{background:var(--surface2);color:var(--text3)}
 .item-remove-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:2px 4px;flex-shrink:0;line-height:1}
 .item-remove-btn:hover{color:var(--danger)}
-.cycle-hint{display:flex;gap:6px;padding:0 14px 10px 54px;flex-wrap:wrap}
-.ch{font-size:11px;padding:3px 9px;border-radius:20px;border:1px solid var(--border);color:var(--text3)}
 .nc-panel{padding:0 14px 14px 54px}
 .field-label{font-size:11px;color:var(--text2);margin-bottom:5px;margin-top:10px}
 .obs-in{width:100%;font-family:'DM Sans',sans-serif;font-size:12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;background:var(--bg);color:var(--text);outline:none;transition:border-color .15s;resize:none}
 .obs-in:focus{border-color:var(--accent2);background:#fff}
 .obs-in::placeholder{color:var(--text3)}
 .photo-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-.photo-thumb{width:64px;height:64px;border-radius:8px;background:var(--surface2);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;transition:border-color .15s;position:relative}
+.photo-thumb{width:72px;height:72px;border-radius:8px;background:var(--surface2);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:border-color .15s;position:relative;overflow:hidden;flex-direction:column;flex-shrink:0}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;border-radius:6px;display:block}
+.photo-thumb .photo-legend-badge{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.6);color:#fff;font-size:9px;padding:2px 4px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .photo-thumb:hover{border-color:var(--accent2)}
-.add-photo{width:64px;height:64px;border-radius:8px;border:1.5px dashed var(--border);background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--text3);font-size:10px;transition:all .15s;font-family:inherit}
+.add-photo{width:72px;height:72px;border-radius:8px;border:1.5px dashed var(--border);background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--text3);font-size:10px;transition:all .15s;font-family:inherit;flex-shrink:0}
 .add-photo:hover{border-color:var(--accent2);color:var(--accent)}
 .add-photo-ico{font-size:22px}
 .prog-panel{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;position:sticky;top:80px}
@@ -175,8 +162,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .model-select-bar{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow);padding:12px 16px;margin-bottom:16px}
 .model-select-bar select{flex:1;font-family:'DM Sans',sans-serif;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;background:var(--bg);color:var(--text);outline:none;cursor:pointer}
 .model-select-label{font-size:12px;color:var(--text2);white-space:nowrap}
-
-/* RELATÓRIO */
 .rel-layout{display:grid;grid-template-columns:1fr 280px;gap:20px;align-items:start}
 @media(max-width:860px){.rel-layout{grid-template-columns:1fr}}
 .rel-doc{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden}
@@ -216,8 +201,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .si-n{font-size:13px;font-weight:600;color:var(--text)}
 .si-d{font-size:11px;color:var(--text2)}
 .si-arr{color:var(--text3);margin-left:auto}
-
-/* CONFIGS */
 .cfg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
 .cfg-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden}
 .cfg-head{padding:14px 20px;border-bottom:1px solid var(--border);font-size:14px;font-weight:600}
@@ -227,8 +210,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .fi{width:100%;font-family:'DM Sans',sans-serif;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;background:var(--bg);color:var(--text);outline:none;transition:border-color .15s}
 .fi:focus{border-color:var(--accent2);background:#fff}
 .fsel{width:100%;font-family:'DM Sans',sans-serif;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;background:var(--bg);color:var(--text);outline:none;cursor:pointer}
-
-/* CHECKLIST ADMIN (editor de modelos) */
 .admin-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
 .admin-tab{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:8px 16px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;transition:all .15s}
 .admin-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
@@ -242,9 +223,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .admin-item-edit-input:focus{border-color:var(--accent2);background:#fff}
 .admin-add-item{display:flex;gap:8px;padding:12px 16px;background:var(--surface2)}
 .admin-add-item input{flex:1;font-family:'DM Sans',sans-serif;font-size:12px;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;outline:none}
-
-
-/* UNIDADES */
 .unid-bar{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap}
 .unid-bar-label{font-size:12px;color:var(--text3);white-space:nowrap}
 .unid-select{font-family:inherit;font-size:13px;font-weight:600;color:var(--accent);border:1.5px solid var(--accent2);border-radius:8px;padding:6px 10px;background:var(--surface);cursor:pointer;outline:none;min-width:140px}
@@ -252,8 +230,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .unid-add-btn{font-family:inherit;font-size:12px;font-weight:600;border:1.5px dashed var(--border);border-radius:8px;padding:6px 12px;background:none;cursor:pointer;color:var(--text2);white-space:nowrap;transition:all .15s}
 .unid-add-btn:hover{border-color:var(--accent);color:var(--accent)}
 .unid-badge{display:inline-flex;align-items:center;gap:4px;background:var(--accent);color:#fff;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600}
-
-/* MODAL UNIDADES */
 .unid-modal-body{display:flex;flex-direction:column;gap:12px}
 .unid-list{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto}
 .unid-item{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);font-size:13px}
@@ -264,23 +240,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .unid-input-row{display:flex;gap:8px}
 .unid-input{flex:1;font-family:inherit;font-size:13px;border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;outline:none}
 .unid-input:focus{border-color:var(--accent)}
-.unid-input-row{display:flex;gap:8px}
 .unid-gen-row{display:flex;gap:8px;flex-wrap:wrap}
 .unid-gen-btn{font-family:inherit;font-size:12px;border:1px solid var(--border);border-radius:6px;padding:5px 10px;background:var(--surface2);cursor:pointer;color:var(--text2);transition:all .15s}
 .unid-gen-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--surface)}
-
-/* SEÇÃO COLAPSÁVEL */
-.comodo-header{cursor:pointer;user-select:none}
-.comodo-header:hover{background:var(--surface2)}
-.comodo-toggle{margin-left:auto;font-size:14px;color:var(--text3);transition:transform .25s;flex-shrink:0}
-.comodo-collapsed .comodo-toggle{transform:rotate(-90deg)}
-.comodo-collapsed .comodo-body{display:none}
-.photo-thumb{width:72px;height:72px;border-radius:8px;background:var(--surface2);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:border-color .15s;position:relative;overflow:hidden;flex-direction:column;flex-shrink:0}
-.photo-thumb img{width:100%;height:100%;object-fit:cover;border-radius:6px;display:block}
-.photo-thumb .photo-legend-badge{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.6);color:#fff;font-size:9px;padding:2px 4px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.add-photo{width:72px;height:72px;border-radius:8px;border:1.5px dashed var(--border);background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--text3);font-size:10px;transition:all .15s;font-family:inherit;flex-shrink:0}
-.add-photo:hover{border-color:var(--accent2);color:var(--accent)}
-.add-photo-ico{font-size:22px}
 .foto-modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:9500;display:none;flex-direction:column;align-items:center;justify-content:center;padding:16px}
 .foto-modal-ov.open{display:flex}
 .foto-toolbar{display:flex;gap:8px;padding:10px 14px;background:rgba(255,255,255,.1);border-radius:12px;margin-bottom:10px;align-items:center;flex-wrap:wrap;justify-content:center}
@@ -296,8 +258,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .foto-legend-in::placeholder{color:rgba(255,255,255,.35)}
 .foto-legend-in:focus{border-color:rgba(255,255,255,.65)}
 .foto-actions{display:flex;gap:10px;justify-content:center}
-
-/* MODAL */
 .modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9000;display:none;align-items:center;justify-content:center}
 .modal-ov.open{display:flex}
 .modal-box{background:var(--surface);border-radius:var(--radius);padding:28px;max-width:460px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.4);position:relative;max-height:85vh;overflow-y:auto}
@@ -326,7 +286,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     </div>
     <button class="login-btn" onclick="fazerLogin()">Entrar →</button>
     <div class="login-err" id="login-err"></div>
-    <div class="login-version">VistoriaApp v3.0 · BL Engenharia Civil</div>
+    <div class="login-version">VistoriaApp v3.1 · BL Engenharia Civil</div>
   </div>
 </div>
 
@@ -356,7 +316,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="sb-dot dot-wait" id="sb-dot"></div>
     <span id="sb-status-txt" style="color:rgba(255,255,255,.5);font-size:11px">Conectando...</span>
   </div>
-  <div class="sb-foot">VistoriaApp v3.0 · Supabase</div>
+  <div class="sb-foot">VistoriaApp v3.1 · Supabase</div>
 </aside>
 
 <div class="main">
@@ -383,7 +343,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       </div>
     </div>
 
-    <!-- CHECKLIST (vistoria em andamento) -->
+    <!-- CHECKLIST -->
     <div class="page" id="p-vistoria">
       <div class="model-select-bar">
         <span class="model-select-label">📋 Modelo de checklist:</span>
@@ -421,9 +381,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
               <div class="leg"><div class="leg-dot" style="background:var(--na)"></div>3× = N/A</div>
               <div class="leg"><div class="leg-dot" style="background:var(--text3)"></div>4× = Limpar</div>
             </div>
-            <div style="font-size:11px;color:var(--text3);margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
-              ✕ no item = remove da vistoria atual (não some do modelo)
-            </div>
+            <div style="font-size:11px;color:var(--text3);margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">✕ no item = remove da vistoria atual</div>
             <div class="save-indicator" id="save-ind"></div>
             <button class="btn btn-p" style="width:100%;margin-top:12px;padding:11px" onclick="gerarRel();goTo('p-relatorio',document.querySelector('.ni:nth-child(3)'))">📄 Gerar relatório</button>
           </div>
@@ -490,8 +448,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
             <div class="sp-head">⬇️ Exportar relatório</div>
             <button class="si" onclick="gerarPDF()"><span class="si-ico">📋</span><div><div class="si-n">PDF — Parecer geral</div><div class="si-d">Visão completa da vistoria</div></div><span class="si-arr">›</span></button>
             <button class="si" onclick="gerarPDFApto()"><span class="si-ico">🏠</span><div><div class="si-n">PDF — Detalhado por cômodo</div><div class="si-d">Um bloco por ambiente, com fotos</div></div><span class="si-arr">›</span></button>
-            <button class="si" onclick="gerarPDFUnidade()"><span class="si-ico">🏠</span><div><div class="si-n">PDF — Por unidade/apartamento</div><div class="si-d">NCs agrupadas por apto</div></div><span class="si-arr">›</span></button>
-            <button class="si" onclick="gerarExcel()"><span class="si-ico">📊</span><div><div class="si-n">Excel — Checklist de pendências</div><div class="si-d">Planilha para controle da obra</div></div><span class="si-arr">›</span></button>
+            <button class="si" onclick="gerarPDFUnidade()"><span class="si-ico">🏗️</span><div><div class="si-n">PDF — Por unidade/apartamento</div><div class="si-d">NCs agrupadas por apto</div></div><span class="si-arr">›</span></button>
+            <button class="si" onclick="gerarExcel()"><span class="si-ico">📊</span><div><div class="si-n">Excel — Checklist de pendências</div><div class="si-d">Planilha com todas as unidades</div></div><span class="si-arr">›</span></button>
           </div>
           <div class="send-panel">
             <div class="sp-head">📝 Observações gerais</div>
@@ -501,11 +459,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       </div>
     </div>
 
-    <!-- ADMIN — MODELOS DE CHECKLIST -->
+    <!-- ADMIN -->
     <div class="page" id="p-admin">
-      <div style="margin-bottom:16px;font-size:13px;color:var(--text2)">
-        🛠️ Aqui você edita os <strong>modelos principais</strong> de checklist. Alterações aqui afetam todas as <strong>vistorias novas</strong>. Vistorias já em andamento não são alteradas retroativamente.
-      </div>
+      <div style="margin-bottom:16px;font-size:13px;color:var(--text2)">🛠️ Aqui você edita os <strong>modelos principais</strong> de checklist. Alterações aqui afetam todas as <strong>vistorias novas</strong>.</div>
       <div class="admin-tabs" id="admin-tabs"></div>
       <div id="admin-body"></div>
     </div>
@@ -575,7 +531,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="fl">Ícone</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px" id="ico-picker"></div>
     <input type="hidden" id="mo-ico" value="🏢">
-    <div class="fl" style="margin-top:16px">Unidades / Apartamentos <span style="font-size:11px;color:var(--text3);font-weight:400">(opcional — para relatório por unidade)</span></div>
+    <div class="fl" style="margin-top:16px">Unidades / Apartamentos <span style="font-size:11px;color:var(--text3);font-weight:400">(opcional)</span></div>
     <div id="mo-unid-section" style="display:none">
       <div class="unid-gen-row" style="margin-bottom:8px">
         <button class="unid-gen-btn" onclick="moGerarUnidades('Apto',101,110)">Apto 101–110</button>
@@ -617,27 +573,24 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   </div>
 </div>
 
-<!-- INPUT ARQUIVO OCULTO -->
 <input type="file" id="foto-file-in" accept="image/*" style="display:none" onchange="onFileSelected(event)">
 
-<!-- MODAL EDITOR DE FOTO -->
+<!-- MODAL EDITOR FOTO -->
 <div class="foto-modal-ov" id="modal-foto">
   <div class="foto-toolbar">
     <button class="ft-btn active" id="ft-draw" onclick="setTool('draw')">✏️ Lápis</button>
     <button class="ft-btn" id="ft-arrow" onclick="setTool('arrow')">➡️ Seta</button>
     <button class="ft-btn" id="ft-erase" onclick="setTool('erase')">🧹 Apagar</button>
     <div style="width:1px;height:24px;background:rgba(255,255,255,.2);margin:0 4px"></div>
-    <div class="ft-color sel" style="background:#FF3B30" onclick="setColor('#FF3B30',this)" title="Vermelho"></div>
-    <div class="ft-color" style="background:#FFD60A" onclick="setColor('#FFD60A',this)" title="Amarelo"></div>
-    <div class="ft-color" style="background:#30D158" onclick="setColor('#30D158',this)" title="Verde"></div>
-    <div class="ft-color" style="background:#fff" onclick="setColor('#fff',this)" title="Branco"></div>
+    <div class="ft-color sel" style="background:#FF3B30" onclick="setColor('#FF3B30',this)"></div>
+    <div class="ft-color" style="background:#FFD60A" onclick="setColor('#FFD60A',this)"></div>
+    <div class="ft-color" style="background:#30D158" onclick="setColor('#30D158',this)"></div>
+    <div class="ft-color" style="background:#fff" onclick="setColor('#fff',this)"></div>
     <div style="width:1px;height:24px;background:rgba(255,255,255,.2);margin:0 4px"></div>
     <button class="ft-btn" onclick="undoCanvas()">↩️ Desfazer</button>
     <button class="ft-btn" onclick="closeFoto()">✕ Fechar</button>
   </div>
-  <div class="foto-canvas-wrap">
-    <canvas id="foto-canvas"></canvas>
-  </div>
+  <div class="foto-canvas-wrap"><canvas id="foto-canvas"></canvas></div>
   <div class="foto-bottom">
     <input class="foto-legend-in" id="foto-legend-in" type="text" placeholder="Legenda da foto (opcional)..." maxlength="120">
     <div class="foto-actions">
@@ -662,21 +615,19 @@ const db = createClient(SUPA_URL, SUPA_KEY);
 // ESTADO LOCAL
 // ============================================================
 let obras = [];
-let modelos = [];       // todos modelos {id, nome, descricao, comodos:[{id,nome,icone,itens:[...]}]}
+let modelos = [];
 let obraAtiva = null;
 let vistoriaAtiva = null;
-let modeloAtivoId = null;  // modelo usado na vistoria atual
-let comodos = [];           // comodos do modelo ativo na vistoria
-let itens = [];              // itens flat do modelo ativo
-let respostas = {};          // itemId -> { status, obs, fotos[], ativo }
-let unidades = [];           // [{id, nome, ordem}]
-let moUnidsTmp = [];         // unidades temporárias no modal de obra (antes de salvar)
-let unidadeAtiva = null;     // id da unidade sendo vistoriada agora
-let respostasUnid = {};      // unidadeId+itemId -> resposta (para unidades)
+let modeloAtivoId = null;
+let comodos = [];
+let itens = [];
+let respostas = {};
+let unidades = [];
+let moUnidsTmp = [];
+let unidadeAtiva = null;
 let engId = null;
 let adminModeloAtual = null;
 
-const EMOJIS_FOTO = ['📸','🖼️','🔍','📷','🔎'];
 const cycle = { '':'conf', conf:'nc', nc:'na', na:'' };
 const ICO_LIST = ['🏢','🏠','🏗️','🏛️','🏬','🏭','🏡'];
 
@@ -686,10 +637,8 @@ const ICO_LIST = ['🏢','🏠','🏗️','🏛️','🏬','🏭','🏡'];
 async function init() {
   setLoading('Conectando ao banco de dados...');
   try {
-    const { data: engs, error: engErr } = await db.from('engenheiras').select('*').eq('email','beatriz@email.com.br').limit(1);
-    if (engErr) console.warn('Aviso engenheira:', engErr.message);
-    if (engs && engs.length) { engId = engs[0].id; console.log('engId carregado:', engId); }
-    else console.warn('Engenheira não encontrada — obras serão salvas sem engenheira_id');
+    const { data: engs } = await db.from('engenheiras').select('*').eq('email','beatriz@email.com.br').limit(1);
+    if (engs && engs.length) engId = engs[0].id;
     setStatus(true);
     setLoading('Carregando modelos de checklist...');
     await carregarModelos();
@@ -713,7 +662,7 @@ function setStatus(ok){
 }
 
 // ============================================================
-// MODELOS (carregamento completo com comodos+itens)
+// MODELOS
 // ============================================================
 async function carregarModelos() {
   const { data: mods } = await db.from('modelos_checklist').select('*').order('criado_em');
@@ -727,10 +676,8 @@ async function carregarModelos() {
     }
   }
   document.getElementById('h-vis').textContent = modelos.length;
-  // popular select do modal de obra
   const moSel = document.getElementById('mo-modelo');
   moSel.innerHTML = modelos.map(m=>`<option value="${m.id}">${m.nome}</option>`).join('');
-  // popular select da vistoria
   const visSel = document.getElementById('model-select');
   visSel.innerHTML = modelos.map(m=>`<option value="${m.id}">${m.nome}</option>`).join('');
 }
@@ -785,7 +732,7 @@ function renderObras() {
 function fmtData(s){ if(!s)return'—'; const[y,m,d]=s.split('-'); return d?`${d}/${m}/${y}`:'—'; }
 
 // ============================================================
-// VISTORIA — carregar modelo escolhido para a obra
+// VISTORIA
 // ============================================================
 async function abrirVistoria(obraId) {
   obraAtiva = obras.find(o => o.id === obraId);
@@ -832,17 +779,21 @@ async function carregarRespostasEModelo() {
   comodos = modelo ? modelo.comodos : [];
   itens = comodos.flatMap(c => c.itens);
 
-  // Buscar respostas filtradas por unidade ativa (ou geral se sem unidade)
   let query = db.from('respostas_itens').select('*').eq('vistoria_id', vistoriaAtiva.id);
   if (unidadeAtiva) query = query.eq('unidade_id', unidadeAtiva);
   else query = query.is('unidade_id', null);
   const { data: resp } = await query;
+
   respostas = {};
   itens.forEach(it => { respostas[it.id] = { status:'', obs:'', fotos:[], ativo:true }; });
+
+  // ✅ FIX: parseia fotos do JSON do banco
   (resp || []).forEach(r => {
+    let fotos = [];
+    try { fotos = Array.isArray(r.fotos) ? r.fotos : (r.fotos ? JSON.parse(r.fotos) : []); } catch(_e) {}
     respostas[r.item_id] = {
       status: r.status==='conforme'?'conf':r.status==='nao_conforme'?'nc':r.status==='nao_aplicavel'?'na':'',
-      obs: r.observacao||'', fotos:[], ativo: r.item_ativo!==false
+      obs: r.observacao||'', fotos, ativo: r.item_ativo!==false
     };
   });
   renderChecklist();
@@ -851,7 +802,7 @@ async function carregarRespostasEModelo() {
 async function trocarModeloVistoria(novoModeloId) {
   if (!vistoriaAtiva) return;
   if (novoModeloId === modeloAtivoId) return;
-  if (!confirm('Trocar o modelo de checklist desta vistoria? As respostas já preenchidas no modelo atual ficam salvas, mas a tela vai mostrar o novo modelo.')) {
+  if (!confirm('Trocar o modelo de checklist desta vistoria?')) {
     document.getElementById('model-select').value = modeloAtivoId;
     return;
   }
@@ -865,12 +816,12 @@ async function trocarModeloVistoria(novoModeloId) {
 }
 
 // ============================================================
-// CHECKLIST (vistoria)
+// CHECKLIST
 // ============================================================
 function renderChecklist() {
   const main = document.getElementById('cl-main');
   main.innerHTML = '';
-  if (!comodos.length) { main.innerHTML = '<div style="padding:20px;color:var(--text3);font-size:13px">Nenhum checklist encontrado neste modelo.</div>'; return; }
+  if (!comodos.length) { main.innerHTML = '<div style="padding:20px;color:var(--text3);font-size:13px">Nenhum checklist encontrado.</div>'; return; }
   comodos.forEach(cm => {
     const ativos = cm.itens.filter(i => respostas[i.id]?.ativo !== false);
     if (!ativos.length) return;
@@ -906,7 +857,7 @@ function buildItem(it) {
       <textarea class="obs-in" rows="2" placeholder="Descreva a não conformidade..." id="obs-${it.id}" oninput="respostas['${it.id}'].obs=this.value;salvarResposta('${it.id}')">${e.obs}</textarea>
       <div class="field-label">Fotos</div>
       <div class="photo-row" id="pr-${it.id}">
-        ${e.fotos.map((f,fi)=>`<div class="photo-thumb" onclick="openFoto('${it.id}',${fi})" title="${f.legenda||''}"><img src="${f.data}" alt="foto"><span class="photo-legend-badge" style="display:${f.legenda?'block':'none'}">${f.legenda||''}</span></div>`).join('')}
+        ${(e.fotos||[]).map((f,fi)=>`<div class="photo-thumb" onclick="openFoto('${it.id}',${fi})" title="${f.legenda||''}"><img src="${f.data}" alt="foto"><span class="photo-legend-badge" style="display:${f.legenda?'block':'none'}">${f.legenda||''}</span></div>`).join('')}
         <button class="add-photo" onclick="triggerFotoUpload('${it.id}',event)"><span class="add-photo-ico">📷</span><span>Foto</span></button>
       </div>
     </div>`;
@@ -915,7 +866,7 @@ function buildItem(it) {
 
 async function removerItemVistoria(id, ev) {
   ev.stopPropagation();
-  if (!confirm('Remover este item desta vistoria? Ele continuará no modelo principal para as próximas vistorias.')) return;
+  if (!confirm('Remover este item desta vistoria?')) return;
   respostas[id].ativo = false;
   await salvarResposta(id);
   renderChecklist();
@@ -935,26 +886,38 @@ async function cycleStatus(id) {
   showToast(msgs[e.status]);
 }
 
+// ============================================================
+// ✅ FIX: salvarResposta — salva fotos no banco + onConflict correto
+// ============================================================
 async function salvarResposta(id) {
   if (!vistoriaAtiva) return;
   const e = respostas[id];
-  // chave inclui unidade se houver
-  const chavUnid = unidadeAtiva ? unidadeAtiva : '__geral__';
   const statusMap = { conf:'conforme', nc:'nao_conforme', na:'nao_aplicavel', '':'pendente' };
   const it = itens.find(x => x.id === id);
   showSaveInd('Salvando...');
+  // Serializa fotos como array JSON para o banco
+  const fotosParaBanco = (e.fotos||[]).map(f => ({ data: f.data, legenda: f.legenda||'' }));
   const { error } = await db.from('respostas_itens').upsert({
-    vistoria_id: vistoriaAtiva.id, item_id: id, comodo_id: it?.comodo_id, unidade_id: unidadeAtiva || null,
-    status: statusMap[e.status] || 'pendente', observacao: e.obs, item_ativo: e.ativo,
+    vistoria_id: vistoriaAtiva.id,
+    item_id: id,
+    comodo_id: it?.comodo_id,
+    unidade_id: unidadeAtiva || null,
+    status: statusMap[e.status] || 'pendente',
+    observacao: e.obs,
+    item_ativo: e.ativo,
+    fotos: fotosParaBanco,
     atualizado_em: new Date().toISOString()
-  }, { onConflict: 'vistoria_id,item_id' });
+  }, { onConflict: 'vistoria_id,item_id,unidade_id' });
   if (!error) showSaveInd('✓ Salvo automaticamente');
+  else console.error('Erro ao salvar:', error);
 }
 
 let saveIndTimer;
 function showSaveInd(msg){ const el=document.getElementById('save-ind'); el.textContent=msg; el.style.opacity='1'; clearTimeout(saveIndTimer); saveIndTimer=setTimeout(()=>{el.style.opacity='0';},2500); }
 
-// ---- SISTEMA DE FOTOS ----
+// ============================================================
+// FOTOS
+// ============================================================
 let fotoItemAtual = null;
 let fotoIdxAtual = null;
 let canvasHistory = [];
@@ -981,10 +944,8 @@ function onFileSelected(event) {
     respostas[fotoItemAtual].fotos.push(novaFoto);
     fotoIdxAtual = respostas[fotoItemAtual].fotos.length - 1;
     const it = itens.find(x => x.id === fotoItemAtual);
-    // Re-render item para mostrar miniatura
     const novo = buildItem(it);
     document.getElementById('item-'+fotoItemAtual).replaceWith(novo);
-    // Abrir editor
     abrirEditorFoto(fotoItemAtual, fotoIdxAtual);
     salvarResposta(fotoItemAtual);
     showToast('📷 Foto adicionada!');
@@ -1040,7 +1001,6 @@ function startDraw(e, canvas, ctx) {
   isDrawing = true;
   const p = getPos(e, canvas);
   lastX = p.x; lastY = p.y;
-  if (drawTool === 'arrow') { lastX = p.x; lastY = p.y; }
 }
 
 function doDraw(e, canvas, ctx) {
@@ -1068,8 +1028,8 @@ function doDraw(e, canvas, ctx) {
 function endDraw(canvas) {
   if (!isDrawing) return;
   isDrawing = false;
-  ctx_global = canvas.getContext('2d');
-  ctx_global.globalCompositeOperation = 'source-over';
+  const ctx2 = canvas.getContext('2d');
+  ctx2.globalCompositeOperation = 'source-over';
   canvasHistory.push(canvas.toDataURL());
 }
 
@@ -1182,7 +1142,7 @@ function gerarRel() {
 }
 
 // ============================================================
-// ADMIN — EDIÇÃO DE MODELOS (visão admin)
+// ADMIN — MODELOS
 // ============================================================
 function abrirAdminChecklist() {
   if (!adminModeloAtual && modelos.length) adminModeloAtual = modelos[0].id;
@@ -1223,13 +1183,12 @@ function renderAdminBody() {
 
 async function editarItemNome(itemId, novoNome) {
   await db.from('itens_checklist').update({ nome: novoNome }).eq('id', itemId);
-  // atualiza estado local
   modelos.forEach(m => m.comodos.forEach(c => c.itens.forEach(i => { if(i.id===itemId) i.nome = novoNome; })));
-  showToast('✅ Item atualizado no modelo!');
+  showToast('✅ Item atualizado!');
 }
 
 async function removerItemModelo(itemId, comodoId) {
-  if (!confirm('Remover este item permanentemente do modelo? Vistorias futuras não terão mais essa verificação.')) return;
+  if (!confirm('Remover este item permanentemente do modelo?')) return;
   await db.from('itens_checklist').delete().eq('id', itemId);
   modelos.forEach(m => { m.comodos.forEach(c => { if(c.id===comodoId) c.itens = c.itens.filter(i=>i.id!==itemId); }); });
   renderAdminBody();
@@ -1263,7 +1222,7 @@ async function novoModelo() {
     document.getElementById('mo-modelo').innerHTML = modelos.map(m=>`<option value="${m.id}">${m.nome}</option>`).join('');
     document.getElementById('model-select').innerHTML = modelos.map(m=>`<option value="${m.id}">${m.nome}</option>`).join('');
     renderAdminTabs(); renderAdminBody();
-    showToast('✅ Novo modelo criado! Adicione cômodos no Supabase ou peça ajuda no chat.');
+    showToast('✅ Novo modelo criado!');
   }
 }
 
@@ -1292,7 +1251,6 @@ function openObra(id) {
     sp.onclick = () => { document.getElementById('mo-ico').value=ico; picker.querySelectorAll('span').forEach(s=>s.style.borderColor='transparent'); sp.style.borderColor='var(--accent)'; };
     picker.appendChild(sp);
   });
-  // Carregar unidades da obra se estiver editando
   moUnidsTmp = [];
   if (o && o.id) {
     db.from('unidades').select('*').eq('obra_id', o.id).order('ordem').then(({data}) => {
@@ -1309,7 +1267,6 @@ function closeObra() { document.getElementById('modal-obra').classList.remove('o
 
 async function salvarObra() {
   const id = document.getElementById('mo-id').value;
-  const modeloVal = document.getElementById('mo-modelo').value;
   const dados = {
     icone: document.getElementById('mo-ico').value||'🏢',
     nome: document.getElementById('mo-nome').value||'Nova obra',
@@ -1319,10 +1276,9 @@ async function salvarObra() {
     email_const: document.getElementById('mo-email').value||'',
     whatsapp_cli: document.getElementById('mo-wpp').value||'',
     data_vistoria: document.getElementById('mo-data').value||null,
-    modelo_checklist_id: modeloVal||null,
+    modelo_checklist_id: document.getElementById('mo-modelo').value||null,
     atualizado_em: new Date().toISOString()
   };
-  // só inclui engenheira_id se tiver valor
   if (engId) dados.engenheira_id = engId;
 
   let error, obraId = id;
@@ -1334,26 +1290,18 @@ async function salvarObra() {
     error = res.error;
     if (res.data) obraId = res.data.id;
   }
-  if (error) {
-    console.error('Erro ao salvar obra:', error);
-    showToast('❌ Erro: ' + error.message);
-    return;
-  }
-  // Salvar unidades novas (sem id ainda)
+  if (error) { showToast('❌ Erro: ' + error.message); return; }
   if (moUnidsTmp.length && obraId) {
     const novas = moUnidsTmp.filter(u => !u.id).map(u => ({obra_id: obraId, nome: u.nome, ordem: u.ordem}));
-    if (novas.length) {
-      const { error: eU } = await db.from('unidades').insert(novas);
-      if (eU) console.error('Erro unidades:', eU);
-    }
+    if (novas.length) await db.from('unidades').insert(novas);
   }
   closeObra();
   await carregarObras();
-  showToast('✅ Obra salva no banco!');
+  showToast('✅ Obra salva!');
 }
 
 async function delObra(id) {
-  if (!confirm('Remover esta obra? Os dados serão excluídos.')) return;
+  if (!confirm('Remover esta obra?')) return;
   await db.from('obras').delete().eq('id', id);
   await carregarObras();
   showToast('🗑️ Obra removida.');
@@ -1375,34 +1323,19 @@ function goTo(id, ni) {
 function toggleSB(){ document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sb-ov').style.display=document.getElementById('sidebar').classList.contains('open')?'block':'none'; }
 function closeSB(){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('sb-ov').style.display='none'; }
 
-// ============================================================
-// TOAST / MODAL FOTO
-// ============================================================
 let toastT;
 function showToast(m){ const t=document.getElementById('toast'); document.getElementById('toast-msg').textContent=m; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2800); }
-// openFoto e closeFoto movidos para sistema de fotos acima
 function updNome(v){ document.getElementById('sb-name').textContent=v||'Beatriz Lunardi'; document.getElementById('pp-nome').textContent='Engª '+(v||'Beatriz Lunardi'); document.getElementById('rel-nome').textContent='Engª '+(v||'Beatriz Lunardi')+' — '+(document.getElementById('cfg-crea')?.value||'CREA/SC'); }
-
-// ============================================================
-// START
-// ============================================================
-checkLogin();
 
 // ============================================================
 // LOGIN
 // ============================================================
-const SENHA_ACESSO = 'vistoria2024'; // ← mude aqui se quiser
+const SENHA_ACESSO = 'vistoria2024';
 
 function checkLogin() {
   const ok = sessionStorage.getItem('vistoria_auth') === '1';
-  if (ok) {
-    document.getElementById('login-screen').style.display = 'none';
-    init();
-  } else {
-    // mostra login, esconde loading
-    document.getElementById('loading').style.display = 'none';
-    setTimeout(() => document.getElementById('login-senha').focus(), 100);
-  }
+  if (ok) { document.getElementById('login-screen').style.display = 'none'; init(); }
+  else { document.getElementById('loading').style.display = 'none'; setTimeout(() => document.getElementById('login-senha').focus(), 100); }
 }
 
 function fazerLogin() {
@@ -1414,17 +1347,14 @@ function fazerLogin() {
     ls.classList.add('hide');
     setTimeout(() => { ls.style.display = 'none'; init(); }, 400);
   } else {
-    err.textContent = '❌ Senha incorreta. Tente novamente.';
+    err.textContent = '❌ Senha incorreta.';
     document.getElementById('login-senha').value = '';
     document.getElementById('login-senha').focus();
     setTimeout(() => err.textContent = '', 3000);
   }
 }
 
-// ============================================================
-// PDF REAL
-// ============================================================
-
+checkLogin();
 
 // ============================================================
 // UNIDADES NO MODAL DE OBRA
@@ -1439,7 +1369,6 @@ function moRenderUnidades() {
       <button class="unid-del" onclick="moRemoverUnidade(${i})">✕</button>
     </div>`).join('');
 }
-
 function moAdicionarUnidade() {
   const inp = document.getElementById('mo-unid-input');
   const nome = inp.value.trim();
@@ -1450,12 +1379,7 @@ function moAdicionarUnidade() {
   moRenderUnidades();
   document.getElementById('mo-unid-section').style.display = 'block';
 }
-
-function moRemoverUnidade(idx) {
-  moUnidsTmp.splice(idx, 1);
-  moRenderUnidades();
-}
-
+function moRemoverUnidade(idx) { moUnidsTmp.splice(idx, 1); moRenderUnidades(); }
 function moGerarUnidades(prefixo, inicio, fim) {
   for (let i = inicio; i <= fim; i++) {
     const nome = prefixo + ' ' + i;
@@ -1473,12 +1397,10 @@ async function carregarUnidades() {
   const { data } = await db.from('unidades').select('*').eq('obra_id', obraAtiva.id).order('ordem');
   unidades = data || [];
 }
-
 function renderUnidadeBar() {
   const bar = document.getElementById('unid-bar');
   const sel = document.getElementById('unid-select');
   bar.style.display = 'flex';
-  // rebuild options
   sel.innerHTML = '<option value="">— sem unidade (geral) —</option>';
   unidades.forEach(u => {
     const opt = document.createElement('option');
@@ -1487,49 +1409,28 @@ function renderUnidadeBar() {
     sel.appendChild(opt);
   });
 }
-
 async function trocarUnidade(uid) {
   unidadeAtiva = uid || null;
-  // recarregar respostas da nova unidade
   await carregarRespostasEModelo();
   const label = unidades.find(u => u.id === uid)?.nome || 'Geral';
   showToast('🏠 ' + label);
 }
-
 function abrirModalUnidades() {
   renderListaUnidades();
   document.getElementById('modal-unidades').classList.add('open');
   setTimeout(() => document.getElementById('unid-nova-input').focus(), 100);
 }
-
-function fecharModalUnidades() {
-  document.getElementById('modal-unidades').classList.remove('open');
-}
-
+function fecharModalUnidades() { document.getElementById('modal-unidades').classList.remove('open'); }
 function renderListaUnidades() {
   const list = document.getElementById('unid-list');
-  if (!unidades.length) {
-    list.innerHTML = '<div style="font-size:12px;color:var(--text3);padding:8px">Nenhuma unidade cadastrada ainda.</div>';
-    return;
-  }
-  list.innerHTML = unidades.map(u => {
-    // contar NCs desta unidade (aproximado — do que está carregado)
-    return `<div class="unid-item">
-      <span class="unid-item-name">${u.nome}</span>
-      <div style="display:flex;align-items:center;gap:8px">
-        <button class="unid-del" onclick="removerUnidade('${u.id}')" title="Remover">✕</button>
-      </div>
-    </div>`;
-  }).join('');
+  if (!unidades.length) { list.innerHTML = '<div style="font-size:12px;color:var(--text3);padding:8px">Nenhuma unidade cadastrada ainda.</div>'; return; }
+  list.innerHTML = unidades.map(u => `<div class="unid-item"><span class="unid-item-name">${u.nome}</span><button class="unid-del" onclick="removerUnidade('${u.id}')">✕</button></div>`).join('');
 }
-
 async function adicionarUnidade() {
   const inp = document.getElementById('unid-nova-input');
   const nome = inp.value.trim();
   if (!nome || !obraAtiva) return;
-  const { data, error } = await db.from('unidades').insert({
-    obra_id: obraAtiva.id, nome, ordem: unidades.length
-  }).select().single();
+  const { data, error } = await db.from('unidades').insert({ obra_id: obraAtiva.id, nome, ordem: unidades.length }).select().single();
   if (error) { showToast('Erro: ' + error.message); return; }
   unidades.push(data);
   inp.value = '';
@@ -1537,9 +1438,8 @@ async function adicionarUnidade() {
   renderUnidadeBar();
   showToast('✅ ' + nome + ' adicionada!');
 }
-
 async function removerUnidade(uid) {
-  if (!confirm('Remover esta unidade? As respostas vinculadas a ela serão mantidas no banco.')) return;
+  if (!confirm('Remover esta unidade?')) return;
   await db.from('unidades').delete().eq('id', uid);
   unidades = unidades.filter(u => u.id !== uid);
   if (unidadeAtiva === uid) { unidadeAtiva = null; await carregarRespostasEModelo(); }
@@ -1547,7 +1447,6 @@ async function removerUnidade(uid) {
   renderUnidadeBar();
   showToast('Unidade removida.');
 }
-
 async function gerarUnidades(prefixo, inicio, fim) {
   if (!obraAtiva) return;
   const novas = [];
@@ -1564,103 +1463,7 @@ async function gerarUnidades(prefixo, inicio, fim) {
 }
 
 // ============================================================
-// PDF 3 — POR UNIDADE
-// ============================================================
-async function gerarPDFUnidade() {
-  if (!unidades.length) { showToast('Cadastre unidades primeiro!'); return; }
-  showToast('Gerando PDF por unidade...');
-  await new Promise(r => setTimeout(r, 80));
-
-  const p = pdfSetup();
-  const { doc, ML, MR, PW, CW, VERDE, DANGER, CINZA, CINZA_CLARO, TEXTO } = p;
-  const obra = document.getElementById('rel-obra')?.textContent || 'Vistoria';
-  p.cabecalho('Relatorio por Unidade', 'BL Engenharia Civil  |  ' + obra);
-  p.blocoIdent();
-
-  // Para cada unidade, buscar respostas no banco
-  for (let ui = 0; ui < unidades.length; ui++) {
-    const u = unidades[ui];
-    // buscar respostas desta unidade
-    const { data: resp } = await db.from('respostas_itens')
-      .select('*').eq('vistoria_id', vistoriaAtiva.id).eq('unidade_id', u.id);
-
-    const mapa = {};
-    (resp || []).forEach(r => {
-      mapa[r.item_id] = {
-        status: r.status==='conforme'?'conf':r.status==='nao_conforme'?'nc':r.status==='nao_aplicavel'?'na':'',
-        obs: r.observacao||'', fotos: r.fotos||[], ativo: r.item_ativo!==false
-      };
-    });
-
-    const ncs = itens.filter(it => mapa[it.id]?.status === 'nc');
-    const conf = itens.filter(it => mapa[it.id]?.status === 'conf').length;
-    const total = Object.keys(mapa).length;
-    const pct = total > 0 ? Math.round(conf/total*100) : 0;
-
-    // cabeçalho da unidade
-    p.checkY(22);
-    if (ui > 0) { p.y += 4; }
-    doc.setFillColor(...VERDE); doc.roundedRect(ML, p.y, CW, 10, 3, 3, 'F');
-    doc.setFontSize(12); doc.setFont('helvetica', 'bold'); doc.setTextColor(255,255,255);
-    doc.text(u.nome, ML + 5, p.y + 7);
-    doc.setFontSize(9);
-    doc.text(ncs.length + ' NC  |  ' + conf + ' conf.  |  ' + pct + '% ok', PW-MR-2, p.y+7, {align:'right'});
-    p.y += 14;
-
-    if (!ncs.length && total === 0) {
-      doc.setFontSize(9); doc.setFont('helvetica','italic'); doc.setTextColor(...CINZA);
-      doc.text('Nenhum item preenchido para esta unidade.', ML+2, p.y); p.y += 8;
-      continue;
-    }
-    if (!ncs.length) {
-      doc.setFillColor(232,245,238); doc.roundedRect(ML, p.y, CW, 10, 2, 2, 'F');
-      doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(46,106,79);
-      doc.text('Sem nao conformidades!', ML+CW/2, p.y+7, {align:'center'});
-      p.y += 14; continue;
-    }
-
-    // listar NCs por comodo
-    comodos.forEach(cm => {
-      const ncsCm = cm.itens.filter(it => mapa[it.id]?.status === 'nc');
-      if (!ncsCm.length) return;
-      p.checkY(14);
-      doc.setFillColor(...CINZA_CLARO); doc.roundedRect(ML, p.y, CW, 7, 1, 1, 'F');
-      doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(...TEXTO);
-      doc.text(cm.nome, ML+3, p.y+5);
-      p.y += 10;
-
-      ncsCm.forEach(it => {
-        p.checkY(18);
-        const e = mapa[it.id];
-        doc.setFillColor(253,238,238); doc.roundedRect(ML, p.y, CW, 7, 1, 1, 'F');
-        doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(...DANGER);
-        doc.text(doc.splitTextToSize(it.nome, CW-28)[0], ML+3, p.y+5);
-        doc.setFontSize(6); doc.setFillColor(...DANGER); doc.setTextColor(255,255,255);
-        doc.roundedRect(PW-MR-22, p.y+1.5, 22, 4, 1, 1, 'F');
-        doc.text('NAO CONFORME', PW-MR-11, p.y+5, {align:'center'});
-        p.y += 9;
-        if (e.obs) {
-          doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(...TEXTO);
-          const lo = doc.splitTextToSize('Obs: '+e.obs, CW-6);
-          lo.forEach(l => { p.checkY(5); doc.text(l, ML+3, p.y); p.y += 4.5; });
-        }
-        if (e.fotos?.length) p.blocoFotos(e.fotos);
-        p.y += 3;
-      });
-    });
-    p.y += 4;
-    doc.setDrawColor(...CINZA_CLARO); doc.setLineWidth(0.3);
-    doc.line(ML, p.y, PW-MR, p.y); p.y += 4;
-  }
-
-  p.rodape();
-  const dataStr = new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
-  doc.save('Vistoria_PorUnidade_' + obra.replace(/[^a-zA-Z0-9]/g,'_') + '_' + dataStr + '.pdf');
-  showToast('PDF por unidade gerado!');
-}
-
-// ============================================================
-// HELPERS PDF COMPARTILHADOS
+// HELPERS PDF
 // ============================================================
 function pdfSetup() {
   const { jsPDF } = window.jspdf;
@@ -1697,8 +1500,7 @@ function pdfSetup() {
     doc.text(titulo, ML, 15);
     doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(200, 230, 210);
     doc.text(subtitulo, ML, 24);
-    const dataRel = new Date().toLocaleDateString('pt-BR');
-    doc.text('Emitido em ' + dataRel, PW - MR, 24, { align: 'right' });
+    doc.text('Emitido em ' + new Date().toLocaleDateString('pt-BR'), PW - MR, 24, { align: 'right' });
     y = 44;
   }
   function rodape() {
@@ -1716,9 +1518,8 @@ function pdfSetup() {
   }
   function blocoIdent() {
     secTitle('IDENTIFICACAO');
-    const obraEl = document.getElementById('rel-obra')?.textContent || '';
     const fields = [
-      ['Obra', obraEl],
+      ['Obra', document.getElementById('rel-obra')?.textContent || ''],
       ['Construtora', document.getElementById('rel-const')?.textContent || ''],
       ['Cliente', document.getElementById('rel-cliente')?.textContent || ''],
       ['Vistoriadora', (document.getElementById('cfg-nome')?.value||'Beatriz Lunardi') + '  ' + (document.getElementById('cfg-crea')?.value||'CREA/SC')],
@@ -1732,8 +1533,7 @@ function pdfSetup() {
       doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(...CINZA);
       doc.text(k, cx, y);
       doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(...TEXTO);
-      const vStr = doc.splitTextToSize(v, cw2 - 4);
-      doc.text(vStr[0], cx, y + 4);
+      doc.text(doc.splitTextToSize(v, cw2 - 4)[0], cx, y + 4);
     });
     y += 14; hLine();
   }
@@ -1792,22 +1592,19 @@ function pdfSetup() {
 }
 
 // ============================================================
-// PDF 1 — PARECER GERAL (corrigido)
+// PDF 1 — PARECER GERAL
 // ============================================================
 async function gerarPDF() {
   showToast('Gerando PDF...');
   await new Promise(r => setTimeout(r, 80));
   const p = pdfSetup();
   const { doc, ML, MR, PW, CW, VERDE, DANGER, CINZA, CINZA_CLARO, TEXTO } = p;
-
   const obra = document.getElementById('rel-obra')?.textContent || 'Vistoria';
   p.cabecalho('Relatorio de Vistoria de Obra', 'BL Engenharia Civil  |  ' + obra);
   p.blocoIdent();
   p.blocoResumo();
-
   p.secTitle('NAO CONFORMIDADES POR LOCAL');
   const nc = parseInt(document.getElementById('r-nc')?.textContent || '0');
-
   if (nc === 0) {
     doc.setFillColor(232,245,238); doc.roundedRect(ML, p.y, CW, 12, 3, 3, 'F');
     doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(...VERDE);
@@ -1822,19 +1619,16 @@ async function gerarPDF() {
       doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(...TEXTO);
       doc.text(cm.nome, ML + 3, p.y + 5.5);
       p.y += 12;
-
       ncs.forEach(it => {
         p.checkY(22);
         const e = respostas[it.id];
         doc.setFillColor(253,238,238); doc.roundedRect(ML, p.y, CW, 8, 2, 2, 'F');
         doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(...DANGER);
-        const nomeIt = doc.splitTextToSize(it.nome, CW - 30);
-        doc.text(nomeIt[0], ML + 3, p.y + 5.5);
+        doc.text(doc.splitTextToSize(it.nome, CW - 30)[0], ML + 3, p.y + 5.5);
         doc.setFontSize(7); doc.setFillColor(...DANGER); doc.setTextColor(255,255,255);
         doc.roundedRect(PW - MR - 24, p.y + 1.5, 24, 5, 2, 2, 'F');
         doc.text('NAO CONFORME', PW - MR - 12, p.y + 5.2, { align: 'center' });
         p.y += 10;
-
         if (it.criterio) {
           doc.setFontSize(8); doc.setFont('helvetica', 'italic'); doc.setTextColor(...CINZA);
           const lc = doc.splitTextToSize('Criterio: ' + it.criterio, CW - 4);
@@ -1853,10 +1647,7 @@ async function gerarPDF() {
       });
     });
   }
-
-  // assinaturas
-  p.checkY(36);
-  p.hLine();
+  p.checkY(36); p.hLine();
   doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...CINZA);
   doc.text('ASSINATURAS', ML, p.y); p.y += 8;
   const sw = (CW - 8) / 2;
@@ -1868,70 +1659,50 @@ async function gerarPDF() {
     doc.rect(sx, p.y + 3, sw, 18);
     doc.setFontSize(7); doc.text('Assinatura e carimbo', sx + sw/2, p.y + 25, { align: 'center' });
   });
-
   p.rodape();
-  const dataStr = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
-  doc.save('Vistoria_Geral_' + obra.replace(/[^a-zA-Z0-9]/g,'_') + '_' + dataStr + '.pdf');
+  doc.save('Vistoria_Geral_' + (document.getElementById('rel-obra')?.textContent||'').replace(/[^a-zA-Z0-9]/g,'_') + '_' + new Date().toLocaleDateString('pt-BR').replace(/\//g,'-') + '.pdf');
   showToast('PDF gerado!');
 }
 
 // ============================================================
-// PDF 2 — DETALHADO POR COMODO
+// PDF 2 — DETALHADO POR CÔMODO
 // ============================================================
 async function gerarPDFApto() {
   showToast('Gerando PDF detalhado...');
   await new Promise(r => setTimeout(r, 80));
   const p = pdfSetup();
   const { doc, ML, MR, PW, CW, VERDE, DANGER, CINZA, CINZA_CLARO, TEXTO } = p;
-
   const obra = document.getElementById('rel-obra')?.textContent || 'Vistoria';
   p.cabecalho('Relatorio Detalhado por Ambiente', 'BL Engenharia Civil  |  ' + obra);
   p.blocoIdent();
   p.blocoResumo();
-
-  // todos os comodos, todos os status
   comodos.forEach(cm => {
     const ativos = cm.itens.filter(it => respostas[it.id]?.ativo !== false);
     if (!ativos.length) return;
-
     const ncCount = ativos.filter(it => respostas[it.id]?.status === 'nc').length;
     const confCount = ativos.filter(it => respostas[it.id]?.status === 'conf').length;
-
     p.checkY(20);
-    // cabeçalho do cômodo
     doc.setFillColor(...VERDE); doc.roundedRect(ML, p.y, CW, 9, 2, 2, 'F');
     doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(255,255,255);
     doc.text(cm.nome, ML + 4, p.y + 6.3);
     doc.setFontSize(8);
     doc.text(confCount + ' conf.  |  ' + ncCount + ' n.conf.  |  ' + ativos.length + ' total', PW - MR - 2, p.y + 6.3, { align: 'right' });
     p.y += 13;
-
     ativos.forEach(it => {
       const e = respostas[it.id] || {};
       const st = e.status || '';
-      const isNC = st === 'nc';
-      const isConf = st === 'conf';
-      const isNA = st === 'na';
-
+      const isNC = st === 'nc', isConf = st === 'conf', isNA = st === 'na';
       p.checkY(14);
-      // linha do item
       const cor = isNC ? [253,238,238] : isConf ? [232,245,238] : isNA ? [238,237,254] : [248,246,242];
       doc.setFillColor(...cor); doc.roundedRect(ML, p.y, CW, 7, 1, 1, 'F');
-
-      // badge status
       const badgeCol = isNC ? DANGER : isConf ? [46,106,79] : isNA ? [90,74,140] : [160,155,150];
       const badgeTxt = isNC ? 'N.CONFORME' : isConf ? 'CONFORME' : isNA ? 'N/A' : 'PENDENTE';
       doc.setFillColor(...badgeCol); doc.roundedRect(PW - MR - 22, p.y + 1, 22, 5, 2, 2, 'F');
       doc.setFontSize(6); doc.setFont('helvetica', 'bold'); doc.setTextColor(255,255,255);
       doc.text(badgeTxt, PW - MR - 11, p.y + 4.7, { align: 'center' });
-
-      doc.setFontSize(8); doc.setFont('helvetica', isNC ? 'bold' : 'normal');
-      doc.setTextColor(...TEXTO);
-      const nomeIt = doc.splitTextToSize(it.nome, CW - 28);
-      doc.text(nomeIt[0], ML + 3, p.y + 5);
+      doc.setFontSize(8); doc.setFont('helvetica', isNC ? 'bold' : 'normal'); doc.setTextColor(...TEXTO);
+      doc.text(doc.splitTextToSize(it.nome, CW - 28)[0], ML + 3, p.y + 5);
       p.y += 9;
-
-      // detalhes só para NC
       if (isNC) {
         if (it.criterio) {
           doc.setFontSize(7); doc.setFont('helvetica', 'italic'); doc.setTextColor(...CINZA);
@@ -1950,10 +1721,7 @@ async function gerarPDFApto() {
     });
     p.y += 6;
   });
-
-  // rodapé
-  p.checkY(30);
-  p.hLine();
+  p.checkY(30); p.hLine();
   doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...CINZA);
   doc.text('ASSINATURAS', ML, p.y); p.y += 8;
   const sw = (CW - 8) / 2;
@@ -1965,42 +1733,156 @@ async function gerarPDFApto() {
     doc.rect(sx, p.y + 3, sw, 18);
     doc.setFontSize(7); doc.text('Assinatura e carimbo', sx + sw/2, p.y + 25, { align: 'center' });
   });
-
   p.rodape();
-  const dataStr = new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
-  doc.save('Vistoria_Detalhado_' + obra.replace(/[^a-zA-Z0-9]/g,'_') + '_' + dataStr + '.pdf');
+  doc.save('Vistoria_Detalhado_' + obra.replace(/[^a-zA-Z0-9]/g,'_') + '_' + new Date().toLocaleDateString('pt-BR').replace(/\//g,'-') + '.pdf');
   showToast('PDF detalhado gerado!');
 }
 
 // ============================================================
-// EXCEL — CHECKLIST DE PENDENCIAS
+// PDF 3 — POR UNIDADE  ✅ FIX: fotos parseadas do banco
 // ============================================================
-function gerarExcel() {
+async function gerarPDFUnidade() {
+  if (!unidades.length) { showToast('Cadastre unidades primeiro!'); return; }
+  showToast('Gerando PDF por unidade...');
+  await new Promise(r => setTimeout(r, 80));
+  const p = pdfSetup();
+  const { doc, ML, MR, PW, CW, VERDE, DANGER, CINZA, CINZA_CLARO, TEXTO } = p;
+  const obra = document.getElementById('rel-obra')?.textContent || 'Vistoria';
+  p.cabecalho('Relatorio por Unidade', 'BL Engenharia Civil  |  ' + obra);
+  p.blocoIdent();
+
+  for (let ui = 0; ui < unidades.length; ui++) {
+    const u = unidades[ui];
+    const { data: resp } = await db.from('respostas_itens')
+      .select('*').eq('vistoria_id', vistoriaAtiva.id).eq('unidade_id', u.id);
+
+    const mapa = {};
+    // ✅ FIX: parseia fotos JSON do banco
+    (resp || []).forEach(r => {
+      let fotos = [];
+      try { fotos = Array.isArray(r.fotos) ? r.fotos : (r.fotos ? JSON.parse(r.fotos) : []); } catch(_e) {}
+      mapa[r.item_id] = {
+        status: r.status==='conforme'?'conf':r.status==='nao_conforme'?'nc':r.status==='nao_aplicavel'?'na':'',
+        obs: r.observacao||'', fotos, ativo: r.item_ativo!==false
+      };
+    });
+
+    const ncs = itens.filter(it => mapa[it.id]?.status === 'nc');
+    const conf = itens.filter(it => mapa[it.id]?.status === 'conf').length;
+    const total = Object.keys(mapa).length;
+    const pct = total > 0 ? Math.round(conf/total*100) : 0;
+
+    p.checkY(22);
+    if (ui > 0) p.y += 4;
+    doc.setFillColor(...VERDE); doc.roundedRect(ML, p.y, CW, 10, 3, 3, 'F');
+    doc.setFontSize(12); doc.setFont('helvetica', 'bold'); doc.setTextColor(255,255,255);
+    doc.text(u.nome, ML + 5, p.y + 7);
+    doc.setFontSize(9);
+    doc.text(ncs.length + ' NC  |  ' + conf + ' conf.  |  ' + pct + '% ok', PW-MR-2, p.y+7, {align:'right'});
+    p.y += 14;
+
+    if (!ncs.length && total === 0) {
+      doc.setFontSize(9); doc.setFont('helvetica','italic'); doc.setTextColor(...CINZA);
+      doc.text('Nenhum item preenchido para esta unidade.', ML+2, p.y); p.y += 8;
+      continue;
+    }
+    if (!ncs.length) {
+      doc.setFillColor(232,245,238); doc.roundedRect(ML, p.y, CW, 10, 2, 2, 'F');
+      doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(46,106,79);
+      doc.text('Sem nao conformidades!', ML+CW/2, p.y+7, {align:'center'});
+      p.y += 14; continue;
+    }
+
+    comodos.forEach(cm => {
+      const ncsCm = cm.itens.filter(it => mapa[it.id]?.status === 'nc');
+      if (!ncsCm.length) return;
+      p.checkY(14);
+      doc.setFillColor(...CINZA_CLARO); doc.roundedRect(ML, p.y, CW, 7, 1, 1, 'F');
+      doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(...TEXTO);
+      doc.text(cm.nome, ML+3, p.y+5);
+      p.y += 10;
+      ncsCm.forEach(it => {
+        p.checkY(18);
+        const e = mapa[it.id];
+        doc.setFillColor(253,238,238); doc.roundedRect(ML, p.y, CW, 7, 1, 1, 'F');
+        doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(...DANGER);
+        doc.text(doc.splitTextToSize(it.nome, CW-28)[0], ML+3, p.y+5);
+        doc.setFontSize(6); doc.setFillColor(...DANGER); doc.setTextColor(255,255,255);
+        doc.roundedRect(PW-MR-22, p.y+1.5, 22, 4, 1, 1, 'F');
+        doc.text('NAO CONFORME', PW-MR-11, p.y+5, {align:'center'});
+        p.y += 9;
+        if (e.obs) {
+          doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(...TEXTO);
+          const lo = doc.splitTextToSize('Obs: '+e.obs, CW-6);
+          lo.forEach(l => { p.checkY(5); doc.text(l, ML+3, p.y); p.y += 4.5; });
+        }
+        if (e.fotos?.length) p.blocoFotos(e.fotos);
+        p.y += 3;
+      });
+    });
+    p.y += 4;
+    doc.setDrawColor(...CINZA_CLARO); doc.setLineWidth(0.3);
+    doc.line(ML, p.y, PW-MR, p.y); p.y += 4;
+  }
+
+  p.rodape();
+  doc.save('Vistoria_PorUnidade_' + obra.replace(/[^a-zA-Z0-9]/g,'_') + '_' + new Date().toLocaleDateString('pt-BR').replace(/\//g,'-') + '.pdf');
+  showToast('PDF por unidade gerado!');
+}
+
+// ============================================================
+// EXCEL  ✅ FIX: busca banco, todas unidades, coluna unidade
+// ============================================================
+async function gerarExcel() {
   if (!window.XLSX) { showToast('Aguarde, carregando Excel...'); return; }
+  if (!vistoriaAtiva) { showToast('Abra uma vistoria primeiro!'); return; }
   showToast('Gerando planilha...');
 
-  const obra = document.getElementById('rel-obra')?.textContent || 'Vistoria';
+  const obra        = document.getElementById('rel-obra')?.textContent || 'Vistoria';
   const construtora = document.getElementById('rel-const')?.textContent || '';
-  const cliente = document.getElementById('rel-cliente')?.textContent || '';
-  const dataVist = document.getElementById('rel-data')?.textContent || '';
-  const vistoriadora = (document.getElementById('cfg-nome')?.value || 'Beatriz Lunardi');
+  const cliente     = document.getElementById('rel-cliente')?.textContent || '';
+  const dataVist    = document.getElementById('rel-data')?.textContent || '';
+  const vistoriadora = document.getElementById('cfg-nome')?.value || 'Beatriz Lunardi';
 
-  // Montar linhas — apenas NÃO CONFORMES primeiro, depois conformes, depois NA/pendente
-  const ordemStatus = { nc: 0, conf: 1, na: 2, '': 3 };
-  const linhas = [];
-  comodos.forEach(cm => {
-    cm.itens.filter(it => respostas[it.id]?.ativo !== false).forEach(it => {
-      const e = respostas[it.id] || {};
-      linhas.push({ comodo: cm.nome, item: it.nome, criterio: it.criterio || '', obs: e.obs || '', status: e.status || '', _ord: ordemStatus[e.status || ''] });
-    });
-  });
-  linhas.sort((a, b) => a._ord - b._ord);
+  // Busca TODAS as respostas da vistoria (todas as unidades de uma vez)
+  const { data: todasRespostas } = await db.from('respostas_itens')
+    .select('*').eq('vistoria_id', vistoriaAtiva.id);
 
   const statusLabel = { nc: 'Nao Conforme', conf: 'Conforme', na: 'N/A', '': 'Pendente' };
+  const ordemStatus = { nc: 0, conf: 1, na: 2, '': 3 };
+
+  // Mapa unidade_id -> nome
+  const nomeUnid = {};
+  unidades.forEach(u => { nomeUnid[u.id] = u.nome; });
+
+  function parseSt(s) {
+    return s==='conforme'?'conf':s==='nao_conforme'?'nc':s==='nao_aplicavel'?'na':'';
+  }
+
+  // Monta linhas: para cada item, uma linha por unidade respondida
+  const linhas = [];
+  comodos.forEach(cm => {
+    cm.itens.forEach(it => {
+      const respItem = (todasRespostas||[]).filter(r => r.item_id === it.id && r.item_ativo !== false);
+      if (!respItem.length) {
+        // sem resposta → pendente geral
+        linhas.push({ unidade: unidades.length ? 'Geral' : '—', comodo: cm.nome,
+          item: it.nome, criterio: it.criterio||'', obs: '', status: '', _ord: 3 });
+      } else {
+        respItem.forEach(r => {
+          const st = parseSt(r.status);
+          const unidNome = r.unidade_id ? (nomeUnid[r.unidade_id] || r.unidade_id) : 'Geral';
+          linhas.push({ unidade: unidNome, comodo: cm.nome, item: it.nome,
+            criterio: it.criterio||'', obs: r.observacao||'', status: st, _ord: ordemStatus[st] });
+        });
+      }
+    });
+  });
+  linhas.sort((a, b) => a._ord - b._ord || a.unidade.localeCompare(b.unidade));
 
   const wb = XLSX.utils.book_new();
 
-  // ── ABA 1: PENDENCIAS (não conformes) ──
+  // ── ABA 1: PENDENCIAS — NCs com coluna de unidade ──
   const rowsNC = [
     ['CHECK LIST - VISTORIA DE OBRA'],
     [],
@@ -2008,43 +1890,34 @@ function gerarExcel() {
     ['Cliente:', cliente, '', 'Data:', dataVist],
     ['Vistoriadora:', vistoriadora],
     [],
-    ['SERVICO / ITEM', 'AMBIENTE', 'CRITERIO', 'OBSERVACAO', 'RESPONSAVEL', 'PAVTO/LOCAL', 'STATUS'],
+    ['UNIDADE / APTO', 'SERVICO / ITEM', 'AMBIENTE', 'CRITERIO', 'OBSERVACAO', 'RESPONSAVEL', 'STATUS'],
   ];
   linhas.filter(l => l.status === 'nc').forEach(l => {
-    rowsNC.push([l.item, l.comodo, l.criterio, l.obs, '', '', 'Pendente']);
+    rowsNC.push([l.unidade, l.item, l.comodo, l.criterio, l.obs, '', 'Pendente']);
   });
   if (rowsNC.length === 8) rowsNC.push(['Nenhuma nao conformidade registrada.']);
-
   const wsNC = XLSX.utils.aoa_to_sheet(rowsNC);
-  wsNC['!cols'] = [{ wch: 40 }, { wch: 22 }, { wch: 35 }, { wch: 35 }, { wch: 18 }, { wch: 18 }, { wch: 14 }];
+  wsNC['!cols'] = [{ wch: 16 }, { wch: 38 }, { wch: 22 }, { wch: 28 }, { wch: 32 }, { wch: 18 }, { wch: 14 }];
   wsNC['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 6 } }];
   XLSX.utils.book_append_sheet(wb, wsNC, 'Pendencias');
 
-  // ── ABA 2: CHECKLIST COMPLETO ──
+  // ── ABA 2: CHECKLIST COMPLETO — com coluna de unidade ──
   const rowsAll = [
     ['CHECKLIST COMPLETO - VISTORIA'],
     [],
     ['Obra:', obra, '', 'Data:', dataVist],
     [],
-    ['ITEM', 'AMBIENTE', 'CRITERIO', 'OBSERVACAO', 'STATUS'],
+    ['UNIDADE / APTO', 'ITEM', 'AMBIENTE', 'CRITERIO', 'OBSERVACAO', 'STATUS'],
   ];
   linhas.forEach(l => {
-    rowsAll.push([l.item, l.comodo, l.criterio, l.obs, statusLabel[l.status]]);
+    rowsAll.push([l.unidade, l.item, l.comodo, l.criterio, l.obs, statusLabel[l.status]]);
   });
-
   const wsAll = XLSX.utils.aoa_to_sheet(rowsAll);
-  wsAll['!cols'] = [{ wch: 40 }, { wch: 22 }, { wch: 35 }, { wch: 35 }, { wch: 14 }];
-  wsAll['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }];
+  wsAll['!cols'] = [{ wch: 16 }, { wch: 38 }, { wch: 22 }, { wch: 28 }, { wch: 32 }, { wch: 14 }];
+  wsAll['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }];
   XLSX.utils.book_append_sheet(wb, wsAll, 'Checklist Completo');
 
-  // ── ABA 3: RESUMO ──
-  const conf = linhas.filter(l => l.status === 'conf').length;
-  const nc   = linhas.filter(l => l.status === 'nc').length;
-  const na   = linhas.filter(l => l.status === 'na').length;
-  const pend = linhas.filter(l => l.status === '').length;
-  const total = linhas.length;
-  const pct = total > 0 ? Math.round((conf / total) * 100) : 0;
-
+  // ── ABA 3: RESUMO POR UNIDADE ──
   const rowsRes = [
     ['RESUMO DA VISTORIA'],
     [],
@@ -2054,23 +1927,32 @@ function gerarExcel() {
     ['Data', dataVist],
     ['Vistoriadora', vistoriadora],
     [],
-    ['RESULTADO', 'QTD', '% DO TOTAL'],
-    ['Conformes', conf, pct + '%'],
-    ['Nao conformes', nc, total > 0 ? Math.round(nc/total*100)+'%' : '0%'],
-    ['N/Aplicavel', na, total > 0 ? Math.round(na/total*100)+'%' : '0%'],
-    ['Pendentes', pend, total > 0 ? Math.round(pend/total*100)+'%' : '0%'],
-    ['TOTAL', total, '100%'],
+    ['UNIDADE', 'CONFORMES', 'NAO CONFORMES', 'N/A', 'PENDENTES', 'TOTAL', '% CONFORM.'],
   ];
+  const unidsExcel = [...new Set(linhas.map(l => l.unidade))].sort();
+  unidsExcel.forEach(u => {
+    const sub = linhas.filter(l => l.unidade === u);
+    const c = sub.filter(l => l.status==='conf').length;
+    const n = sub.filter(l => l.status==='nc').length;
+    const na = sub.filter(l => l.status==='na').length;
+    const p2 = sub.filter(l => l.status==='').length;
+    const t = sub.length;
+    rowsRes.push([u, c, n, na, p2, t, t>0 ? Math.round(c/t*100)+'%' : '0%']);
+  });
+  const tC = linhas.filter(l=>l.status==='conf').length;
+  const tN = linhas.filter(l=>l.status==='nc').length;
+  const tA = linhas.filter(l=>l.status==='na').length;
+  const tP = linhas.filter(l=>l.status==='').length;
+  const tT = linhas.length;
+  rowsRes.push([]);
+  rowsRes.push(['TOTAL GERAL', tC, tN, tA, tP, tT, tT>0?Math.round(tC/tT*100)+'%':'0%']);
   const wsRes = XLSX.utils.aoa_to_sheet(rowsRes);
-  wsRes['!cols'] = [{ wch: 20 }, { wch: 30 }, { wch: 12 }];
-  XLSX.utils.book_append_sheet(wb, wsRes, 'Resumo');
+  wsRes['!cols'] = [{ wch: 20 }, { wch: 12 }, { wch: 16 }, { wch: 10 }, { wch: 12 }, { wch: 10 }, { wch: 12 }];
+  XLSX.utils.book_append_sheet(wb, wsRes, 'Resumo por Unidade');
 
-  const dataStr = new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
-  XLSX.writeFile(wb, 'Checklist_' + obra.replace(/[^a-zA-Z0-9]/g,'_') + '_' + dataStr + '.xlsx');
+  XLSX.writeFile(wb, 'Checklist_' + obra.replace(/[^a-zA-Z0-9]/g,'_') + '_' + new Date().toLocaleDateString('pt-BR').replace(/\//g,'-') + '.xlsx');
   showToast('Planilha Excel gerada!');
 }
-
-
 </script>
 </body>
 </html>

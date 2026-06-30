@@ -440,20 +440,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         </div>
         <div style="display:flex;flex-direction:column;gap:14px">
           <div class="send-panel">
-            <div class="sp-head">📤 Enviar</div>
-            <button class="si" onclick="showToast('📧 Abrindo e-mail...')"><span class="si-ico">📧</span><div><div class="si-n">E-mail — construtora</div><div class="si-d" id="si-email">—</div></div><span class="si-arr">›</span></button>
-            <button class="si" onclick="showToast('💬 Abrindo WhatsApp...')"><span class="si-ico">💬</span><div><div class="si-n">WhatsApp — cliente</div><div class="si-d" id="si-wpp">—</div></div><span class="si-arr">›</span></button>
-          </div>
-          <div class="send-panel">
-            <div class="sp-head">⬇️ Exportar relatório</div>
-            <button class="si" onclick="gerarPDF()"><span class="si-ico">📋</span><div><div class="si-n">PDF — Parecer geral</div><div class="si-d">Visão completa da vistoria</div></div><span class="si-arr">›</span></button>
-            <button class="si" onclick="gerarPDFApto()"><span class="si-ico">🏠</span><div><div class="si-n">PDF — Detalhado por cômodo</div><div class="si-d">Um bloco por ambiente, com fotos</div></div><span class="si-arr">›</span></button>
-            <button class="si" onclick="gerarPDFUnidade()"><span class="si-ico">🏗️</span><div><div class="si-n">PDF — Por unidade/apartamento</div><div class="si-d">NCs agrupadas por apto</div></div><span class="si-arr">›</span></button>
-            <button class="si" onclick="gerarExcel()"><span class="si-ico">📊</span><div><div class="si-n">Excel — Checklist de pendências</div><div class="si-d">Planilha com todas as unidades</div></div><span class="si-arr">›</span></button>
-          </div>
-          <div class="send-panel">
-            <div class="sp-head">📝 Observações gerais</div>
-            <div style="padding:14px 18px"><textarea class="obs-in" rows="5" placeholder="Observações finais..."></textarea></div>
+            <div class="sp-head">Exportar relatório</div>
+            <button class="si" onclick="gerarPDF()"><div><div class="si-n">PDF — Parecer geral</div><div class="si-d">Visão completa da vistoria</div></div><span class="si-arr">›</span></button>
+            <button class="si" onclick="gerarPDFApto()"><div><div class="si-n">PDF — Detalhado por ambiente</div><div class="si-d">Um bloco por ambiente, com fotos e status</div></div><span class="si-arr">›</span></button>
+            <button class="si" onclick="gerarPDFUnidade()"><div><div class="si-n">PDF — Não conformidades por unidade</div><div class="si-d">Pendências agrupadas por apartamento</div></div><span class="si-arr">›</span></button>
+            <button class="si" onclick="gerarExcel()"><div><div class="si-n">Excel — Checklist de pendências</div><div class="si-d">Planilha com serviços e unidades</div></div><span class="si-arr">›</span></button>
           </div>
         </div>
       </div>
@@ -1164,27 +1155,36 @@ function renderAdminBody() {
   let html = `<div style="font-size:13px;color:var(--text2);margin-bottom:14px">${modelo.descricao||''}</div>`;
   modelo.comodos.forEach(cm => {
     html += `<div class="admin-comodo">
-      <div class="admin-comodo-head"><span>${cm.icone||'🏠'}</span><span>${cm.nome}</span></div>`;
+      <div class="admin-comodo-head"><span>${cm.icone||'🏠'}</span><span>${cm.nome}</span></div>
+      <div style="display:grid;grid-template-columns:1fr 220px 180px auto;gap:0;background:var(--surface2);padding:6px 16px;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">
+        <span>Item de verificação</span><span>Serviço / Equipe</span><span>Critério</span><span></span>
+      </div>`;
     cm.itens.forEach(it => {
-      html += `<div class="admin-item-row">
-        <div class="admin-item-name">
-          <input class="admin-item-edit-input" value="${it.nome.replace(/"/g,'&quot;')}" onchange="editarItemNome('${it.id}',this.value)">
-        </div>
-        <button class="btn btn-sm btn-danger" onclick="removerItemModelo('${it.id}','${cm.id}')">✕ remover do modelo</button>
+      const servico = (it.servico||'').replace(/"/g,'&quot;');
+      const criterio = (it.criterio||'').replace(/"/g,'&quot;');
+      html += `<div class="admin-item-row" style="grid-template-columns:1fr 220px 180px auto;display:grid;align-items:center;gap:8px">
+        <input class="admin-item-edit-input" value="${it.nome.replace(/"/g,'&quot;')}" placeholder="Nome do item" onchange="editarItemCampo('${it.id}','nome',this.value)">
+        <input class="admin-item-edit-input" value="${servico}" placeholder="Ex: Revestimento cerâmico" onchange="editarItemCampo('${it.id}','servico',this.value)" style="font-size:12px">
+        <input class="admin-item-edit-input" value="${criterio}" placeholder="Critério técnico..." onchange="editarItemCampo('${it.id}','criterio',this.value)" style="font-size:11px;color:var(--text2)">
+        <button class="btn btn-sm btn-danger" onclick="removerItemModelo('${it.id}','${cm.id}')">✕</button>
       </div>`;
     });
-    html += `<div class="admin-add-item">
-      <input type="text" placeholder="Nome do novo item de verificação..." id="newitem-${cm.id}">
-      <button class="btn btn-sm btn-p" onclick="adicionarItemModelo('${cm.id}')">+ Adicionar</button>
+    html += `<div class="admin-add-item" style="display:grid;grid-template-columns:1fr 220px 180px auto;gap:8px;align-items:center">
+      <input type="text" placeholder="Nome do novo item..." id="newitem-${cm.id}" style="font-size:12px">
+      <input type="text" placeholder="Serviço / Equipe..." id="newserv-${cm.id}" style="font-size:12px;font-family:inherit;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;outline:none">
+      <input type="text" placeholder="Critério..." id="newcrit-${cm.id}" style="font-size:12px;font-family:inherit;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;outline:none">
+      <button class="btn btn-sm btn-p" onclick="adicionarItemModelo('${cm.id}')">+ Add</button>
     </div></div>`;
   });
   body.innerHTML = html;
 }
 
-async function editarItemNome(itemId, novoNome) {
-  await db.from('itens_checklist').update({ nome: novoNome }).eq('id', itemId);
-  modelos.forEach(m => m.comodos.forEach(c => c.itens.forEach(i => { if(i.id===itemId) i.nome = novoNome; })));
-  showToast('✅ Item atualizado!');
+async function editarItemCampo(itemId, campo, valor) {
+  const upd = {};
+  upd[campo] = valor;
+  await db.from('itens_checklist').update(upd).eq('id', itemId);
+  modelos.forEach(m => m.comodos.forEach(c => c.itens.forEach(i => { if(i.id===itemId) i[campo] = valor; })));
+  showSaveInd('✓ Salvo');
 }
 
 async function removerItemModelo(itemId, comodoId) {
@@ -1197,15 +1197,21 @@ async function removerItemModelo(itemId, comodoId) {
 
 async function adicionarItemModelo(comodoId) {
   const input = document.getElementById('newitem-'+comodoId);
+  const inpServ = document.getElementById('newserv-'+comodoId);
+  const inpCrit = document.getElementById('newcrit-'+comodoId);
   const nome = input.value.trim();
   if (!nome) { showToast('⚠️ Digite o nome do item'); return; }
   const modelo = modelos.find(m=>m.id===adminModeloAtual);
   const comodo = modelo.comodos.find(c=>c.id===comodoId);
   const ordem = comodo.itens.length + 1;
-  const { data, error } = await db.from('itens_checklist').insert({ comodo_id: comodoId, nome, ordem }).select().single();
+  const { data, error } = await db.from('itens_checklist').insert({
+    comodo_id: comodoId, nome, ordem,
+    servico: inpServ?.value.trim() || '',
+    criterio: inpCrit?.value.trim() || ''
+  }).select().single();
   if (!error && data) {
     comodo.itens.push(data);
-    input.value = '';
+    input.value = ''; if(inpServ) inpServ.value = ''; if(inpCrit) inpCrit.value = '';
     renderAdminBody();
     showToast('✅ Item adicionado ao modelo!');
   }
@@ -1748,8 +1754,15 @@ async function gerarPDFUnidade() {
   const p = pdfSetup();
   const { doc, ML, MR, PW, CW, VERDE, DANGER, CINZA, CINZA_CLARO, TEXTO } = p;
   const obra = document.getElementById('rel-obra')?.textContent || 'Vistoria';
-  p.cabecalho('Relatorio por Unidade', 'BL Engenharia Civil  |  ' + obra);
+  p.cabecalho('Nao Conformidades por Unidade', 'BL Engenharia Civil  |  ' + obra + '  |  Apenas itens nao conformes');
   p.blocoIdent();
+
+  // aviso: este relatório lista apenas não conformidades
+  const { doc: _d, ML: _ML, CW: _CW, DANGER: _DG } = p;
+  _d.setFillColor(253,238,238); _d.roundedRect(_ML, p.y, _CW, 9, 2, 2, 'F');
+  _d.setFontSize(8); _d.setFont('helvetica','bold'); _d.setTextColor(..._DG);
+  _d.text('ATENCAO: Este documento lista exclusivamente os itens classificados como Nao Conforme.', _ML + _CW/2, p.y+6, {align:'center'});
+  p.y += 14;
 
   for (let ui = 0; ui < unidades.length; ui++) {
     const u = unidades[ui];
@@ -1867,13 +1880,13 @@ async function gerarExcel() {
       if (!respItem.length) {
         // sem resposta → pendente geral
         linhas.push({ unidade: unidades.length ? 'Geral' : '—', comodo: cm.nome,
-          item: it.nome, criterio: it.criterio||'', obs: '', status: '', _ord: 3 });
+          item: it.nome, servico: it.servico||'', criterio: it.criterio||'', obs: '', status: '', _ord: 3 });
       } else {
         respItem.forEach(r => {
           const st = parseSt(r.status);
           const unidNome = r.unidade_id ? (nomeUnid[r.unidade_id] || r.unidade_id) : 'Geral';
           linhas.push({ unidade: unidNome, comodo: cm.nome, item: it.nome,
-            criterio: it.criterio||'', obs: r.observacao||'', status: st, _ord: ordemStatus[st] });
+            servico: it.servico||'', criterio: it.criterio||'', obs: r.observacao||'', status: st, _ord: ordemStatus[st] });
         });
       }
     });
@@ -1883,6 +1896,10 @@ async function gerarExcel() {
   const wb = XLSX.utils.book_new();
 
   // ── ABA 1: PENDENCIAS — NCs com coluna de unidade ──
+  // Ordenar por serviço primeiro, depois unidade
+  const linhasNC = linhas.filter(l => l.status === 'nc')
+    .sort((a,b) => (a.servico||'zzz').localeCompare(b.servico||'zzz') || a.unidade.localeCompare(b.unidade));
+
   const rowsNC = [
     ['CHECK LIST - VISTORIA DE OBRA'],
     [],
@@ -1890,31 +1907,31 @@ async function gerarExcel() {
     ['Cliente:', cliente, '', 'Data:', dataVist],
     ['Vistoriadora:', vistoriadora],
     [],
-    ['UNIDADE / APTO', 'SERVICO / ITEM', 'AMBIENTE', 'CRITERIO', 'OBSERVACAO', 'RESPONSAVEL', 'STATUS'],
+    ['UNIDADE / APTO', 'SERVICO / EQUIPE', 'ITEM', 'AMBIENTE', 'CRITERIO', 'OBSERVACAO DO VISTORIADOR', 'RESPONSAVEL', 'STATUS'],
   ];
-  linhas.filter(l => l.status === 'nc').forEach(l => {
-    rowsNC.push([l.unidade, l.item, l.comodo, l.criterio, l.obs, '', 'Pendente']);
+  linhasNC.forEach(l => {
+    rowsNC.push([l.unidade, l.servico||'—', l.item, l.comodo, l.criterio, l.obs, '', 'Pendente']);
   });
   if (rowsNC.length === 8) rowsNC.push(['Nenhuma nao conformidade registrada.']);
   const wsNC = XLSX.utils.aoa_to_sheet(rowsNC);
-  wsNC['!cols'] = [{ wch: 16 }, { wch: 38 }, { wch: 22 }, { wch: 28 }, { wch: 32 }, { wch: 18 }, { wch: 14 }];
-  wsNC['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 6 } }];
+  wsNC['!cols'] = [{ wch: 14 }, { wch: 24 }, { wch: 34 }, { wch: 22 }, { wch: 28 }, { wch: 34 }, { wch: 18 }, { wch: 12 }];
+  wsNC['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 7 } }];
   XLSX.utils.book_append_sheet(wb, wsNC, 'Pendencias');
 
-  // ── ABA 2: CHECKLIST COMPLETO — com coluna de unidade ──
+  // ── ABA 2: CHECKLIST COMPLETO — com coluna de unidade e serviço ──
   const rowsAll = [
     ['CHECKLIST COMPLETO - VISTORIA'],
     [],
     ['Obra:', obra, '', 'Data:', dataVist],
     [],
-    ['UNIDADE / APTO', 'ITEM', 'AMBIENTE', 'CRITERIO', 'OBSERVACAO', 'STATUS'],
+    ['UNIDADE / APTO', 'SERVICO / EQUIPE', 'ITEM', 'AMBIENTE', 'CRITERIO', 'OBSERVACAO DO VISTORIADOR', 'STATUS'],
   ];
   linhas.forEach(l => {
-    rowsAll.push([l.unidade, l.item, l.comodo, l.criterio, l.obs, statusLabel[l.status]]);
+    rowsAll.push([l.unidade, l.servico||'—', l.item, l.comodo, l.criterio, l.obs, statusLabel[l.status]]);
   });
   const wsAll = XLSX.utils.aoa_to_sheet(rowsAll);
-  wsAll['!cols'] = [{ wch: 16 }, { wch: 38 }, { wch: 22 }, { wch: 28 }, { wch: 32 }, { wch: 14 }];
-  wsAll['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }];
+  wsAll['!cols'] = [{ wch: 14 }, { wch: 24 }, { wch: 34 }, { wch: 22 }, { wch: 28 }, { wch: 34 }, { wch: 14 }];
+  wsAll['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 6 } }];
   XLSX.utils.book_append_sheet(wb, wsAll, 'Checklist Completo');
 
   // ── ABA 3: RESUMO POR UNIDADE ──

@@ -162,16 +162,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .model-select-bar{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow);padding:12px 16px;margin-bottom:16px}
 .model-select-bar select{flex:1;font-family:'DM Sans',sans-serif;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;background:var(--bg);color:var(--text);outline:none;cursor:pointer}
 .model-select-label{font-size:12px;color:var(--text2);white-space:nowrap}
-/* vistoria header redesenhado */
-.vistoria-header{display:flex;align-items:center;justify-content:space-between;gap:16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 20px;margin-bottom:16px;flex-wrap:wrap}
-.vh-left{display:flex;flex-direction:column;gap:6px}
-.vh-obra{font-size:16px;font-weight:700;color:var(--text)}
-.vh-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.vh-chip{font-size:12px;font-weight:600;background:var(--accent-light);color:var(--accent);border-radius:6px;padding:3px 10px;border:1px solid rgba(45,90,61,.2)}
-.vh-trocar{font-family:inherit;font-size:11px;font-weight:600;color:var(--text3);background:none;border:1px dashed var(--border);border-radius:6px;padding:3px 10px;cursor:pointer;transition:all .15s}
-.vh-trocar:hover{color:var(--accent);border-color:var(--accent2);background:var(--accent-light)}
-.vh-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.vh-unid-label{font-size:12px;color:var(--text3);white-space:nowrap;font-weight:500}
 .rel-layout{display:grid;grid-template-columns:1fr 280px;gap:20px;align-items:start}
 @media(max-width:860px){.rel-layout{grid-template-columns:1fr}}
 .rel-doc{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden}
@@ -355,32 +345,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
     <!-- CHECKLIST -->
     <div class="page" id="p-vistoria">
-      <div class="vistoria-header" id="vistoria-header">
-        <div class="vh-left">
-          <div class="vh-obra" id="vh-obra-nome">—</div>
-          <div class="vh-meta">
-            <span class="vh-chip" id="vh-modelo-chip">—</span>
-            <button class="vh-trocar" onclick="abrirModalTrocarModelo()">Trocar modelo</button>
-          </div>
-        </div>
-        <div class="vh-right" id="unid-bar" style="display:none">
-          <span class="vh-unid-label">Unidade:</span>
-          <select class="unid-select" id="unid-select" onchange="trocarUnidade(this.value)">
-            <option value="">Geral</option>
-          </select>
-          <button class="unid-add-btn" onclick="abrirModalUnidades()">Editar unidades</button>
-        </div>
+      <div class="model-select-bar">
+        <span class="model-select-label">📋 Modelo de checklist:</span>
+        <select id="model-select" onchange="trocarModeloVistoria(this.value)"></select>
       </div>
-      <!-- modal trocar modelo -->
-      <div id="modal-trocar-modelo" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9000;align-items:center;justify-content:center" onclick="if(event.target===this)fecharModalTrocarModelo()">
-        <div style="background:var(--surface);border-radius:var(--radius);padding:28px;max-width:420px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.3)">
-          <div style="font-size:15px;font-weight:700;margin-bottom:6px">Trocar modelo de checklist</div>
-          <div style="font-size:12px;color:var(--text2);margin-bottom:18px;line-height:1.6">As respostas já preenchidas ficam salvas no banco. A tela exibirá o novo modelo.</div>
-          <div style="display:flex;flex-direction:column;gap:8px" id="model-list-btns"></div>
-          <div style="margin-top:16px;text-align:right">
-            <button class="btn" onclick="fecharModalTrocarModelo()">Cancelar</button>
-          </div>
-        </div>
+      <div class="unid-bar" id="unid-bar" style="display:none">
+        <span class="unid-bar-label">🏠 Vistoriando:</span>
+        <select class="unid-select" id="unid-select" onchange="trocarUnidade(this.value)">
+          <option value="">— sem unidade —</option>
+        </select>
+        <button class="unid-add-btn" onclick="abrirModalUnidades()">✏️ Editar unidades</button>
       </div>
       <div class="cl-layout">
         <div id="cl-main"><div style="padding:20px;color:var(--text3);font-size:13px">Selecione uma obra para iniciar.</div></div>
@@ -467,8 +441,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <div style="display:flex;flex-direction:column;gap:14px">
           <div class="send-panel">
             <div class="sp-head">Exportar relatório</div>
-            <button class="si" onclick="gerarPDF()"><div><div class="si-n">PDF — Parecer geral</div><div class="si-d">Resumo executivo + lista de não conformidades</div></div><span class="si-arr">›</span></button>
-            <button class="si" onclick="gerarPDFApto()"><div><div class="si-n">PDF — Detalhado por ambiente</div><div class="si-d">Todos os itens com status (conformes, NCs e N/A)</div></div><span class="si-arr">›</span></button>
+            <button class="si" onclick="gerarPDF()"><div><div class="si-n">PDF — Parecer geral</div><div class="si-d">Visão completa da vistoria</div></div><span class="si-arr">›</span></button>
+            <button class="si" onclick="gerarPDFApto()"><div><div class="si-n">PDF — Detalhado por ambiente</div><div class="si-d">Um bloco por ambiente, com fotos e status</div></div><span class="si-arr">›</span></button>
             <button class="si" onclick="gerarPDFUnidade()"><div><div class="si-n">PDF — Não conformidades por unidade</div><div class="si-d">Pendências agrupadas por apartamento</div></div><span class="si-arr">›</span></button>
             <button class="si" onclick="gerarExcel()"><div><div class="si-n">Excel — Checklist de pendências</div><div class="si-d">Planilha com serviços e unidades</div></div><span class="si-arr">›</span></button>
           </div>
@@ -693,9 +667,10 @@ async function carregarModelos() {
     }
   }
   document.getElementById('h-vis').textContent = modelos.length;
-  // popular apenas o select do modal de obra (model-select foi removido da tela de vistoria)
   const moSel = document.getElementById('mo-modelo');
-  if (moSel) moSel.innerHTML = modelos.map(m=>`<option value="${m.id}">${m.nome}</option>`).join('');
+  moSel.innerHTML = modelos.map(m=>`<option value="${m.id}">${m.nome}</option>`).join('');
+  const visSel = document.getElementById('model-select');
+  visSel.innerHTML = modelos.map(m=>`<option value="${m.id}">${m.nome}</option>`).join('');
 }
 
 // ============================================================
@@ -1631,15 +1606,10 @@ async function gerarPDF() {
   const p = pdfSetup();
   const { doc, ML, MR, PW, CW, VERDE, DANGER, CINZA, CINZA_CLARO, TEXTO } = p;
   const obra = document.getElementById('rel-obra')?.textContent || 'Vistoria';
-  p.cabecalho('Parecer Geral de Vistoria', 'BL Engenharia Civil  |  ' + obra + '  |  Nao conformidades identificadas');
+  p.cabecalho('Relatorio de Vistoria de Obra', 'BL Engenharia Civil  |  ' + obra);
   p.blocoIdent();
   p.blocoResumo();
-  p.secTitle('NAO CONFORMIDADES IDENTIFICADAS');
-  // nota explicativa
-  doc.setFontSize(8); doc.setFont('helvetica','italic'); doc.setTextColor(...CINZA);
-  doc.text('Este documento lista apenas os itens classificados como Nao Conforme durante a vistoria.', ML, p.y);
-  doc.text('Para visualizar todos os itens (conformes, nao conformes e N/A), utilize o PDF Detalhado por Ambiente.', ML, p.y + 4.5);
-  p.y += 11;
+  p.secTitle('NAO CONFORMIDADES POR LOCAL');
   const nc = parseInt(document.getElementById('r-nc')?.textContent || '0');
   if (nc === 0) {
     doc.setFillColor(232,245,238); doc.roundedRect(ML, p.y, CW, 12, 3, 3, 'F');
@@ -1709,31 +1679,9 @@ async function gerarPDFApto() {
   const p = pdfSetup();
   const { doc, ML, MR, PW, CW, VERDE, DANGER, CINZA, CINZA_CLARO, TEXTO } = p;
   const obra = document.getElementById('rel-obra')?.textContent || 'Vistoria';
-  p.cabecalho('Relatorio Detalhado por Ambiente', 'BL Engenharia Civil  |  ' + obra + '  |  Todos os itens vistoriados');
+  p.cabecalho('Relatorio Detalhado por Ambiente', 'BL Engenharia Civil  |  ' + obra);
   p.blocoIdent();
   p.blocoResumo();
-
-  // legenda de cores
-  p.checkY(18);
-  doc.setFillColor(...CINZA_CLARO); doc.roundedRect(ML, p.y, CW, 13, 2, 2, 'F');
-  doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(...CINZA);
-  doc.text('LEGENDA — STATUS DOS ITENS:', ML + 3, p.y + 5);
-  const legItems = [
-    { txt: 'CONFORME', cor: [46,106,79], fundo: [232,245,238] },
-    { txt: 'N.CONFORME', cor: [181,48,48], fundo: [253,238,238] },
-    { txt: 'N/A', cor: [90,74,140], fundo: [238,237,254] },
-    { txt: 'PENDENTE', cor: [160,155,150], fundo: [248,246,242] },
-  ];
-  let lx = ML + 3;
-  legItems.forEach(l => {
-    doc.setFillColor(...l.fundo); doc.roundedRect(lx, p.y + 7, 24, 4.5, 1, 1, 'F');
-    doc.setFontSize(6); doc.setFont('helvetica','bold'); doc.setTextColor(...l.cor);
-    doc.text(l.txt, lx + 12, p.y + 10.3, { align:'center' });
-    lx += 28;
-  });
-  doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(...CINZA);
-  doc.text('Itens Nao Conformes exibem criterio tecnico, observacao do vistoriador e fotos registradas.', ML + CW - 2, p.y + 10.3, { align: 'right' });
-  p.y += 18;
   comodos.forEach(cm => {
     const ativos = cm.itens.filter(it => respostas[it.id]?.ativo !== false);
     if (!ativos.length) return;

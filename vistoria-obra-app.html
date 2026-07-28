@@ -159,9 +159,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .add-item-row{display:flex;gap:8px;margin-top:8px}
 .add-item-row input{flex:1;font-family:'DM Sans',sans-serif;font-size:12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;background:var(--bg);outline:none}
 .add-item-row input:focus{border-color:var(--accent2);background:#fff}
-.model-select-bar{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow);padding:12px 16px;margin-bottom:16px}
-.model-select-bar select{flex:1;font-family:'DM Sans',sans-serif;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;background:var(--bg);color:var(--text);outline:none;cursor:pointer}
-.model-select-label{font-size:12px;color:var(--text2);white-space:nowrap}
+.vh-header{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow);padding:12px 16px;margin-bottom:16px;flex-wrap:wrap}
+.vh-obra-nome{font-size:14px;font-weight:600;flex:1;min-width:120px}
+.vh-modelo-chip{display:inline-flex;align-items:center;gap:6px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-light);border:1.5px solid var(--accent2);border-radius:20px;padding:7px 14px;cursor:pointer;transition:all .15s}
+.vh-modelo-chip:hover{background:var(--accent);color:#fff}
+.vh-modelo-chip .vh-chip-hint{font-weight:400;opacity:.75}
+.tm-modelo-item{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;text-align:left;font-family:'DM Sans',sans-serif;font-size:13px;padding:11px 14px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface);cursor:pointer;transition:all .15s;margin-bottom:8px}
+.tm-modelo-item:hover{border-color:var(--accent2);background:var(--accent-light)}
+.tm-modelo-item.tm-active{border-color:var(--accent);background:var(--accent-light);font-weight:600}
+.tm-check{color:var(--accent);font-weight:700}
 .rel-layout{display:grid;grid-template-columns:1fr 280px;gap:20px;align-items:start}
 @media(max-width:860px){.rel-layout{grid-template-columns:1fr}}
 .rel-doc{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden}
@@ -281,10 +287,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <div class="login-logo-s">Entrega de Obra</div>
     </div>
     <div>
-      <div class="login-label">Senha de acesso</div>
-      <input class="login-input" type="password" id="login-senha" placeholder="Digite sua senha..." onkeydown="if(event.key==='Enter')fazerLogin()">
+      <div class="login-label">E-mail</div>
+      <input class="login-input" type="email" id="login-email" placeholder="seu@email.com" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('login-senha').focus()">
     </div>
-    <button class="login-btn" onclick="fazerLogin()">Entrar →</button>
+    <div>
+      <div class="login-label">Senha</div>
+      <input class="login-input" type="password" id="login-senha" placeholder="Digite sua senha..." autocomplete="current-password" onkeydown="if(event.key==='Enter')fazerLogin()">
+    </div>
+    <button class="login-btn" id="login-btn" onclick="fazerLogin()">Entrar →</button>
     <div class="login-err" id="login-err"></div>
     <div class="login-version">VistoriaApp v3.1 · BL Engenharia Civil</div>
   </div>
@@ -303,7 +313,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="sb-logo"><div class="sb-logo-t">📐 VistoriaApp</div><div class="sb-logo-s">Entrega de obra</div></div>
   <div class="sb-user">
     <div class="avatar">BL</div>
-    <div><div class="av-name" id="sb-name">Beatriz Lunardi</div><div class="av-role">Engenheira Civil</div></div>
+    <div style="flex:1"><div class="av-name" id="sb-name">Beatriz Lunardi</div><div class="av-role" id="sb-email">Engenheira Civil</div></div>
+    <button onclick="fazerLogout()" title="Sair" style="background:none;border:none;color:rgba(255,255,255,.55);cursor:pointer;font-size:16px;padding:4px">⏻</button>
   </div>
   <nav class="sb-nav">
     <button class="ni active" onclick="goTo('p-home',this)"><span class="ico">🏠</span>Início</button>
@@ -345,14 +356,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
     <!-- CHECKLIST -->
     <div class="page" id="p-vistoria">
-      <div class="model-select-bar">
-        <span class="model-select-label">📋 Modelo de checklist:</span>
-        <select id="model-select" onchange="trocarModeloVistoria(this.value)"></select>
+      <div class="vh-header" id="vh-header">
+        <span class="vh-obra-nome" id="vh-obra-nome">—</span>
+        <button class="vh-modelo-chip" id="vh-modelo-chip" onclick="abrirModalTrocarModelo()">
+          📋 <span id="vh-modelo-chip-nome">—</span><span class="vh-chip-hint">· Trocar modelo</span>
+        </button>
       </div>
       <div class="unid-bar" id="unid-bar" style="display:none">
         <span class="unid-bar-label">🏠 Vistoriando:</span>
         <select class="unid-select" id="unid-select" onchange="trocarUnidade(this.value)">
-          <option value="">— sem unidade —</option>
+          <option value="">Carregando...</option>
         </select>
         <button class="unid-add-btn" onclick="abrirModalUnidades()">✏️ Editar unidades</button>
       </div>
@@ -441,8 +454,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <div style="display:flex;flex-direction:column;gap:14px">
           <div class="send-panel">
             <div class="sp-head">Exportar relatório</div>
-            <button class="si" onclick="gerarPDF()"><div><div class="si-n">PDF — Parecer geral</div><div class="si-d">Visão completa da vistoria</div></div><span class="si-arr">›</span></button>
-            <button class="si" onclick="gerarPDFApto()"><div><div class="si-n">PDF — Detalhado por ambiente</div><div class="si-d">Um bloco por ambiente, com fotos e status</div></div><span class="si-arr">›</span></button>
+            <button class="si" onclick="gerarPDF()"><div><div class="si-n">PDF — Não Conformidades Gerais</div><div class="si-d">Lista das pendências encontradas, agrupadas por local</div></div><span class="si-arr">›</span></button>
+            <button class="si" onclick="gerarPDFApto()"><div><div class="si-n">PDF — Parecer Geral (Checklist Completo)</div><div class="si-d">Todos os itens do checklist, com o status de cada um</div></div><span class="si-arr">›</span></button>
             <button class="si" onclick="gerarPDFUnidade()"><div><div class="si-n">PDF — Não conformidades por unidade</div><div class="si-d">Pendências agrupadas por apartamento</div></div><span class="si-arr">›</span></button>
             <button class="si" onclick="gerarExcel()"><div><div class="si-n">Excel — Checklist de pendências</div><div class="si-d">Planilha com serviços e unidades</div></div><span class="si-arr">›</span></button>
           </div>
@@ -591,6 +604,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   </div>
 </div>
 
+<!-- MODAL TROCAR MODELO -->
+<div class="modal-ov" id="modal-trocar-modelo" onclick="if(event.target===this)fecharModalTrocarModelo()">
+  <div class="modal-box">
+    <button class="modal-close" onclick="fecharModalTrocarModelo()">✕</button>
+    <div class="modal-title">📋 Trocar modelo de checklist</div>
+    <div id="tm-modelo-list"></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"><span id="toast-msg">✅</span></div>
 
 <script>
@@ -628,8 +650,12 @@ const ICO_LIST = ['🏢','🏠','🏗️','🏛️','🏬','🏭','🏡'];
 async function init() {
   setLoading('Conectando ao banco de dados...');
   try {
-    const { data: engs } = await db.from('engenheiras').select('*').eq('email','beatriz@email.com.br').limit(1);
-    if (engs && engs.length) engId = engs[0].id;
+    const { data: { user } } = await db.auth.getUser();
+    if (user?.email) {
+      document.getElementById('sb-email').textContent = user.email;
+      const { data: engs } = await db.from('engenheiras').select('*').eq('email', user.email).limit(1);
+      if (engs && engs.length) engId = engs[0].id;
+    }
     setStatus(true);
     setLoading('Carregando modelos de checklist...');
     await carregarModelos();
@@ -669,8 +695,6 @@ async function carregarModelos() {
   document.getElementById('h-vis').textContent = modelos.length;
   const moSel = document.getElementById('mo-modelo');
   moSel.innerHTML = modelos.map(m=>`<option value="${m.id}">${m.nome}</option>`).join('');
-  const visSel = document.getElementById('model-select');
-  visSel.innerHTML = modelos.map(m=>`<option value="${m.id}">${m.nome}</option>`).join('');
 }
 
 // ============================================================
@@ -732,7 +756,6 @@ async function abrirVistoria(obraId) {
   obraAtiva.status = 'em_vistoria';
 
   modeloAtivoId = obraAtiva.modelo_checklist_id || (modelos[0] && modelos[0].id);
-  document.getElementById('model-select').value = modeloAtivoId;
 
   let { data: vis } = await db.from('vistorias').select('*').eq('obra_id', obraId).eq('status','em_andamento').limit(1);
   if (!vis || !vis.length) {
@@ -743,11 +766,12 @@ async function abrirVistoria(obraId) {
   } else {
     vistoriaAtiva = vis[0];
     modeloAtivoId = vistoriaAtiva.modelo_checklist_id || modeloAtivoId;
-    document.getElementById('model-select').value = modeloAtivoId;
   }
 
-  await carregarRespostasEModelo();
   await carregarUnidades();
+  unidadeAtiva = unidades.find(u => u.id === unidadeAtiva)?.id || unidades[0]?.id || null;
+  if (!unidades.length) showToast('⚠️ Cadastre uma unidade para esta obra antes de preencher o checklist');
+  await carregarRespostasEModelo();
 
   document.getElementById('pp-obra').textContent = obraAtiva.nome.split('—')[0].trim();
   document.getElementById('pp-data').textContent = fmtData(obraAtiva.data_vistoria);
@@ -761,6 +785,7 @@ async function abrirVistoria(obraId) {
   const sigCli = document.getElementById('sig-cli-lbl');
   if (sigConst) sigConst.textContent = obraAtiva.construtora || 'Construtora';
   if (sigCli) sigCli.textContent = 'Cliente — ' + (obraAtiva.cliente || '');
+  atualizarVhHeader();
   renderUnidadeBar();
   goTo('p-vistoria', document.querySelector('.ni:nth-child(2)'));
 }
@@ -790,17 +815,38 @@ async function carregarRespostasEModelo() {
   renderChecklist();
 }
 
-async function trocarModeloVistoria(novoModeloId) {
-  if (!vistoriaAtiva) return;
-  if (novoModeloId === modeloAtivoId) return;
-  if (!confirm('Trocar o modelo de checklist desta vistoria?')) {
-    document.getElementById('model-select').value = modeloAtivoId;
-    return;
-  }
+// ============================================================
+// TROCAR MODELO — chip + modal
+// ============================================================
+function atualizarVhHeader() {
+  const nomeEl = document.getElementById('vh-obra-nome');
+  const chipEl = document.getElementById('vh-modelo-chip-nome');
+  if (nomeEl) nomeEl.textContent = obraAtiva ? obraAtiva.nome : '—';
+  if (chipEl) chipEl.textContent = nomeModelo(modeloAtivoId);
+}
+
+function abrirModalTrocarModelo() {
+  const list = document.getElementById('tm-modelo-list');
+  list.innerHTML = modelos.map(m => `
+    <button class="tm-modelo-item ${m.id===modeloAtivoId?'tm-active':''}" onclick="selecionarModeloNoModal('${m.id}')">
+      <span>${m.nome}</span>${m.id===modeloAtivoId?'<span class="tm-check">✓</span>':''}
+    </button>`).join('');
+  document.getElementById('modal-trocar-modelo').classList.add('open');
+}
+
+function fecharModalTrocarModelo() {
+  document.getElementById('modal-trocar-modelo').classList.remove('open');
+}
+
+async function selecionarModeloNoModal(novoModeloId) {
+  fecharModalTrocarModelo();
+  if (!vistoriaAtiva || novoModeloId === modeloAtivoId) return;
+  if (!confirm('Trocar o modelo de checklist desta vistoria?')) return;
   modeloAtivoId = novoModeloId;
   await db.from('vistorias').update({ modelo_checklist_id: modeloAtivoId }).eq('id', vistoriaAtiva.id);
   await db.from('obras').update({ modelo_checklist_id: modeloAtivoId }).eq('id', obraAtiva.id);
   document.getElementById('rel-modelo').textContent = nomeModelo(modeloAtivoId);
+  atualizarVhHeader();
   await carregarRespostasEModelo();
   await carregarUnidades();
   showToast('🔄 Modelo trocado!');
@@ -1226,7 +1272,6 @@ async function novoModelo() {
     modelos.push(data);
     adminModeloAtual = data.id;
     document.getElementById('mo-modelo').innerHTML = modelos.map(m=>`<option value="${m.id}">${m.nome}</option>`).join('');
-    document.getElementById('model-select').innerHTML = modelos.map(m=>`<option value="${m.id}">${m.nome}</option>`).join('');
     renderAdminTabs(); renderAdminBody();
     showToast('✅ Novo modelo criado!');
   }
@@ -1334,30 +1379,38 @@ function showToast(m){ const t=document.getElementById('toast'); document.getEle
 function updNome(v){ document.getElementById('sb-name').textContent=v||'Beatriz Lunardi'; document.getElementById('pp-nome').textContent='Engª '+(v||'Beatriz Lunardi'); document.getElementById('rel-nome').textContent='Engª '+(v||'Beatriz Lunardi')+' — '+(document.getElementById('cfg-crea')?.value||'CREA/SC'); }
 
 // ============================================================
-// LOGIN
+// LOGIN — Supabase Auth real (RLS exige sessão autenticada)
 // ============================================================
-const SENHA_ACESSO = 'vistoria2024';
-
-function checkLogin() {
-  const ok = sessionStorage.getItem('vistoria_auth') === '1';
-  if (ok) { document.getElementById('login-screen').style.display = 'none'; init(); }
-  else { document.getElementById('loading').style.display = 'none'; setTimeout(() => document.getElementById('login-senha').focus(), 100); }
+async function checkLogin() {
+  const { data: { session } } = await db.auth.getSession();
+  if (session) { document.getElementById('login-screen').style.display = 'none'; init(); }
+  else { document.getElementById('loading').style.display = 'none'; setTimeout(() => document.getElementById('login-email').focus(), 100); }
 }
 
-function fazerLogin() {
-  const v = document.getElementById('login-senha').value;
+async function fazerLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const senha = document.getElementById('login-senha').value;
   const err = document.getElementById('login-err');
-  if (v === SENHA_ACESSO) {
-    sessionStorage.setItem('vistoria_auth', '1');
+  const btn = document.getElementById('login-btn');
+  if (!email || !senha) { err.textContent = '❌ Preencha e-mail e senha.'; return; }
+  btn.disabled = true; btn.textContent = 'Entrando...';
+  const { error } = await db.auth.signInWithPassword({ email, password: senha });
+  btn.disabled = false; btn.textContent = 'Entrar →';
+  if (!error) {
     const ls = document.getElementById('login-screen');
     ls.classList.add('hide');
     setTimeout(() => { ls.style.display = 'none'; init(); }, 400);
   } else {
-    err.textContent = '❌ Senha incorreta.';
+    err.textContent = '❌ E-mail ou senha incorretos.';
     document.getElementById('login-senha').value = '';
     document.getElementById('login-senha').focus();
     setTimeout(() => err.textContent = '', 3000);
   }
+}
+
+async function fazerLogout() {
+  await db.auth.signOut();
+  location.reload();
 }
 
 checkLogin();
@@ -1407,7 +1460,13 @@ function renderUnidadeBar() {
   const bar = document.getElementById('unid-bar');
   const sel = document.getElementById('unid-select');
   bar.style.display = 'flex';
-  sel.innerHTML = '<option value="">— sem unidade (geral) —</option>';
+  if (!unidades.length) {
+    sel.innerHTML = '<option value="">Nenhuma unidade cadastrada</option>';
+    sel.disabled = true;
+    return;
+  }
+  sel.disabled = false;
+  sel.innerHTML = '';
   unidades.forEach(u => {
     const opt = document.createElement('option');
     opt.value = u.id; opt.textContent = u.nome;
@@ -1606,7 +1665,7 @@ async function gerarPDF() {
   const p = pdfSetup();
   const { doc, ML, MR, PW, CW, VERDE, DANGER, CINZA, CINZA_CLARO, TEXTO } = p;
   const obra = document.getElementById('rel-obra')?.textContent || 'Vistoria';
-  p.cabecalho('Relatorio de Vistoria de Obra', 'BL Engenharia Civil  |  ' + obra);
+  p.cabecalho('Relatorio de Nao Conformidades Gerais', 'BL Engenharia Civil  |  ' + obra);
   p.blocoIdent();
   p.blocoResumo();
   p.secTitle('NAO CONFORMIDADES POR LOCAL');
@@ -1666,7 +1725,7 @@ async function gerarPDF() {
     doc.setFontSize(7); doc.text('Assinatura e carimbo', sx + sw/2, p.y + 25, { align: 'center' });
   });
   p.rodape();
-  doc.save('Vistoria_Geral_' + (document.getElementById('rel-obra')?.textContent||'').replace(/[^a-zA-Z0-9]/g,'_') + '_' + new Date().toLocaleDateString('pt-BR').replace(/\//g,'-') + '.pdf');
+  doc.save('Vistoria_NaoConformidades_' + (document.getElementById('rel-obra')?.textContent||'').replace(/[^a-zA-Z0-9]/g,'_') + '_' + new Date().toLocaleDateString('pt-BR').replace(/\//g,'-') + '.pdf');
   showToast('PDF gerado!');
 }
 
@@ -1679,7 +1738,7 @@ async function gerarPDFApto() {
   const p = pdfSetup();
   const { doc, ML, MR, PW, CW, VERDE, DANGER, CINZA, CINZA_CLARO, TEXTO } = p;
   const obra = document.getElementById('rel-obra')?.textContent || 'Vistoria';
-  p.cabecalho('Relatorio Detalhado por Ambiente', 'BL Engenharia Civil  |  ' + obra);
+  p.cabecalho('Parecer Geral - Checklist Completo', 'BL Engenharia Civil  |  ' + obra);
   p.blocoIdent();
   p.blocoResumo();
   comodos.forEach(cm => {
@@ -1740,7 +1799,7 @@ async function gerarPDFApto() {
     doc.setFontSize(7); doc.text('Assinatura e carimbo', sx + sw/2, p.y + 25, { align: 'center' });
   });
   p.rodape();
-  doc.save('Vistoria_Detalhado_' + obra.replace(/[^a-zA-Z0-9]/g,'_') + '_' + new Date().toLocaleDateString('pt-BR').replace(/\//g,'-') + '.pdf');
+  doc.save('Vistoria_ParecerGeral_' + obra.replace(/[^a-zA-Z0-9]/g,'_') + '_' + new Date().toLocaleDateString('pt-BR').replace(/\//g,'-') + '.pdf');
   showToast('PDF detalhado gerado!');
 }
 

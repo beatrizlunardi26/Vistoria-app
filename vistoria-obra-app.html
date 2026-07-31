@@ -441,7 +441,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
             <div class="sig-grid">
               <div>
                 <div class="sig-lbl" id="sig-const-lbl">Construtora</div>
-                <div class="sig-area"><span class="sig-done">J. Matos</span></div>
+                <div class="sig-area" onclick="showToast('✍️ Assinatura digital — em breve!')"><span style="font-size:12px;color:var(--text3)">+ Adicionar assinatura</span></div>
                 <div style="font-size:10px;color:var(--text3);margin-top:5px;text-align:center" id="rel-data2">—</div>
               </div>
               <div>
@@ -476,10 +476,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <div class="cfg-card">
           <div class="cfg-head">👤 Seus dados</div>
           <div class="cfg-body">
-            <div class="fl">Nome completo</div><input class="fi" id="cfg-nome" value="Beatriz Lunardi" oninput="updNome(this.value)">
-            <div class="fl">CREA / CAU</div><input class="fi" id="cfg-crea" value="CREA/SC 123456-7">
-            <div class="fl">E-mail</div><input class="fi" type="email" value="beatriz@email.com.br">
-            <div class="fl">Telefone</div><input class="fi" type="tel" value="(48) 99999-0000">
+            <div class="fl">Nome completo</div><input class="fi" id="cfg-nome" value="" oninput="updNome(this.value)">
+            <div class="fl">CREA / CAU</div><input class="fi" id="cfg-crea" value="">
+            <div class="fl">E-mail</div><input class="fi" id="cfg-email" type="email" value="" disabled title="Alterar o e-mail de login precisa ser feito no Supabase Auth">
+            <div class="fl">Telefone</div><input class="fi" id="cfg-telefone" type="tel" value="">
           </div>
         </div>
         <div class="cfg-card">
@@ -510,7 +510,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         </div>
       </div>
       <div style="margin-top:20px;display:flex;gap:10px">
-        <button class="btn btn-p" onclick="showToast('✅ Configurações salvas!')">Salvar configurações</button>
+        <button class="btn btn-p" onclick="salvarConfiguracoes()">Salvar configurações</button>
       </div>
     </div>
   </div>
@@ -653,8 +653,20 @@ async function init() {
     const { data: { user } } = await db.auth.getUser();
     if (user?.email) {
       document.getElementById('sb-email').textContent = user.email;
-      const { data: engs } = await db.from('engenheiras').select('*').eq('email', user.email).limit(1);
-      if (engs && engs.length) engId = engs[0].id;
+      document.getElementById('cfg-email').value = user.email;
+      let { data: engs } = await db.from('engenheiras').select('*').eq('email', user.email).limit(1);
+      let eng = engs && engs.length ? engs[0] : null;
+      if (!eng) {
+        const { data: novaEng } = await db.from('engenheiras').insert({ email: user.email, nome: user.email.split('@')[0] }).select().single();
+        eng = novaEng;
+      }
+      if (eng) {
+        engId = eng.id;
+        document.getElementById('cfg-nome').value = eng.nome || '';
+        document.getElementById('cfg-crea').value = eng.crea || '';
+        document.getElementById('cfg-telefone').value = eng.telefone || '';
+        updNome(eng.nome);
+      }
     }
     setStatus(true);
     setLoading('Carregando modelos de checklist...');
@@ -705,6 +717,41 @@ async function carregarObras() {
   if (error) throw error;
   obras = data || [];
   renderObras();
+  atualizarProgressoObras();
+}
+
+async function atualizarProgressoObras() {
+  for (const o of obras) {
+    const modelo = modelos.find(m => m.id === o.modelo_checklist_id);
+    const totalItens = modelo ? modelo.comodos.flatMap(c => c.itens).length : 0;
+    if (!totalItens) continue;
+    const { data: vis } = await db.from('vistorias').select('id').eq('obra_id', o.id).eq('status','em_andamento').limit(1);
+    if (!vis || !vis.length) continue;
+    const { count: numUnidades } = await db.from('unidades').select('id', { count: 'exact', head: true }).eq('obra_id', o.id);
+    const totalPossivel = totalItens * Math.max(numUnidades || 0, 1);
+    const { count: preenchidos } = await db.from('respostas_itens')
+      .select('id', { count: 'exact', head: true })
+      .eq('vistoria_id', vis[0].id)
+      .neq('status', 'pendente')
+      .eq('item_ativo', true);
+    const pct = totalPossivel > 0 ? Math.round((preenchidos || 0) / totalPossivel * 100) : 0;
+    const bar = document.getElementById('pbar-' + o.id);
+    const pctEl = document.getElementById('pbar-pct-' + o.id);
+    if (bar) bar.style.width = pct + '%';
+    if (pctEl) pctEl.textContent = pct + '%';
+  }
+}
+
+async function toggleConcluidaObra(id, ev) {
+  ev.stopPropagation();
+  const o = obras.find(x => x.id === id);
+  if (!o) return;
+  const novoStatus = o.status === 'concluida' ? 'em_vistoria' : 'concluida';
+  await db.from('obras').update({ status: novoStatus }).eq('id', id);
+  o.status = novoStatus;
+  renderObras();
+  atualizarProgressoObras();
+  showToast(novoStatus === 'concluida' ? '✅ Obra marcada como concluída!' : '↩️ Obra reaberta');
 }
 
 function nomeModelo(id) {
@@ -727,10 +774,11 @@ function renderObras() {
         <div><div class="obra-name">${o.nome}</div><div class="obra-sub">${o.construtora||'—'}</div></div>
       </div>
       <div class="obra-meta">${statusBadge}<span class="badge b-mod">${nomeModelo(o.modelo_checklist_id)}</span></div>
-      <div class="pbar-out"><div class="pbar-in" style="width:0%"></div></div>
-      <div class="pbar-meta"><span>—</span><span>${fmtData(o.data_vistoria)}</span></div>
+      <div class="pbar-out"><div class="pbar-in" id="pbar-${o.id}" style="width:0%"></div></div>
+      <div class="pbar-meta"><span id="pbar-pct-${o.id}">0%</span><span>${fmtData(o.data_vistoria)}</span></div>
       <div class="obra-actions">
         <button class="btn btn-p" style="flex:1" onclick="abrirVistoria('${o.id}')">▶ Abrir vistoria</button>
+        <button class="btn" onclick="toggleConcluidaObra('${o.id}', event)" title="${o.status==='concluida'?'Reabrir vistoria':'Marcar como concluída'}">${o.status==='concluida'?'↩️':'✅'}</button>
         <button class="btn" onclick="editObra('${o.id}')">✏️</button>
         <button class="btn btn-danger" onclick="delObra('${o.id}')">🗑️</button>
       </div>`;
@@ -1448,6 +1496,17 @@ function closeSB(){ document.getElementById('sidebar').classList.remove('open');
 let toastT;
 function showToast(m){ const t=document.getElementById('toast'); document.getElementById('toast-msg').textContent=m; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2800); }
 function updNome(v){ document.getElementById('sb-name').textContent=v||'Beatriz Lunardi'; document.getElementById('pp-nome').textContent='Engª '+(v||'Beatriz Lunardi'); document.getElementById('rel-nome').textContent='Engª '+(v||'Beatriz Lunardi')+' — '+(document.getElementById('cfg-crea')?.value||'CREA/SC'); }
+
+async function salvarConfiguracoes() {
+  if (!engId) { showToast('❌ Nenhuma engenheira logada'); return; }
+  const nome = document.getElementById('cfg-nome').value.trim() || 'Beatriz Lunardi';
+  const crea = document.getElementById('cfg-crea').value.trim();
+  const telefone = document.getElementById('cfg-telefone').value.trim();
+  const { error } = await db.from('engenheiras').update({ nome, crea, telefone }).eq('id', engId);
+  if (error) { showToast('❌ Erro ao salvar: ' + error.message); return; }
+  updNome(nome);
+  showToast('✅ Configurações salvas!');
+}
 
 // ============================================================
 // LOGIN — Supabase Auth real (RLS exige sessão autenticada)

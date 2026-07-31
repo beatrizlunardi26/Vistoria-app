@@ -114,7 +114,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .cl-item.s-conf{border-color:var(--ok)}
 .cl-item.s-nc{border-color:var(--danger)}
 .cl-item.s-na{border-color:var(--na);opacity:.75}
-.cl-item.s-off{opacity:.4;border-style:dashed}
 .cl-item-header{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;user-select:none}
 .status-bubble{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;border:2px solid var(--border);background:var(--surface2);color:transparent;transition:all .2s}
 .s-conf .status-bubble{background:var(--ok-light);border-color:var(--ok);color:var(--ok)}
@@ -156,9 +155,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .leg{display:flex;align-items:center;gap:5px}
 .leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .save-indicator{font-size:11px;color:var(--ok);margin-top:8px;text-align:center;min-height:16px;transition:opacity .3s}
-.add-item-row{display:flex;gap:8px;margin-top:8px}
-.add-item-row input{flex:1;font-family:'DM Sans',sans-serif;font-size:12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;background:var(--bg);outline:none}
-.add-item-row input:focus{border-color:var(--accent2);background:#fff}
 .vh-header{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow);padding:12px 16px;margin-bottom:16px;flex-wrap:wrap}
 .vh-obra-nome{font-size:14px;font-weight:600;flex:1;min-width:120px}
 .vh-modelo-chip{display:inline-flex;align-items:center;gap:6px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-light);border:1.5px solid var(--accent2);border-radius:20px;padding:7px 14px;cursor:pointer;transition:all .15s}
@@ -197,13 +193,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .sig-lbl{font-size:11px;color:var(--text2);margin-bottom:6px}
 .sig-area{height:80px;border:1.5px dashed var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .sig-area:hover{border-color:var(--accent2)}
-.sig-done{font-size:20px;color:var(--accent2);font-family:'DM Mono',monospace;transform:rotate(-3deg);display:inline-block}
 .send-panel{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden}
 .sp-head{padding:14px 18px;border-bottom:1px solid var(--border);font-size:13px;font-weight:600}
 .si{display:flex;align-items:center;gap:12px;padding:13px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;width:100%;background:none;border-left:none;border-right:none;border-top:none;font-family:'DM Sans',sans-serif;text-align:left}
 .si:last-child{border-bottom:none}
 .si:hover{background:var(--surface2)}
-.si-ico{font-size:20px;width:30px;text-align:center;flex-shrink:0}
 .si-n{font-size:13px;font-weight:600;color:var(--text)}
 .si-d{font-size:11px;color:var(--text2)}
 .si-arr{color:var(--text3);margin-left:auto}
@@ -223,8 +217,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .admin-comodo-head{padding:12px 16px;background:var(--surface2);font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px}
 .admin-item-row{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--surface2)}
 .admin-item-row:last-child{border-bottom:none}
-.admin-item-name{flex:1;font-size:13px}
-.admin-item-detail{font-size:11px;color:var(--text2)}
 .admin-item-edit-input{width:100%;font-family:'DM Sans',sans-serif;font-size:13px;border:1.5px solid var(--border);border-radius:6px;padding:6px 10px;background:var(--bg);outline:none}
 .admin-item-edit-input:focus{border-color:var(--accent2);background:#fff}
 .admin-add-item{display:flex;gap:8px;padding:12px 16px;background:var(--surface2)}
@@ -235,12 +227,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .unid-select:focus{border-color:var(--accent)}
 .unid-add-btn{font-family:inherit;font-size:12px;font-weight:600;border:1.5px dashed var(--border);border-radius:8px;padding:6px 12px;background:none;cursor:pointer;color:var(--text2);white-space:nowrap;transition:all .15s}
 .unid-add-btn:hover{border-color:var(--accent);color:var(--accent)}
-.unid-badge{display:inline-flex;align-items:center;gap:4px;background:var(--accent);color:#fff;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600}
 .unid-modal-body{display:flex;flex-direction:column;gap:12px}
 .unid-list{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto}
 .unid-item{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);font-size:13px}
 .unid-item-name{font-weight:500}
-.unid-item-nc{font-size:11px;color:var(--danger);font-weight:600}
 .unid-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;padding:2px 6px;border-radius:4px}
 .unid-del:hover{color:var(--danger);background:var(--danger-light)}
 .unid-input-row{display:flex;gap:8px}
@@ -317,11 +307,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <button onclick="fazerLogout()" title="Sair" style="background:none;border:none;color:rgba(255,255,255,.55);cursor:pointer;font-size:16px;padding:4px">⏻</button>
   </div>
   <nav class="sb-nav">
-    <button class="ni active" onclick="goTo('p-home',this)"><span class="ico">🏠</span>Início</button>
-    <button class="ni" onclick="goTo('p-vistoria',this)"><span class="ico">📋</span>Checklist</button>
-    <button class="ni" onclick="goTo('p-relatorio',this);gerarRel()"><span class="ico">📄</span>Relatório</button>
-    <button class="ni" onclick="abrirAdminChecklist();goTo('p-admin',this)"><span class="ico">🛠️</span>Modelos de Checklist</button>
-    <button class="ni" onclick="goTo('p-config',this)"><span class="ico">⚙️</span>Configurações</button>
+    <button class="ni active" id="ni-home" onclick="goTo('p-home',this)"><span class="ico">🏠</span>Início</button>
+    <button class="ni" id="ni-vistoria" onclick="goTo('p-vistoria',this)"><span class="ico">📋</span>Checklist</button>
+    <button class="ni" id="ni-relatorio" onclick="goTo('p-relatorio',this);gerarRel()"><span class="ico">📄</span>Relatório</button>
+    <button class="ni" id="ni-admin" onclick="abrirAdminChecklist();goTo('p-admin',this)"><span class="ico">🛠️</span>Modelos de Checklist</button>
+    <button class="ni" id="ni-config" onclick="goTo('p-config',this)"><span class="ico">⚙️</span>Configurações</button>
   </nav>
   <div class="sb-status" id="sb-status">
     <div class="sb-dot dot-wait" id="sb-dot"></div>
@@ -396,7 +386,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
             </div>
             <div style="font-size:11px;color:var(--text3);margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">✕ no item = remove da vistoria atual</div>
             <div class="save-indicator" id="save-ind"></div>
-            <button class="btn btn-p" style="width:100%;margin-top:12px;padding:11px" onclick="goTo('p-relatorio',document.querySelector('.ni:nth-child(3)'));gerarRel()">📄 Gerar relatório</button>
+            <button class="btn btn-p" style="width:100%;margin-top:12px;padding:11px" onclick="goTo('p-relatorio',document.getElementById('ni-relatorio'));gerarRel()">📄 Gerar relatório</button>
           </div>
         </div>
       </div>
@@ -477,7 +467,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
           <div class="cfg-head">👤 Seus dados</div>
           <div class="cfg-body">
             <div class="fl">Nome completo</div><input class="fi" id="cfg-nome" value="" oninput="updNome(this.value)">
-            <div class="fl">CREA / CAU</div><input class="fi" id="cfg-crea" value="CREA/SC 123456-7">
+            <div class="fl">CREA / CAU</div><input class="fi" id="cfg-crea" value="" placeholder="Ex: CREA/SC 123456-7">
             <div class="fl">E-mail</div><input class="fi" id="cfg-email" type="email" value="" disabled title="Alterar o e-mail de login precisa ser feito no Supabase Auth">
             <div class="fl">Telefone</div><input class="fi" id="cfg-telefone" type="tel" value="(48) 99999-0000">
           </div>
@@ -517,7 +507,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
           <div class="cfg-head">📋 Modelos de Checklist</div>
           <div class="cfg-body">
             <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:14px">Gerencie os modelos principais na aba <strong>"Modelos de Checklist"</strong> no menu lateral.</div>
-            <button class="btn" style="width:100%;justify-content:center" onclick="abrirAdminChecklist();goTo('p-admin',document.querySelector('.ni:nth-child(4)'))">🛠️ Ir para Modelos de Checklist</button>
+            <button class="btn" style="width:100%;justify-content:center" onclick="abrirAdminChecklist();goTo('p-admin',document.getElementById('ni-admin'))">🛠️ Ir para Modelos de Checklist</button>
           </div>
         </div>
       </div>
@@ -659,6 +649,17 @@ function isAdmin() { return engRole === 'admin'; }
 const cycle = { '':'conf', conf:'nc', nc:'na', na:'' };
 const ICO_LIST = ['🏢','🏠','🏗️','🏛️','🏬','🏭','🏡'];
 
+// Conversão de status entre o formato do banco e o formato curto usado na tela
+const STATUS_DB_PARA_LOCAL = { conforme:'conf', nao_conforme:'nc', nao_aplicavel:'na' };
+const STATUS_LOCAL_PARA_DB = { conf:'conforme', nc:'nao_conforme', na:'nao_aplicavel', '':'pendente' };
+function statusDbParaLocal(s) { return STATUS_DB_PARA_LOCAL[s] || ''; }
+function statusLocalParaDb(s) { return STATUS_LOCAL_PARA_DB[s] || 'pendente'; }
+
+function parseFotos(r) {
+  try { return Array.isArray(r.fotos) ? r.fotos : (r.fotos ? JSON.parse(r.fotos) : []); }
+  catch (_e) { return []; }
+}
+
 // ============================================================
 // INIT
 // ============================================================
@@ -712,13 +713,16 @@ function setStatus(ok){
 // MODELOS
 // ============================================================
 async function carregarModelos() {
-  const { data: mods } = await db.from('modelos_checklist').select('*').order('criado_em');
+  const { data: mods, error: errMods } = await db.from('modelos_checklist').select('*').order('criado_em');
+  if (errMods) throw errMods;
   modelos = mods || [];
   for (const m of modelos) {
-    const { data: cms } = await db.from('comodos').select('*').eq('modelo_checklist_id', m.id).order('ordem');
+    const { data: cms, error: errCms } = await db.from('comodos').select('*').eq('modelo_checklist_id', m.id).order('ordem');
+    if (errCms) throw errCms;
     m.comodos = cms || [];
     for (const c of m.comodos) {
-      const { data: its } = await db.from('itens_checklist').select('*').eq('comodo_id', c.id).order('ordem');
+      const { data: its, error: errItens } = await db.from('itens_checklist').select('*').eq('comodo_id', c.id).order('ordem');
+      if (errItens) throw errItens;
       c.itens = its || [];
     }
   }
@@ -801,7 +805,7 @@ function renderObras() {
       <div class="obra-actions">
         <button class="btn btn-p" style="flex:1" onclick="abrirVistoria('${o.id}')">▶ Abrir vistoria</button>
         <button class="btn" onclick="toggleConcluidaObra('${o.id}', event)" title="${o.status==='concluida'?'Reabrir vistoria':'Marcar como concluída'}">${o.status==='concluida'?'↩️':'✅'}</button>
-        <button class="btn" onclick="editObra('${o.id}')">✏️</button>
+        <button class="btn" onclick="openObra('${o.id}')">✏️</button>
         ${isAdmin() ? `<button class="btn btn-danger" onclick="delObra('${o.id}')">🗑️</button>` : ''}
       </div>`;
     grid.appendChild(div);
@@ -862,7 +866,7 @@ async function abrirVistoria(obraId) {
   if (sigCli) sigCli.textContent = 'Cliente — ' + (obraAtiva.cliente || '');
   atualizarVhHeader();
   renderUnidadeBar();
-  goTo('p-vistoria', document.querySelector('.ni:nth-child(2)'));
+  goTo('p-vistoria', document.getElementById('ni-vistoria'));
 }
 
 async function carregarRespostasEModelo() {
@@ -878,12 +882,10 @@ async function carregarRespostasEModelo() {
   respostas = {};
   itens.forEach(it => { respostas[it.id] = { status:'', obs:'', fotos:[], ativo:true }; });
 
-  // ✅ FIX: parseia fotos do JSON do banco
   (resp || []).forEach(r => {
-    let fotos = [];
-    try { fotos = Array.isArray(r.fotos) ? r.fotos : (r.fotos ? JSON.parse(r.fotos) : []); } catch(_e) {}
+    const fotos = parseFotos(r);
     respostas[r.item_id] = {
-      status: r.status==='conforme'?'conf':r.status==='nao_conforme'?'nc':r.status==='nao_aplicavel'?'na':'',
+      status: statusDbParaLocal(r.status),
       obs: r.observacao||'', fotos, ativo: r.item_ativo!==false
     };
   });
@@ -1006,12 +1008,11 @@ async function cycleStatus(id) {
 }
 
 // ============================================================
-// ✅ FIX: salvarResposta — salva fotos no banco + onConflict correto
+// salvarResposta — salva fotos no banco + onConflict correto (com ou sem unidade)
 // ============================================================
 async function salvarResposta(id, tentativa = 1) {
   if (!vistoriaAtiva) return;
   const e = respostas[id];
-  const statusMap = { conf:'conforme', nc:'nao_conforme', na:'nao_aplicavel', '':'pendente' };
   const it = itens.find(x => x.id === id);
   showSaveInd(tentativa > 1 ? ('Tentando salvar de novo (' + tentativa + '/3)...') : 'Salvando...');
   // Serializa fotos como array JSON para o banco (url = Supabase Storage; data = fallback legado em base64)
@@ -1023,7 +1024,7 @@ async function salvarResposta(id, tentativa = 1) {
     item_id: id,
     comodo_id: it?.comodo_id,
     unidade_id: usaUnidade ? (unidadeAtiva || null) : null,
-    status: statusMap[e.status] || 'pendente',
+    status: statusLocalParaDb(e.status),
     observacao: e.obs,
     item_ativo: e.ativo,
     fotos: fotosParaBanco,
@@ -1303,12 +1304,11 @@ async function buscarTodasRespostasPorUnidade() {
   const { data: todas } = await db.from('respostas_itens').select('*').eq('vistoria_id', vistoriaAtiva.id);
   const porUnidade = {};
   (todas || []).forEach(r => {
-    let fotos = [];
-    try { fotos = Array.isArray(r.fotos) ? r.fotos : (r.fotos ? JSON.parse(r.fotos) : []); } catch(_e) {}
+    const fotos = parseFotos(r);
     const key = r.unidade_id || '__geral__';
     if (!porUnidade[key]) porUnidade[key] = {};
     porUnidade[key][r.item_id] = {
-      status: r.status==='conforme'?'conf':r.status==='nao_conforme'?'nc':r.status==='nao_aplicavel'?'na':'',
+      status: statusDbParaLocal(r.status),
       obs: r.observacao||'', fotos, ativo: r.item_ativo!==false
     };
   });
@@ -1498,7 +1498,6 @@ function openObra(id) {
   }
   document.getElementById('modal-obra').classList.add('open');
 }
-function editObra(id) { openObra(id); }
 function closeObra() { document.getElementById('modal-obra').classList.remove('open'); }
 
 async function salvarObra() {
@@ -1538,7 +1537,19 @@ async function salvarObra() {
 
 async function delObra(id) {
   if (!isAdmin()) { showToast('❌ Apenas administradores podem excluir obras'); return; }
-  if (!confirm('Remover esta obra?')) return;
+  if (!confirm('Remover esta obra? Isso apaga todas as vistorias, respostas e fotos dela.')) return;
+  // Limpa fotos do Storage e dados dependentes explicitamente — não dá pra confiar
+  // só em cascade do banco pros arquivos do Storage, eles não fazem parte do Postgres.
+  const { data: vis } = await db.from('vistorias').select('id').eq('obra_id', id);
+  const visIds = (vis||[]).map(v => v.id);
+  if (visIds.length) {
+    const { data: resp } = await db.from('respostas_itens').select('fotos').in('vistoria_id', visIds);
+    const paths = (resp||[]).flatMap(r => (Array.isArray(r.fotos)?r.fotos:[]).map(f=>f.path).filter(Boolean));
+    if (paths.length) await db.storage.from(FOTOS_BUCKET).remove(paths);
+    await db.from('respostas_itens').delete().in('vistoria_id', visIds);
+    await db.from('vistorias').delete().eq('obra_id', id);
+  }
+  await db.from('unidades').delete().eq('obra_id', id);
   await db.from('obras').delete().eq('id', id);
   await carregarObras();
   showToast('🗑️ Obra removida.');
@@ -1562,7 +1573,12 @@ function closeSB(){ document.getElementById('sidebar').classList.remove('open');
 
 let toastT;
 function showToast(m){ const t=document.getElementById('toast'); document.getElementById('toast-msg').textContent=m; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2800); }
-function updNome(v){ document.getElementById('sb-name').textContent=v||'Beatriz Lunardi'; document.getElementById('pp-nome').textContent='Engª '+(v||'Beatriz Lunardi'); document.getElementById('rel-nome').textContent='Engª '+(v||'Beatriz Lunardi')+' — '+(document.getElementById('cfg-crea')?.value||'CREA/SC'); }
+function updNome(v){
+  const crea = document.getElementById('cfg-crea')?.value || '';
+  document.getElementById('sb-name').textContent = v || 'Beatriz Lunardi';
+  document.getElementById('pp-nome').textContent = 'Engª ' + (v || 'Beatriz Lunardi');
+  document.getElementById('rel-nome').textContent = 'Engª ' + (v || 'Beatriz Lunardi') + (crea ? ' — ' + crea : '');
+}
 
 async function salvarConfiguracoes() {
   if (!engId) { showToast('❌ Nenhuma engenheira logada'); return; }
@@ -1578,7 +1594,7 @@ async function salvarConfiguracoes() {
 // ============================================================
 async function carregarListaUsuarios() {
   const { data, error } = await db.from('engenheiras').select('email,nome,role').order('nome');
-  if (error) { console.error(error); return; }
+  if (error) { console.error(error); showToast('❌ Erro ao carregar usuários: ' + error.message); return; }
   renderListaUsuarios(data || []);
 }
 
@@ -1594,6 +1610,7 @@ function renderListaUsuarios(usuarios) {
 }
 
 async function toggleRoleUsuario(email, novoRole) {
+  if (!isAdmin()) { showToast('❌ Apenas administradores podem mudar perfis'); return; }
   const { error } = await db.from('engenheiras').update({ role: novoRole }).eq('email', email);
   if (error) { showToast('❌ Erro: ' + error.message); return; }
   showToast('✅ Perfil atualizado!');
@@ -1680,7 +1697,16 @@ function moAdicionarUnidade() {
   moRenderUnidades();
   document.getElementById('mo-unid-section').style.display = 'block';
 }
-function moRemoverUnidade(idx) { moUnidsTmp.splice(idx, 1); moRenderUnidades(); }
+async function moRemoverUnidade(idx) {
+  const u = moUnidsTmp[idx];
+  if (u.id) {
+    if (!isAdmin()) { showToast('❌ Apenas administradores podem remover unidades'); return; }
+    if (!confirm('Remover a unidade "' + u.nome + '" permanentemente? Isso também apaga as respostas e fotos dela.')) return;
+    await excluirUnidadeDoBanco(u.id);
+  }
+  moUnidsTmp.splice(idx, 1);
+  moRenderUnidades();
+}
 function moGerarUnidades(prefixo, inicio, fim) {
   for (let i = inicio; i <= fim; i++) {
     const nome = prefixo + ' ' + i;
@@ -1751,10 +1777,22 @@ async function adicionarUnidade() {
   renderUnidadeBar();
   showToast('✅ ' + nome + ' adicionada!');
 }
+// Remove uma unidade e tudo que depende dela (respostas + fotos no Storage),
+// usado tanto no modal de unidades quanto no modal de obra — antes cada um
+// tinha seu próprio jeito de excluir, e o do modal de obra nem chegava a
+// apagar do banco de verdade (só some da tela e volta na próxima edição).
+async function excluirUnidadeDoBanco(uid) {
+  const { data: resp } = await db.from('respostas_itens').select('fotos').eq('unidade_id', uid);
+  const paths = (resp||[]).flatMap(r => (Array.isArray(r.fotos)?r.fotos:[]).map(f=>f.path).filter(Boolean));
+  if (paths.length) await db.storage.from(FOTOS_BUCKET).remove(paths);
+  await db.from('respostas_itens').delete().eq('unidade_id', uid);
+  await db.from('unidades').delete().eq('id', uid);
+}
+
 async function removerUnidade(uid) {
   if (!isAdmin()) { showToast('❌ Apenas administradores podem remover unidades'); return; }
-  if (!confirm('Remover esta unidade?')) return;
-  await db.from('unidades').delete().eq('id', uid);
+  if (!confirm('Remover esta unidade? Isso também apaga as respostas e fotos dela.')) return;
+  await excluirUnidadeDoBanco(uid);
   unidades = unidades.filter(u => u.id !== uid);
   if (unidadeAtiva === uid) { unidadeAtiva = null; await carregarRespostasEModelo(); }
   renderListaUnidades();
@@ -1825,8 +1863,8 @@ function pdfSetup() {
       doc.rect(0, PH - 11, PW, 11, 'F');
       doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...CINZA);
       const nome = document.getElementById('cfg-nome')?.value || 'Beatriz Lunardi';
-      const crea = document.getElementById('cfg-crea')?.value || 'CREA/SC';
-      doc.text('VistoriaApp  |  ' + nome + '  |  ' + crea, ML, PH - 5);
+      const crea = document.getElementById('cfg-crea')?.value || '';
+      doc.text('VistoriaApp  |  ' + nome + (crea ? '  |  ' + crea : ''), ML, PH - 5);
       doc.text('Pag. ' + i + ' / ' + pageCount, PW - MR, PH - 5, { align: 'right' });
     }
   }
@@ -1836,7 +1874,7 @@ function pdfSetup() {
       ['Obra', document.getElementById('rel-obra')?.textContent || ''],
       ['Construtora', document.getElementById('rel-const')?.textContent || ''],
       ['Cliente', document.getElementById('rel-cliente')?.textContent || ''],
-      ['Vistoriadora', (document.getElementById('cfg-nome')?.value||'Beatriz Lunardi') + '  ' + (document.getElementById('cfg-crea')?.value||'CREA/SC')],
+      ['Vistoriadora', (document.getElementById('cfg-nome')?.value||'Beatriz Lunardi') + (document.getElementById('cfg-crea')?.value ? '  ' + document.getElementById('cfg-crea').value : '')],
       ['Data', document.getElementById('rel-data')?.textContent || ''],
       ['Modelo', document.getElementById('rel-modelo')?.textContent || ''],
     ];
@@ -1983,9 +2021,11 @@ function formatarNomeItem(nome) {
 // carregada/base64, então baixamos e convertemos aqui. foto.data (legado, fotos
 // salvas antes da migração para Storage) é usado direto sem precisar baixar nada.
 const _fotoDataUriCache = new Map();
+let _fotosFalhasPdf = 0;
+function resetContadorFotosFalhas() { _fotosFalhasPdf = 0; }
 async function fotoParaDataUri(foto) {
   if (foto.data) return foto.data;
-  if (!foto.url) return null;
+  if (!foto.url) { _fotosFalhasPdf++; return null; }
   if (_fotoDataUriCache.has(foto.url)) return _fotoDataUriCache.get(foto.url);
   try {
     const res = await fetch(foto.url);
@@ -2000,6 +2040,7 @@ async function fotoParaDataUri(foto) {
     return dataUri;
   } catch (e) {
     console.warn('Erro ao baixar foto para PDF', e);
+    _fotosFalhasPdf++;
     return null;
   }
 }
@@ -2007,8 +2048,13 @@ async function fotoParaDataUri(foto) {
 // ============================================================
 // PDF 1 — PARECER GERAL
 // ============================================================
+function avisarFotosFalhas() {
+  if (_fotosFalhasPdf > 0) showToast('⚠️ ' + _fotosFalhasPdf + ' foto(s) não puderam ser incluídas no PDF — verifique sua conexão e tente gerar de novo.');
+}
+
 async function gerarPDF() {
   showToast('Gerando PDF...');
+  resetContadorFotosFalhas();
   const porUnidade = await buscarTodasRespostasPorUnidade();
   const p = pdfSetup();
   const { doc, ML, MR, PW, CW, VERDE, DANGER, CINZA, CINZA_CLARO, TEXTO } = p;
@@ -2060,6 +2106,7 @@ async function gerarPDF() {
   p.rodape();
   doc.save('Vistoria_NaoConformidades_' + (document.getElementById('rel-obra')?.textContent||'').replace(/[^a-zA-Z0-9]/g,'_') + '_' + new Date().toLocaleDateString('pt-BR').replace(/\//g,'-') + '.pdf');
   showToast('PDF gerado!');
+  avisarFotosFalhas();
 }
 
 // ============================================================
@@ -2067,6 +2114,7 @@ async function gerarPDF() {
 // ============================================================
 async function gerarPDFApto() {
   showToast('Gerando PDF detalhado...');
+  resetContadorFotosFalhas();
   const porUnidade = await buscarTodasRespostasPorUnidade();
   const p = pdfSetup();
   const { doc, ML, MR, PW, CW, VERDE, DANGER, CINZA, CINZA_CLARO, TEXTO } = p;
@@ -2151,14 +2199,16 @@ async function gerarPDFApto() {
   p.rodape();
   doc.save('Vistoria_ParecerGeral_' + obra.replace(/[^a-zA-Z0-9]/g,'_') + '_' + new Date().toLocaleDateString('pt-BR').replace(/\//g,'-') + '.pdf');
   showToast('PDF detalhado gerado!');
+  avisarFotosFalhas();
 }
 
 // ============================================================
-// PDF 3 — POR UNIDADE  ✅ FIX: fotos parseadas do banco
+// PDF 3 — POR UNIDADE
 // ============================================================
 async function gerarPDFUnidade() {
   if (!unidades.length) { showToast('Cadastre unidades primeiro!'); return; }
   showToast('Gerando PDF por unidade...');
+  resetContadorFotosFalhas();
   await new Promise(r => setTimeout(r, 80));
   const p = pdfSetup();
   const { doc, ML, MR, PW, CW, VERDE, DANGER, CINZA, CINZA_CLARO, TEXTO } = p;
@@ -2179,12 +2229,10 @@ async function gerarPDFUnidade() {
       .select('*').eq('vistoria_id', vistoriaAtiva.id).eq('unidade_id', u.id);
 
     const mapa = {};
-    // ✅ FIX: parseia fotos JSON do banco
     (resp || []).forEach(r => {
-      let fotos = [];
-      try { fotos = Array.isArray(r.fotos) ? r.fotos : (r.fotos ? JSON.parse(r.fotos) : []); } catch(_e) {}
+      const fotos = parseFotos(r);
       mapa[r.item_id] = {
-        status: r.status==='conforme'?'conf':r.status==='nao_conforme'?'nc':r.status==='nao_aplicavel'?'na':'',
+        status: statusDbParaLocal(r.status),
         obs: r.observacao||'', fotos, ativo: r.item_ativo!==false
       };
     });
@@ -2232,10 +2280,11 @@ async function gerarPDFUnidade() {
   p.rodape();
   doc.save('Vistoria_PorUnidade_' + obra.replace(/[^a-zA-Z0-9]/g,'_') + '_' + new Date().toLocaleDateString('pt-BR').replace(/\//g,'-') + '.pdf');
   showToast('PDF por unidade gerado!');
+  avisarFotosFalhas();
 }
 
 // ============================================================
-// EXCEL  ✅ FIX: busca banco, todas unidades, coluna unidade
+// EXCEL — busca no banco todas as unidades, com coluna de unidade
 // ============================================================
 async function gerarExcel() {
   if (!window.XLSX) { showToast('Aguarde, carregando Excel...'); return; }
@@ -2259,10 +2308,6 @@ async function gerarExcel() {
   const nomeUnid = {};
   unidades.forEach(u => { nomeUnid[u.id] = u.nome; });
 
-  function parseSt(s) {
-    return s==='conforme'?'conf':s==='nao_conforme'?'nc':s==='nao_aplicavel'?'na':'';
-  }
-
   // Monta linhas: para cada item, uma linha por unidade respondida
   const linhas = [];
   comodos.forEach(cm => {
@@ -2274,7 +2319,7 @@ async function gerarExcel() {
           item: it.nome, servico: it.servico||'', criterio: it.criterio||'', obs: '', status: '', _ord: 3 });
       } else {
         respItem.forEach(r => {
-          const st = parseSt(r.status);
+          const st = statusDbParaLocal(r.status);
           const unidNome = r.unidade_id ? (nomeUnid[r.unidade_id] || r.unidade_id) : 'Geral';
           linhas.push({ unidade: unidNome, comodo: cm.nome, item: it.nome,
             servico: it.servico||'', criterio: it.criterio||'', obs: r.observacao||'', status: st, _ord: ordemStatus[st] });

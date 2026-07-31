@@ -482,6 +482,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
             <div class="fl">Telefone</div><input class="fi" id="cfg-telefone" type="tel" value="(48) 99999-0000">
           </div>
         </div>
+        <div class="cfg-card" id="cfg-usuarios-card" style="display:none">
+          <div class="cfg-head">👥 Usuários</div>
+          <div class="cfg-body">
+            <div id="lista-usuarios" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px"></div>
+            <div class="fl">Nome</div><input class="fi" id="nu-nome" placeholder="Nome completo">
+            <div class="fl">E-mail</div><input class="fi" id="nu-email" type="email" placeholder="email@exemplo.com">
+            <div class="fl">Senha temporária</div><input class="fi" id="nu-senha" type="password" placeholder="Mínimo 6 caracteres">
+            <div class="fl">Perfil</div>
+            <select class="fsel" id="nu-role"><option value="usuario">Usuário</option><option value="admin">Admin</option></select>
+            <button class="btn btn-p" id="nu-btn" style="width:100%;justify-content:center;margin-top:12px" onclick="criarUsuarioForm()">+ Criar usuário</button>
+          </div>
+        </div>
         <div class="cfg-card">
           <div class="cfg-head">🏢 Escritório</div>
           <div class="cfg-body">
@@ -668,6 +680,10 @@ async function init() {
         engRole = eng.role || 'usuario';
         document.getElementById('cfg-nome').value = eng.nome || '';
         updNome(eng.nome);
+        if (isAdmin()) {
+          document.getElementById('cfg-usuarios-card').style.display = '';
+          carregarListaUsuarios();
+        }
       }
     }
     setStatus(true);
@@ -1555,6 +1571,53 @@ async function salvarConfiguracoes() {
   if (error) { showToast('❌ Erro ao salvar: ' + error.message); return; }
   updNome(nome);
   showToast('✅ Configurações salvas!');
+}
+
+// ============================================================
+// USUÁRIOS (admin) — criação via Edge Function, papel direto na tabela
+// ============================================================
+async function carregarListaUsuarios() {
+  const { data, error } = await db.from('engenheiras').select('email,nome,role').order('nome');
+  if (error) { console.error(error); return; }
+  renderListaUsuarios(data || []);
+}
+
+function renderListaUsuarios(usuarios) {
+  const meuEmail = document.getElementById('cfg-email')?.value || '';
+  const list = document.getElementById('lista-usuarios');
+  list.innerHTML = usuarios.map(u => `
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:var(--surface2);font-size:12px">
+      <div style="flex:1"><strong>${u.nome||'—'}</strong><br><span style="color:var(--text2)">${u.email}</span></div>
+      <span class="badge ${u.role==='admin'?'b-mod':'b-pend'}">${u.role==='admin'?'Admin':'Usuário'}</span>
+      ${u.email !== meuEmail ? `<button class="btn btn-sm" onclick="toggleRoleUsuario('${u.email}','${u.role==='admin'?'usuario':'admin'}')">${u.role==='admin'?'Rebaixar':'Promover'}</button>` : ''}
+    </div>`).join('');
+}
+
+async function toggleRoleUsuario(email, novoRole) {
+  const { error } = await db.from('engenheiras').update({ role: novoRole }).eq('email', email);
+  if (error) { showToast('❌ Erro: ' + error.message); return; }
+  showToast('✅ Perfil atualizado!');
+  carregarListaUsuarios();
+}
+
+async function criarUsuarioForm() {
+  const nome = document.getElementById('nu-nome').value.trim();
+  const email = document.getElementById('nu-email').value.trim();
+  const senha = document.getElementById('nu-senha').value;
+  const role = document.getElementById('nu-role').value;
+  if (!nome || !email || !senha) { showToast('❌ Preencha nome, e-mail e senha'); return; }
+  if (senha.length < 6) { showToast('❌ A senha precisa ter pelo menos 6 caracteres'); return; }
+  const btn = document.getElementById('nu-btn');
+  btn.disabled = true; btn.textContent = 'Criando...';
+  const { data, error } = await db.functions.invoke('criar-usuario', { body: { nome, email, senha, role } });
+  btn.disabled = false; btn.textContent = '+ Criar usuário';
+  if (error || data?.error) { showToast('❌ ' + (data?.error || error.message)); return; }
+  document.getElementById('nu-nome').value = '';
+  document.getElementById('nu-email').value = '';
+  document.getElementById('nu-senha').value = '';
+  document.getElementById('nu-role').value = 'usuario';
+  showToast('✅ Usuário criado!');
+  carregarListaUsuarios();
 }
 
 // ============================================================

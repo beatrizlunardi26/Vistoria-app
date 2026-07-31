@@ -477,9 +477,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
           <div class="cfg-head">👤 Seus dados</div>
           <div class="cfg-body">
             <div class="fl">Nome completo</div><input class="fi" id="cfg-nome" value="" oninput="updNome(this.value)">
-            <div class="fl">CREA / CAU</div><input class="fi" id="cfg-crea" value="">
+            <div class="fl">CREA / CAU</div><input class="fi" id="cfg-crea" value="CREA/SC 123456-7">
             <div class="fl">E-mail</div><input class="fi" id="cfg-email" type="email" value="" disabled title="Alterar o e-mail de login precisa ser feito no Supabase Auth">
-            <div class="fl">Telefone</div><input class="fi" id="cfg-telefone" type="tel" value="">
+            <div class="fl">Telefone</div><input class="fi" id="cfg-telefone" type="tel" value="(48) 99999-0000">
           </div>
         </div>
         <div class="cfg-card">
@@ -663,8 +663,6 @@ async function init() {
       if (eng) {
         engId = eng.id;
         document.getElementById('cfg-nome').value = eng.nome || '';
-        document.getElementById('cfg-crea').value = eng.crea || '';
-        document.getElementById('cfg-telefone').value = eng.telefone || '';
         updNome(eng.nome);
       }
     }
@@ -1500,9 +1498,7 @@ function updNome(v){ document.getElementById('sb-name').textContent=v||'Beatriz 
 async function salvarConfiguracoes() {
   if (!engId) { showToast('❌ Nenhuma engenheira logada'); return; }
   const nome = document.getElementById('cfg-nome').value.trim() || 'Beatriz Lunardi';
-  const crea = document.getElementById('cfg-crea').value.trim();
-  const telefone = document.getElementById('cfg-telefone').value.trim();
-  const { error } = await db.from('engenheiras').update({ nome, crea, telefone }).eq('id', engId);
+  const { error } = await db.from('engenheiras').update({ nome }).eq('id', engId);
   if (error) { showToast('❌ Erro ao salvar: ' + error.message); return; }
   updNome(nome);
   showToast('✅ Configurações salvas!');

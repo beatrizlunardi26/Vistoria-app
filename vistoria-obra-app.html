@@ -729,8 +729,12 @@ async function atualizarProgressoObras() {
     if (!totalItens) continue;
     const { data: vis } = await db.from('vistorias').select('id').eq('obra_id', o.id).eq('status','em_andamento').limit(1);
     if (!vis || !vis.length) continue;
-    const { count: numUnidades } = await db.from('unidades').select('id', { count: 'exact', head: true }).eq('obra_id', o.id);
-    const totalPossivel = totalItens * Math.max(numUnidades || 0, 1);
+    let fatorUnidades = 1;
+    if (modeloUsaUnidade(o.modelo_checklist_id)) {
+      const { count: numUnidades } = await db.from('unidades').select('id', { count: 'exact', head: true }).eq('obra_id', o.id);
+      fatorUnidades = Math.max(numUnidades || 0, 1);
+    }
+    const totalPossivel = totalItens * fatorUnidades;
     const { count: preenchidos } = await db.from('respostas_itens')
       .select('id', { count: 'exact', head: true })
       .eq('vistoria_id', vis[0].id)
@@ -818,9 +822,14 @@ async function abrirVistoria(obraId) {
     modeloAtivoId = vistoriaAtiva.modelo_checklist_id || modeloAtivoId;
   }
 
-  await carregarUnidades();
-  unidadeAtiva = unidades.find(u => u.id === unidadeAtiva)?.id || unidades[0]?.id || null;
-  if (!unidades.length) showToast('⚠️ Cadastre uma unidade para esta obra antes de preencher o checklist');
+  if (modeloUsaUnidade(modeloAtivoId)) {
+    await carregarUnidades();
+    unidadeAtiva = unidades.find(u => u.id === unidadeAtiva)?.id || unidades[0]?.id || null;
+    if (!unidades.length) showToast('⚠️ Cadastre uma unidade para esta obra antes de preencher o checklist');
+  } else {
+    unidades = [];
+    unidadeAtiva = null;
+  }
   await carregarRespostasEModelo();
 
   document.getElementById('pp-obra').textContent = obraAtiva.nome.split('—')[0].trim();
@@ -897,8 +906,15 @@ async function selecionarModeloNoModal(novoModeloId) {
   await db.from('obras').update({ modelo_checklist_id: modeloAtivoId }).eq('id', obraAtiva.id);
   document.getElementById('rel-modelo').textContent = nomeModelo(modeloAtivoId);
   atualizarVhHeader();
+  if (modeloUsaUnidade(modeloAtivoId)) {
+    await carregarUnidades();
+    unidadeAtiva = unidades.find(u => u.id === unidadeAtiva)?.id || unidades[0]?.id || null;
+  } else {
+    unidades = [];
+    unidadeAtiva = null;
+  }
   await carregarRespostasEModelo();
-  await carregarUnidades();
+  renderUnidadeBar();
   showToast('🔄 Modelo trocado!');
 }
 
@@ -984,17 +1000,19 @@ async function salvarResposta(id, tentativa = 1) {
   showSaveInd(tentativa > 1 ? ('Tentando salvar de novo (' + tentativa + '/3)...') : 'Salvando...');
   // Serializa fotos como array JSON para o banco (url = Supabase Storage; data = fallback legado em base64)
   const fotosParaBanco = (e.fotos||[]).map(f => ({ url: f.url||'', path: f.path||'', data: f.data||'', legenda: f.legenda||'' }));
+  // Modelos "por obra" (ex: Áreas Comuns) não usam unidade — usa o índice único parcial (vistoria_id,item_id) WHERE unidade_id IS NULL
+  const usaUnidade = modeloUsaUnidade(modeloAtivoId);
   const { error } = await db.from('respostas_itens').upsert({
     vistoria_id: vistoriaAtiva.id,
     item_id: id,
     comodo_id: it?.comodo_id,
-    unidade_id: unidadeAtiva || null,
+    unidade_id: usaUnidade ? (unidadeAtiva || null) : null,
     status: statusMap[e.status] || 'pendente',
     observacao: e.obs,
     item_ativo: e.ativo,
     fotos: fotosParaBanco,
     atualizado_em: new Date().toISOString()
-  }, { onConflict: 'vistoria_id,item_id,unidade_id' });
+  }, { onConflict: usaUnidade ? 'vistoria_id,item_id,unidade_id' : 'vistoria_id,item_id' });
   if (!error) { showSaveInd('✓ Salvo automaticamente'); return; }
   console.error('Erro ao salvar:', error);
   if (tentativa < 3) {
@@ -1617,9 +1635,15 @@ async function carregarUnidades() {
   const { data } = await db.from('unidades').select('*').eq('obra_id', obraAtiva.id).order('ordem');
   unidades = data || [];
 }
+function modeloUsaUnidade(modeloId) {
+  const m = modelos.find(x => x.id === modeloId);
+  return m ? m.por_unidade !== false : true;
+}
+
 function renderUnidadeBar() {
   const bar = document.getElementById('unid-bar');
   const sel = document.getElementById('unid-select');
+  if (!modeloUsaUnidade(modeloAtivoId)) { bar.style.display = 'none'; return; }
   bar.style.display = 'flex';
   if (!unidades.length) {
     sel.innerHTML = '<option value="">Nenhuma unidade cadastrada</option>';

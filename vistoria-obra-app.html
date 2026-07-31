@@ -639,7 +639,10 @@ let unidades = [];
 let moUnidsTmp = [];
 let unidadeAtiva = null;
 let engId = null;
+let engRole = 'usuario';
 let adminModeloAtual = null;
+
+function isAdmin() { return engRole === 'admin'; }
 
 const cycle = { '':'conf', conf:'nc', nc:'na', na:'' };
 const ICO_LIST = ['🏢','🏠','🏗️','🏛️','🏬','🏭','🏡'];
@@ -662,6 +665,7 @@ async function init() {
       }
       if (eng) {
         engId = eng.id;
+        engRole = eng.role || 'usuario';
         document.getElementById('cfg-nome').value = eng.nome || '';
         updNome(eng.nome);
       }
@@ -778,7 +782,7 @@ function renderObras() {
         <button class="btn btn-p" style="flex:1" onclick="abrirVistoria('${o.id}')">▶ Abrir vistoria</button>
         <button class="btn" onclick="toggleConcluidaObra('${o.id}', event)" title="${o.status==='concluida'?'Reabrir vistoria':'Marcar como concluída'}">${o.status==='concluida'?'↩️':'✅'}</button>
         <button class="btn" onclick="editObra('${o.id}')">✏️</button>
-        <button class="btn btn-danger" onclick="delObra('${o.id}')">🗑️</button>
+        ${isAdmin() ? `<button class="btn btn-danger" onclick="delObra('${o.id}')">🗑️</button>` : ''}
       </div>`;
     grid.appendChild(div);
   });
@@ -940,7 +944,7 @@ function buildItem(it) {
       <textarea class="obs-in" rows="2" placeholder="Descreva a não conformidade..." id="obs-${it.id}" oninput="respostas['${it.id}'].obs=this.value;salvarResposta('${it.id}')">${e.obs}</textarea>
       <div class="field-label">Fotos</div>
       <div class="photo-row" id="pr-${it.id}">
-        ${(e.fotos||[]).map((f,fi)=>`<div class="photo-thumb" onclick="openFoto('${it.id}',${fi})" title="${f.legenda||''}"><img src="${f.data}" alt="foto"><span class="photo-legend-badge" style="display:${f.legenda?'block':'none'}">${f.legenda||''}</span></div>`).join('')}
+        ${(e.fotos||[]).map((f,fi)=>`<div class="photo-thumb" onclick="openFoto('${it.id}',${fi})" title="${f.legenda||''}"><img src="${f.url||f.data}" alt="foto"><span class="photo-legend-badge" style="display:${f.legenda?'block':'none'}">${f.legenda||''}</span></div>`).join('')}
         <button class="add-photo" onclick="triggerFotoUpload('${it.id}',event)"><span class="add-photo-ico">📷</span><span>Foto</span></button>
       </div>
     </div>`;
@@ -972,14 +976,14 @@ async function cycleStatus(id) {
 // ============================================================
 // ✅ FIX: salvarResposta — salva fotos no banco + onConflict correto
 // ============================================================
-async function salvarResposta(id) {
+async function salvarResposta(id, tentativa = 1) {
   if (!vistoriaAtiva) return;
   const e = respostas[id];
   const statusMap = { conf:'conforme', nc:'nao_conforme', na:'nao_aplicavel', '':'pendente' };
   const it = itens.find(x => x.id === id);
-  showSaveInd('Salvando...');
-  // Serializa fotos como array JSON para o banco
-  const fotosParaBanco = (e.fotos||[]).map(f => ({ data: f.data, legenda: f.legenda||'' }));
+  showSaveInd(tentativa > 1 ? ('Tentando salvar de novo (' + tentativa + '/3)...') : 'Salvando...');
+  // Serializa fotos como array JSON para o banco (url = Supabase Storage; data = fallback legado em base64)
+  const fotosParaBanco = (e.fotos||[]).map(f => ({ url: f.url||'', path: f.path||'', data: f.data||'', legenda: f.legenda||'' }));
   const { error } = await db.from('respostas_itens').upsert({
     vistoria_id: vistoriaAtiva.id,
     item_id: id,
@@ -991,12 +995,25 @@ async function salvarResposta(id) {
     fotos: fotosParaBanco,
     atualizado_em: new Date().toISOString()
   }, { onConflict: 'vistoria_id,item_id,unidade_id' });
-  if (!error) showSaveInd('✓ Salvo automaticamente');
-  else console.error('Erro ao salvar:', error);
+  if (!error) { showSaveInd('✓ Salvo automaticamente'); return; }
+  console.error('Erro ao salvar:', error);
+  if (tentativa < 3) {
+    setTimeout(() => salvarResposta(id, tentativa + 1), 1500 * tentativa);
+  } else {
+    showSaveInd('❌ Não foi possível salvar — verifique sua internet', true);
+    showToast('❌ Falha ao salvar "' + (it?.nome || 'item') + '". Verifique sua conexão e tente novamente.');
+  }
 }
 
 let saveIndTimer;
-function showSaveInd(msg){ const el=document.getElementById('save-ind'); el.textContent=msg; el.style.opacity='1'; clearTimeout(saveIndTimer); saveIndTimer=setTimeout(()=>{el.style.opacity='0';},2500); }
+function showSaveInd(msg, persist){
+  const el=document.getElementById('save-ind');
+  el.textContent=msg;
+  el.style.color = persist ? 'var(--danger)' : 'var(--ok)';
+  el.style.opacity='1';
+  clearTimeout(saveIndTimer);
+  if (!persist) saveIndTimer=setTimeout(()=>{el.style.opacity='0';},2500);
+}
 
 // ============================================================
 // FOTOS
@@ -1017,23 +1034,26 @@ function triggerFotoUpload(id, ev) {
   document.getElementById('foto-file-in').click();
 }
 
-function onFileSelected(event) {
+const FOTOS_BUCKET = 'vistoria-fotos';
+
+async function onFileSelected(event) {
   const file = event.target.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    if (!respostas[fotoItemAtual]) respostas[fotoItemAtual] = { status:'', obs:'', fotos:[], ativo:true };
-    const novaFoto = { data: e.target.result, legenda: '' };
-    respostas[fotoItemAtual].fotos.push(novaFoto);
-    fotoIdxAtual = respostas[fotoItemAtual].fotos.length - 1;
-    const it = itens.find(x => x.id === fotoItemAtual);
-    const novo = buildItem(it);
-    document.getElementById('item-'+fotoItemAtual).replaceWith(novo);
-    abrirEditorFoto(fotoItemAtual, fotoIdxAtual);
-    salvarResposta(fotoItemAtual);
-    showToast('📷 Foto adicionada!');
-  };
-  reader.readAsDataURL(file);
+  showToast('📤 Enviando foto...');
+  const path = vistoriaAtiva.id + '/' + fotoItemAtual + '/' + Date.now() + '_' + Math.random().toString(36).slice(2,8) + '.jpg';
+  const { error: upErr } = await db.storage.from(FOTOS_BUCKET).upload(path, file, { contentType: file.type || 'image/jpeg' });
+  if (upErr) { showToast('❌ Erro ao enviar foto: ' + upErr.message); return; }
+  const { data: pub } = db.storage.from(FOTOS_BUCKET).getPublicUrl(path);
+  if (!respostas[fotoItemAtual]) respostas[fotoItemAtual] = { status:'', obs:'', fotos:[], ativo:true };
+  const novaFoto = { url: pub.publicUrl, path, legenda: '' };
+  respostas[fotoItemAtual].fotos.push(novaFoto);
+  fotoIdxAtual = respostas[fotoItemAtual].fotos.length - 1;
+  const it = itens.find(x => x.id === fotoItemAtual);
+  const novo = buildItem(it);
+  document.getElementById('item-'+fotoItemAtual).replaceWith(novo);
+  abrirEditorFoto(fotoItemAtual, fotoIdxAtual);
+  salvarResposta(fotoItemAtual);
+  showToast('📷 Foto adicionada!');
 }
 
 function openFoto(itemId, idx) {
@@ -1051,6 +1071,7 @@ function abrirEditorFoto(itemId, idx) {
   const canvas = document.getElementById('foto-canvas');
   const ctx = canvas.getContext('2d');
   const img = new Image();
+  img.crossOrigin = 'anonymous';
   img.onload = () => {
     const maxW = Math.min(window.innerWidth * 0.88, 700);
     const maxH = window.innerHeight * 0.52;
@@ -1061,7 +1082,7 @@ function abrirEditorFoto(itemId, idx) {
     canvasHistory = [canvas.toDataURL()];
     setupDrawing(canvas, ctx);
   };
-  img.src = foto.data;
+  img.src = foto.url || foto.data;
   setTool('draw');
 }
 
@@ -1171,19 +1192,31 @@ function setColor(c, el) {
 function saveFotoEdits() {
   const canvas = document.getElementById('foto-canvas');
   const legenda = document.getElementById('foto-legend-in').value.trim();
-  if (!respostas[fotoItemAtual]?.fotos[fotoIdxAtual]) { closeFoto(); return; }
-  respostas[fotoItemAtual].fotos[fotoIdxAtual].data = canvas.toDataURL('image/jpeg', 0.85);
-  respostas[fotoItemAtual].fotos[fotoIdxAtual].legenda = legenda;
-  salvarResposta(fotoItemAtual);
-  const it = itens.find(x => x.id === fotoItemAtual);
-  const novo = buildItem(it);
-  document.getElementById('item-'+fotoItemAtual).replaceWith(novo);
-  closeFoto();
-  showToast('✅ Foto salva!');
+  const foto = respostas[fotoItemAtual]?.fotos[fotoIdxAtual];
+  if (!foto) { closeFoto(); return; }
+  showToast('💾 Salvando foto...');
+  canvas.toBlob(async (blob) => {
+    const path = foto.path || (vistoriaAtiva.id + '/' + fotoItemAtual + '/' + Date.now() + '.jpg');
+    const { error } = await db.storage.from(FOTOS_BUCKET).upload(path, blob, { contentType: 'image/jpeg', upsert: true });
+    if (error) { showToast('❌ Erro ao salvar foto: ' + error.message); return; }
+    const { data: pub } = db.storage.from(FOTOS_BUCKET).getPublicUrl(path);
+    foto.url = pub.publicUrl + '?t=' + Date.now();
+    foto.path = path;
+    foto.data = '';
+    foto.legenda = legenda;
+    salvarResposta(fotoItemAtual);
+    const it = itens.find(x => x.id === fotoItemAtual);
+    const novo = buildItem(it);
+    document.getElementById('item-'+fotoItemAtual).replaceWith(novo);
+    closeFoto();
+    showToast('✅ Foto salva!');
+  }, 'image/jpeg', 0.85);
 }
 
-function removeFotoAtual() {
-  if (!respostas[fotoItemAtual]) { closeFoto(); return; }
+async function removeFotoAtual() {
+  const foto = respostas[fotoItemAtual]?.fotos[fotoIdxAtual];
+  if (!foto) { closeFoto(); return; }
+  if (foto.path) await db.storage.from(FOTOS_BUCKET).remove([foto.path]);
   respostas[fotoItemAtual].fotos.splice(fotoIdxAtual, 1);
   salvarResposta(fotoItemAtual);
   const it = itens.find(x => x.id === fotoItemAtual);
@@ -1285,7 +1318,7 @@ async function gerarRel() {
     html += `<div class="rel-comodo-block"><div class="rel-comodo-title">${cm.icone||'🏠'} ${cm.nome}</div>`;
     ncsCm.forEach(({it, unidNome, obs, fotos}) => {
       const obsTxt = obs?.trim() || 'Sem observação registrada.';
-      const photos = fotos?.length ? fotos.map(f=>`<div class="rel-photo" style="position:relative;overflow:hidden"><img src="${f.data}" style="width:100%;height:100%;object-fit:cover;border-radius:7px">${f.legenda?`<span style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.6);color:#fff;font-size:9px;padding:2px 4px;text-align:center">${f.legenda}</span>`:''}</div>`).join('') : '<span style="font-size:12px;color:var(--text3)">Nenhuma foto</span>';
+      const photos = fotos?.length ? fotos.map(f=>`<div class="rel-photo" style="position:relative;overflow:hidden"><img src="${f.url||f.data}" style="width:100%;height:100%;object-fit:cover;border-radius:7px">${f.legenda?`<span style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.6);color:#fff;font-size:9px;padding:2px 4px;text-align:center">${f.legenda}</span>`:''}</div>`).join('') : '<span style="font-size:12px;color:var(--text3)">Nenhuma foto</span>';
       const unidBadge = unidNome ? `<span class="item-tag tag-na" style="margin-right:8px">${unidNome}</span>` : '';
       html += `<div class="rel-nc-item"><div class="rel-nc-head">${unidBadge}<span style="color:var(--danger)">✗</span><span class="rel-nc-name">${it.nome}</span><span class="rel-nc-badge">NÃO CONFORME</span></div><div class="rel-nc-body"><div class="rel-nc-obs">📝 ${obsTxt}</div><div class="rel-nc-photos">${photos}</div></div></div>`;
     });
@@ -1329,7 +1362,7 @@ function renderAdminBody() {
         <input class="admin-item-edit-input" value="${it.nome.replace(/"/g,'&quot;')}" placeholder="Nome do item" onchange="editarItemCampo('${it.id}','nome',this.value)">
         <input class="admin-item-edit-input" value="${servico}" placeholder="Ex: Revestimento cerâmico" onchange="editarItemCampo('${it.id}','servico',this.value)" style="font-size:12px">
         <input class="admin-item-edit-input" value="${criterio}" placeholder="Critério técnico..." onchange="editarItemCampo('${it.id}','criterio',this.value)" style="font-size:11px;color:var(--text2)">
-        <button class="btn btn-sm btn-danger" onclick="removerItemModelo('${it.id}','${cm.id}')">✕</button>
+        ${isAdmin() ? `<button class="btn btn-sm btn-danger" onclick="removerItemModelo('${it.id}','${cm.id}')">✕</button>` : '<span></span>'}
       </div>`;
     });
     html += `<div class="admin-add-item" style="display:grid;grid-template-columns:1fr 220px 180px auto;gap:8px;align-items:center">
@@ -1351,6 +1384,7 @@ async function editarItemCampo(itemId, campo, valor) {
 }
 
 async function removerItemModelo(itemId, comodoId) {
+  if (!isAdmin()) { showToast('❌ Apenas administradores podem remover itens do modelo'); return; }
   if (!confirm('Remover este item permanentemente do modelo?')) return;
   await db.from('itens_checklist').delete().eq('id', itemId);
   modelos.forEach(m => { m.comodos.forEach(c => { if(c.id===comodoId) c.itens = c.itens.filter(i=>i.id!==itemId); }); });
@@ -1469,6 +1503,7 @@ async function salvarObra() {
 }
 
 async function delObra(id) {
+  if (!isAdmin()) { showToast('❌ Apenas administradores podem excluir obras'); return; }
   if (!confirm('Remover esta obra?')) return;
   await db.from('obras').delete().eq('id', id);
   await carregarObras();
@@ -1615,7 +1650,7 @@ function fecharModalUnidades() { document.getElementById('modal-unidades').class
 function renderListaUnidades() {
   const list = document.getElementById('unid-list');
   if (!unidades.length) { list.innerHTML = '<div style="font-size:12px;color:var(--text3);padding:8px">Nenhuma unidade cadastrada ainda.</div>'; return; }
-  list.innerHTML = unidades.map(u => `<div class="unid-item"><span class="unid-item-name">${u.nome}</span><button class="unid-del" onclick="removerUnidade('${u.id}')">✕</button></div>`).join('');
+  list.innerHTML = unidades.map(u => `<div class="unid-item"><span class="unid-item-name">${u.nome}</span>${isAdmin() ? `<button class="unid-del" onclick="removerUnidade('${u.id}')">✕</button>` : ''}</div>`).join('');
 }
 async function adicionarUnidade() {
   const inp = document.getElementById('unid-nova-input');
@@ -1630,6 +1665,7 @@ async function adicionarUnidade() {
   showToast('✅ ' + nome + ' adicionada!');
 }
 async function removerUnidade(uid) {
+  if (!isAdmin()) { showToast('❌ Apenas administradores podem remover unidades'); return; }
   if (!confirm('Remover esta unidade?')) return;
   await db.from('unidades').delete().eq('id', uid);
   unidades = unidades.filter(u => u.id !== uid);
@@ -1756,27 +1792,31 @@ function pdfSetup() {
     doc.text(pct + '% de conformidade', PW - MR, y + 4, { align: 'right' });
     y += 12; hLine();
   }
-  function blocoFotos(fotos) {
+  async function blocoFotos(fotos) {
     if (!fotos?.length) return;
     const cols = 3, gap = 4;
     const fW = (CW - gap * (cols - 1)) / cols;
     const fH = fW * 0.72;
     checkY(fH + 14);
     let col = 0;
-    fotos.forEach((foto, i) => {
+    for (let i = 0; i < fotos.length; i++) {
+      const foto = fotos[i];
       if (col === cols) { col = 0; y += fH + 10; checkY(fH + 14); }
       const fx = ML + col * (fW + gap);
-      try {
-        doc.addImage(foto.data, 'JPEG', fx, y, fW, fH);
-        doc.setDrawColor(...CINZA_CLARO); doc.setLineWidth(0.3);
-        doc.roundedRect(fx, y, fW, fH, 1.5, 1.5);
-        doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...CINZA);
-        const legendaTxt = 'Foto ' + String(i + 1).padStart(2, '0') + (foto.legenda ? ' — ' + foto.legenda : '');
-        const ll = doc.splitTextToSize(legendaTxt, fW);
-        doc.text(ll.slice(0, 2), fx, y + fH + 3.6);
-      } catch(e) { console.warn('Erro foto', e); }
+      const dataUri = await fotoParaDataUri(foto);
+      if (dataUri) {
+        try {
+          doc.addImage(dataUri, 'JPEG', fx, y, fW, fH);
+          doc.setDrawColor(...CINZA_CLARO); doc.setLineWidth(0.3);
+          doc.roundedRect(fx, y, fW, fH, 1.5, 1.5);
+          doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...CINZA);
+          const legendaTxt = 'Foto ' + String(i + 1).padStart(2, '0') + (foto.legenda ? ' — ' + foto.legenda : '');
+          const ll = doc.splitTextToSize(legendaTxt, fW);
+          doc.text(ll.slice(0, 2), fx, y + fH + 3.6);
+        } catch(e) { console.warn('Erro foto', e); }
+      }
       col++;
-    });
+    }
     y += fH + 10;
   }
 
@@ -1808,7 +1848,7 @@ function pdfSetup() {
   }
 
   // Cartão de uma não conformidade: título + critério + observação + fotos
-  function blocoNCItem(unidNome, itNome, criterio, obs, fotos) {
+  async function blocoNCItem(unidNome, itNome, criterio, obs, fotos) {
     checkY(20);
     const titulo = (unidNome ? unidNome + ' · ' : '') + formatarNomeItem(itNome);
     const headH = 9.5;
@@ -1836,7 +1876,7 @@ function pdfSetup() {
       y += 4.8;
       for (let k = 1; k < lo.length; k++) { checkY(5); doc.text(lo[k], ML + 2, y); y += 4.6; }
     }
-    blocoFotos(fotos);
+    await blocoFotos(fotos);
     y += 3;
     doc.setDrawColor(...CINZA_CLARO); doc.setLineWidth(0.2);
     doc.line(ML, y, PW - MR, y); y += 5;
@@ -1850,6 +1890,31 @@ function pdfSetup() {
 
 function formatarNomeItem(nome) {
   return (nome || '').replace(/ \/ /g, ' e ');
+}
+
+// Fotos agora ficam no Supabase Storage (foto.url); jsPDF só aceita imagem já
+// carregada/base64, então baixamos e convertemos aqui. foto.data (legado, fotos
+// salvas antes da migração para Storage) é usado direto sem precisar baixar nada.
+const _fotoDataUriCache = new Map();
+async function fotoParaDataUri(foto) {
+  if (foto.data) return foto.data;
+  if (!foto.url) return null;
+  if (_fotoDataUriCache.has(foto.url)) return _fotoDataUriCache.get(foto.url);
+  try {
+    const res = await fetch(foto.url);
+    const blob = await res.blob();
+    const dataUri = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+    _fotoDataUriCache.set(foto.url, dataUri);
+    return dataUri;
+  } catch (e) {
+    console.warn('Erro ao baixar foto para PDF', e);
+    return null;
+  }
 }
 
 // ============================================================
@@ -1884,14 +1949,14 @@ async function gerarPDF() {
     doc.text('Nenhuma nao conformidade registrada!', ML + CW / 2, p.y + 8, { align: 'center' });
     p.y += 18;
   } else {
-    comodos.forEach(cm => {
+    for (const cm of comodos) {
       const ncs = ncPorComodo[cm.id];
-      if (!ncs || !ncs.length) return;
+      if (!ncs || !ncs.length) continue;
       p.blocoAmbiente(cm.nome, ncs.length + ' não conforme' + (ncs.length > 1 ? 's' : ''));
-      ncs.forEach(({it, unidNome, obs, fotos}) => {
-        p.blocoNCItem(unidNome, it.nome, it.criterio, obs, fotos);
-      });
-    });
+      for (const {it, unidNome, obs, fotos} of ncs) {
+        await p.blocoNCItem(unidNome, it.nome, it.criterio, obs, fotos);
+      }
+    }
   }
   p.checkY(36); p.hLine();
   doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...CINZA);
@@ -1924,7 +1989,8 @@ async function gerarPDFApto() {
   p.blocoResumo();
 
   const chaves = Object.keys(porUnidade);
-  chaves.forEach((chave, ci) => {
+  for (let ci = 0; ci < chaves.length; ci++) {
+    const chave = chaves[ci];
     const mapa = porUnidade[chave];
     const unidNome = nomeUnidadePorChave(chave) || 'Geral';
     p.checkY(16);
@@ -1934,14 +2000,14 @@ async function gerarPDFApto() {
     doc.text(unidNome, ML + 5, p.y + 7);
     p.y += 14;
 
-    comodos.forEach(cm => {
+    for (const cm of comodos) {
       const preenchidos = cm.itens.filter(it => mapa[it.id]?.ativo !== false && mapa[it.id]?.status);
-      if (!preenchidos.length) return;
+      if (!preenchidos.length) continue;
       const ncCount = preenchidos.filter(it => mapa[it.id]?.status === 'nc').length;
       const confCount = preenchidos.filter(it => mapa[it.id]?.status === 'conf').length;
       const naCount = preenchidos.filter(it => mapa[it.id]?.status === 'na').length;
       p.blocoAmbiente(cm.nome, confCount + ' conf.  ·  ' + ncCount + ' n.conf.  ·  ' + naCount + ' n/a');
-      preenchidos.forEach(it => {
+      for (const it of preenchidos) {
         const e = mapa[it.id] || {};
         const st = e.status || '';
         const isNC = st === 'nc', isConf = st === 'conf', isNA = st === 'na';
@@ -1973,16 +2039,16 @@ async function gerarPDFApto() {
             p.y += 4.8;
             for (let k = 1; k < lo.length; k++) { p.checkY(5); doc.text(lo[k], ML + 4, p.y); p.y += 4.6; }
           }
-          p.blocoFotos(e.fotos);
+          await p.blocoFotos(e.fotos);
           p.y += 2;
         }
-      });
+      }
       p.y += 6;
-    });
+    }
     p.y += 4;
     doc.setDrawColor(...CINZA_CLARO); doc.setLineWidth(0.3);
     doc.line(ML, p.y, PW - MR, p.y); p.y += 4;
-  });
+  }
   p.checkY(30); p.hLine();
   doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...CINZA);
   doc.text('ASSINATURAS', ML, p.y); p.y += 8;
@@ -2062,15 +2128,15 @@ async function gerarPDFUnidade() {
       p.y += 14; continue;
     }
 
-    comodos.forEach(cm => {
+    for (const cm of comodos) {
       const ncsCm = cm.itens.filter(it => mapa[it.id]?.status === 'nc');
-      if (!ncsCm.length) return;
+      if (!ncsCm.length) continue;
       p.blocoAmbiente(cm.nome, ncsCm.length + ' não conforme' + (ncsCm.length > 1 ? 's' : ''));
-      ncsCm.forEach(it => {
+      for (const it of ncsCm) {
         const e = mapa[it.id];
-        p.blocoNCItem(null, it.nome, it.criterio, e.obs, e.fotos);
-      });
-    });
+        await p.blocoNCItem(null, it.nome, it.criterio, e.obs, e.fotos);
+      }
+    }
     p.y += 4;
     doc.setDrawColor(...CINZA_CLARO); doc.setLineWidth(0.3);
     doc.line(ML, p.y, PW-MR, p.y); p.y += 4;

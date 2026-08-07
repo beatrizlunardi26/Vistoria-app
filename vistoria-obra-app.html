@@ -368,9 +368,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
             <div class="pp-row"><span class="pp-k">Vistoriadora</span><span class="pp-v" id="pp-nome">Engª Beatriz Lunardi</span></div>
             <div class="pp-row"><span class="pp-k">Data</span><span class="pp-v" id="pp-data">—</span></div>
             <div style="margin:10px 0 6px">
+              <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px" id="pp-unidade-label">Unidade atual</div>
               <div class="pbar-out" style="height:7px"><div class="pbar-in" id="pp-bar" style="width:0%"></div></div>
               <div style="display:flex;justify-content:space-between;margin-top:5px;font-size:11px;color:var(--text3)">
                 <span id="pp-done">0 itens</span><span id="pp-pct">0%</span>
+              </div>
+            </div>
+            <div style="margin:14px 0 6px">
+              <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">Geral (todas as unidades)</div>
+              <div class="pbar-out" style="height:7px"><div class="pbar-in" id="pp-bar-geral" style="width:0%;background:var(--na)"></div></div>
+              <div style="display:flex;justify-content:space-between;margin-top:5px;font-size:11px;color:var(--text3)">
+                <span id="pp-done-geral">0 itens</span><span id="pp-pct-geral">0%</span>
               </div>
             </div>
             <div class="sum3">
@@ -947,7 +955,7 @@ function renderChecklist() {
     const ativos = cm.itens.filter(i => respostas[i.id]?.ativo !== false);
     if (!ativos.length) return;
     const div = document.createElement('div');
-    div.className = 'comodo-block';
+    div.className = 'comodo-block comodo-collapsed';
     div.innerHTML = `<div class="comodo-header" onclick="toggleComodo('${cm.id}')"><span style="font-size:18px">${cm.icone||'🏠'}</span><span class="comodo-title">${cm.nome}</span><span class="comodo-cnt" id="cnt-${cm.id}">0/${ativos.length}</span><span class="comodo-toggle">▼</span></div><div class="comodo-body" id="cb-${cm.id}"></div>`;
     const body = div.querySelector('.comodo-body');
     ativos.forEach(it => body.appendChild(buildItem(it)));
@@ -1284,12 +1292,34 @@ function updProgress() {
   document.getElementById('pp-pct').textContent = pct+'%';
   document.getElementById('h-pct').textContent = pct+'%';
   document.getElementById('h-ncs').textContent = nc;
+  const unidLabelEl = document.getElementById('pp-unidade-label');
+  if (unidLabelEl) {
+    const nomeUnid = unidades.find(u => u.id === unidadeAtiva)?.nome;
+    unidLabelEl.textContent = nomeUnid ? ('Unidade atual — ' + nomeUnid) : 'Unidade atual';
+  }
   comodos.forEach(cm => {
     const ativosComodo = cm.itens.filter(i => respostas[i.id]?.ativo !== false);
     const c = ativosComodo.filter(i => respostas[i.id]?.status && respostas[i.id].status !== '').length;
     const el = document.getElementById('cnt-'+cm.id);
     if (el) el.textContent = c+'/'+ativosComodo.length;
   });
+  atualizarProgressoGeral();
+}
+
+// Progresso somando todas as unidades da obra (não só a que está aberta agora)
+async function atualizarProgressoGeral() {
+  if (!vistoriaAtiva || !itens.length) return;
+  const totalUnidades = modeloUsaUnidade(modeloAtivoId) ? Math.max(unidades.length, 1) : 1;
+  const totalPossivel = itens.length * totalUnidades;
+  const { count } = await db.from('respostas_itens')
+    .select('id', { count: 'exact', head: true })
+    .eq('vistoria_id', vistoriaAtiva.id)
+    .neq('status', 'pendente')
+    .eq('item_ativo', true);
+  const pct = totalPossivel > 0 ? Math.round((count || 0) / totalPossivel * 100) : 0;
+  document.getElementById('pp-bar-geral').style.width = pct + '%';
+  document.getElementById('pp-done-geral').textContent = (count || 0) + ' de ' + totalPossivel + ' itens';
+  document.getElementById('pp-pct-geral').textContent = pct + '%';
 }
 
 // ============================================================

@@ -452,8 +452,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <div style="display:flex;flex-direction:column;gap:14px">
           <div class="send-panel">
             <div class="sp-head">Exportar relatório</div>
-            <button class="si" onclick="gerarPDF()"><div><div class="si-n">PDF — Não Conformidades Gerais</div><div class="si-d">Lista das pendências encontradas, agrupadas por local</div></div><span class="si-arr">›</span></button>
             <button class="si" onclick="gerarPDFApto()"><div><div class="si-n">PDF — Parecer Geral (Checklist Completo)</div><div class="si-d">Todos os itens do checklist, com o status de cada um</div></div><span class="si-arr">›</span></button>
+            <button class="si" onclick="gerarPDF()"><div><div class="si-n">PDF — Não Conformidades Gerais</div><div class="si-d">Lista das pendências encontradas, agrupadas por local</div></div><span class="si-arr">›</span></button>
             <button class="si" onclick="gerarPDFUnidade()"><div><div class="si-n">PDF — Não conformidades por unidade</div><div class="si-d">Pendências agrupadas por apartamento</div></div><span class="si-arr">›</span></button>
             <button class="si" onclick="gerarExcel()"><div><div class="si-n">Excel — Checklist de pendências</div><div class="si-d">Planilha com serviços e unidades</div></div><span class="si-arr">›</span></button>
           </div>
@@ -956,7 +956,7 @@ function renderChecklist() {
     if (!ativos.length) return;
     const div = document.createElement('div');
     div.className = 'comodo-block comodo-collapsed';
-    div.innerHTML = `<div class="comodo-header" onclick="toggleComodo('${cm.id}')"><span style="font-size:18px">${cm.icone||'🏠'}</span><span class="comodo-title">${cm.nome}</span><span class="comodo-cnt" id="cnt-${cm.id}">0/${ativos.length}</span><span class="comodo-toggle">▼</span></div><div class="comodo-body" id="cb-${cm.id}"></div>`;
+    div.innerHTML = `<div class="comodo-header" onclick="toggleComodo('${cm.id}')"><span class="comodo-title">${cm.nome}</span><span class="comodo-cnt" id="cnt-${cm.id}">0/${ativos.length}</span><span class="comodo-toggle">▼</span></div><div class="comodo-body" id="cb-${cm.id}"></div>`;
     const body = div.querySelector('.comodo-body');
     ativos.forEach(it => body.appendChild(buildItem(it)));
     main.appendChild(div);
@@ -1379,7 +1379,7 @@ async function gerarRel() {
     const ncsCm = ncPorComodo[cm.id];
     if (!ncsCm || !ncsCm.length) return;
     algum = true;
-    html += `<div class="rel-comodo-block"><div class="rel-comodo-title">${cm.icone||'🏠'} ${cm.nome}</div>`;
+    html += `<div class="rel-comodo-block"><div class="rel-comodo-title">${cm.nome}</div>`;
     ncsCm.forEach(({it, unidNome, obs, fotos}) => {
       const obsTxt = obs?.trim() || 'Sem observação registrada.';
       const photos = fotos?.length ? fotos.map(f=>`<div class="rel-photo" style="position:relative;overflow:hidden"><img src="${f.url||f.data}" style="width:100%;height:100%;object-fit:cover;border-radius:7px">${f.legenda?`<span style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.6);color:#fff;font-size:9px;padding:2px 4px;text-align:center">${f.legenda}</span>`:''}</div>`).join('') : '<span style="font-size:12px;color:var(--text3)">Nenhuma foto</span>';
@@ -1415,7 +1415,7 @@ function renderAdminBody() {
   let html = `<div style="font-size:13px;color:var(--text2);margin-bottom:14px">${modelo.descricao||''}</div>`;
   modelo.comodos.forEach(cm => {
     html += `<div class="admin-comodo">
-      <div class="admin-comodo-head"><span>${cm.icone||'🏠'}</span><span>${cm.nome}</span></div>
+      <div class="admin-comodo-head"><span>${cm.nome}</span></div>
       <div style="display:grid;grid-template-columns:1fr 220px 180px auto;gap:0;background:var(--surface2);padding:6px 16px;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">
         <span>Item de verificação</span><span>Serviço / Equipe</span><span>Critério</span><span></span>
       </div>`;
@@ -1956,7 +1956,7 @@ function pdfSetup() {
     let col = 0;
     for (let i = 0; i < fotos.length; i++) {
       const foto = fotos[i];
-      if (col === cols) { col = 0; y += fH + 10; checkY(fH + 14); }
+      if (col === cols) { col = 0; y += fH + 12; checkY(fH + 16); }
       const fx = ML + col * (fW + gap);
       const dataUri = await fotoParaDataUri(foto);
       if (dataUri) {
@@ -1964,7 +1964,7 @@ function pdfSetup() {
           doc.addImage(dataUri, 'JPEG', fx, y, fW, fH);
           doc.setDrawColor(...CINZA_CLARO); doc.setLineWidth(0.3);
           doc.roundedRect(fx, y, fW, fH, 1.5, 1.5);
-          doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...CINZA);
+          doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(...CINZA);
           const legendaTxt = 'Foto ' + String(i + 1).padStart(2, '0') + (foto.legenda ? ' — ' + foto.legenda : '');
           const ll = doc.splitTextToSize(legendaTxt, fW);
           doc.text(ll.slice(0, 2), fx, y + fH + 3.6);
@@ -1972,7 +1972,7 @@ function pdfSetup() {
       }
       col++;
     }
-    y += fH + 10;
+    y += fH + 12;
   }
 
   // Título de seção principal (introduz um bloco grande de conteúdo, ex: lista de NCs)
@@ -2022,14 +2022,14 @@ function pdfSetup() {
     }
     if (obs) {
       checkY(8);
-      doc.setFontSize(9.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...TEXTO);
+      doc.setFontSize(11); doc.setFont('helvetica', 'bold'); doc.setTextColor(...TEXTO);
       doc.text('Observação:', ML + 2, y);
       const lblW = doc.getTextWidth('Observação: ');
       doc.setFont('helvetica', 'normal');
       const lo = doc.splitTextToSize(obs, CW - 4 - lblW);
       doc.text(lo[0] || '', ML + 2 + lblW, y);
-      y += 4.8;
-      for (let k = 1; k < lo.length; k++) { checkY(5); doc.text(lo[k], ML + 2, y); y += 4.6; }
+      y += 5.4;
+      for (let k = 1; k < lo.length; k++) { checkY(5.5); doc.text(lo[k], ML + 2, y); y += 5.2; }
     }
     await blocoFotos(fotos);
     y += 3;
@@ -2195,14 +2195,14 @@ async function gerarPDFApto() {
           }
           if (e.obs) {
             p.checkY(8);
-            doc.setFontSize(9.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...TEXTO);
+            doc.setFontSize(11); doc.setFont('helvetica', 'bold'); doc.setTextColor(...TEXTO);
             doc.text('Observação:', ML + 4, p.y);
             const lblW = doc.getTextWidth('Observação: ');
             doc.setFont('helvetica', 'normal');
             const lo = doc.splitTextToSize(e.obs, CW - 8 - lblW);
             doc.text(lo[0] || '', ML + 4 + lblW, p.y);
-            p.y += 4.8;
-            for (let k = 1; k < lo.length; k++) { p.checkY(5); doc.text(lo[k], ML + 4, p.y); p.y += 4.6; }
+            p.y += 5.4;
+            for (let k = 1; k < lo.length; k++) { p.checkY(5.5); doc.text(lo[k], ML + 4, p.y); p.y += 5.2; }
           }
           await p.blocoFotos(e.fotos);
           p.y += 2;

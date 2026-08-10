@@ -2485,20 +2485,89 @@ async function gerarExcel() {
   wsNC.addRow(['Cliente:', cliente, '', 'Data:', dataVist]);
   wsNC.addRow(['Vistoriadora:', vistoriadora]);
   wsNC.addRow([]);
-  const hdrNC = wsNC.addRow(['UNIDADE / APTO', 'SERVIÇO', 'FRENTE DE SERVIÇO (EQUIPE)', 'ITEM', 'AMBIENTE', 'CRITERIO', 'OBSERVACAO DO VISTORIADOR', 'RESPONSAVEL', 'STATUS']);
+  const hdrNC = wsNC.addRow(['UNIDADE / APTO', 'SERVIÇO', 'FRENTE DE SERVIÇO (EQUIPE)', 'RESPONSAVEL', 'ITEM', 'AMBIENTE', 'CRITERIO', 'OBSERVACAO DO VISTORIADOR', 'STATUS']);
   estilizarCabecalho(hdrNC);
   const primeiraLinhaNC = hdrNC.number + 1;
-  linhasNC.forEach(l => wsNC.addRow([l.unidade, l.servico||'—', l.equipe, l.item, l.comodo, l.criterio, l.obs, '', 'Pendente']));
+  linhasNC.forEach(l => wsNC.addRow([l.unidade, l.servico||'—', l.equipe, '', l.item, l.comodo, l.criterio, l.obs, 'Pendente']));
   if (!linhasNC.length) wsNC.addRow(['Nenhuma nao conformidade registrada.']);
-  wsNC.columns = [{width:14},{width:24},{width:22},{width:34},{width:22},{width:28},{width:34},{width:18},{width:16}];
+  wsNC.columns = [{width:14},{width:24},{width:22},{width:18},{width:34},{width:22},{width:28},{width:34},{width:16}];
   wsNC.autoFilter = { from: { row: hdrNC.number, column: 1 }, to: { row: hdrNC.number, column: 9 } };
+  const ultimaLinhaNC = primeiraLinhaNC + linhasNC.length - 1;
   if (linhasNC.length) {
-    const ultimaLinhaNC = primeiraLinhaNC + linhasNC.length - 1;
     aplicarListaSuspensa(wsNC, 'C', primeiraLinhaNC, ultimaLinhaNC, EQUIPE_OPCOES);
     aplicarStatusInterativo(wsNC, 'I', primeiraLinhaNC, ultimaLinhaNC);
   }
 
-  // ── ABA 2: CHECKLIST COMPLETO — com coluna de unidade, serviço e equipe ──
+  // ── ABA 2: RESUMO POR UNIDADE — vem antes da "Checklist Completo" na ordem
+  // das abas (essa é mais usada); os números de CONFORMES/NAO CONFORMES são
+  // fórmulas de verdade, não valores fixos: somam o status original (aba
+  // "Checklist Completo", construída logo abaixo) com o que foi resolvido
+  // depois na aba "Pendencias" — editar o status lá atualiza aqui sozinho.
+  const wsRes = wb.addWorksheet('Resumo por Unidade');
+  wsRes.addRow(['RESUMO DA VISTORIA']).font = { bold: true, size: 14 };
+  wsRes.addRow(['Obra', obra]);
+  wsRes.addRow(['Construtora', construtora]);
+  wsRes.addRow(['Cliente', cliente]);
+  wsRes.addRow(['Data', dataVist]);
+  wsRes.addRow(['Vistoriadora', vistoriadora]);
+  wsRes.addRow([]);
+  const hdrRes = wsRes.addRow(['UNIDADE', 'CONFORMES', 'NAO CONFORMES', 'N/A', 'PENDENTES', 'TOTAL', '% CONFORM.']);
+  estilizarCabecalho(hdrRes);
+  const primeiraLinhaRes = hdrRes.number + 1;
+  const unidsExcel = [...new Set(linhas.map(l => l.unidade))].sort();
+
+  // Layout da aba "Checklist Completo" (construída depois) já é conhecido
+  // aqui: título(1) + obra(1) + em branco(1) + cabeçalho(1) = cabeçalho na
+  // linha 4, dados a partir da linha 5 — precisa bater com o addRow() real
+  // logo abaixo.
+  const ccHeaderRow = 4;
+  const ccFirstDataRow = ccHeaderRow + 1;
+  const ccLastDataRow = ccFirstDataRow + linhas.length - 1;
+  const temChecklistRef = linhas.length > 0;
+
+  unidsExcel.forEach(u => {
+    const uEsc = u.replace(/"/g, '""');
+    let cCell, nCell, naCell, pCell, tCell;
+    if (temChecklistRef) {
+      const ccUnid = `'Checklist Completo'!$A$${ccFirstDataRow}:$A$${ccLastDataRow}`;
+      const ccStatus = `'Checklist Completo'!$H$${ccFirstDataRow}:$H$${ccLastDataRow}`;
+      let resolvidos = '0';
+      if (linhasNC.length) {
+        const pendUnid = `Pendencias!$A$${primeiraLinhaNC}:$A$${ultimaLinhaNC}`;
+        const pendStatus = `Pendencias!$I$${primeiraLinhaNC}:$I$${ultimaLinhaNC}`;
+        resolvidos = `(COUNTIFS(${pendUnid},"${uEsc}",${pendStatus},"Resolvido")+COUNTIFS(${pendUnid},"${uEsc}",${pendStatus},"Aprovado sob concessão"))`;
+      }
+      cCell = { formula: `COUNTIFS(${ccUnid},"${uEsc}",${ccStatus},"Conforme")+${resolvidos}` };
+      nCell = { formula: `COUNTIFS(${ccUnid},"${uEsc}",${ccStatus},"Nao Conforme")-${resolvidos}` };
+      naCell = { formula: `COUNTIFS(${ccUnid},"${uEsc}",${ccStatus},"N/A")` };
+      pCell = { formula: `COUNTIFS(${ccUnid},"${uEsc}",${ccStatus},"Pendente")` };
+      tCell = { formula: `COUNTIF(${ccUnid},"${uEsc}")` };
+    } else {
+      cCell = nCell = naCell = pCell = tCell = 0;
+    }
+    const row = wsRes.addRow([u, cCell, nCell, naCell, pCell, tCell]);
+    const rn = row.number;
+    wsRes.getCell('G' + rn).value = { formula: `IF(F${rn}=0,"0%",ROUND(B${rn}/F${rn}*100,0)&"%")` };
+  });
+
+  wsRes.addRow([]);
+  const ultimaLinhaRes = primeiraLinhaRes + unidsExcel.length - 1;
+  const totalRow = wsRes.addRow([
+    'TOTAL GERAL',
+    { formula: `SUM(B${primeiraLinhaRes}:B${ultimaLinhaRes})` },
+    { formula: `SUM(C${primeiraLinhaRes}:C${ultimaLinhaRes})` },
+    { formula: `SUM(D${primeiraLinhaRes}:D${ultimaLinhaRes})` },
+    { formula: `SUM(E${primeiraLinhaRes}:E${ultimaLinhaRes})` },
+    { formula: `SUM(F${primeiraLinhaRes}:F${ultimaLinhaRes})` },
+  ]);
+  totalRow.font = { bold: true };
+  const trn = totalRow.number;
+  wsRes.getCell('G' + trn).value = { formula: `IF(F${trn}=0,"0%",ROUND(B${trn}/F${trn}*100,0)&"%")` };
+  wsRes.columns = [{width:20},{width:12},{width:16},{width:10},{width:12},{width:10},{width:12}];
+  wsRes.autoFilter = { from: { row: hdrRes.number, column: 1 }, to: { row: hdrRes.number, column: 7 } };
+
+  // ── ABA 3: CHECKLIST COMPLETO — fica por último; serve principalmente de
+  // referência para as fórmulas do "Resumo por Unidade" acima ──
   const wsAll = wb.addWorksheet('Checklist Completo');
   wsAll.mergeCells('A1:H1');
   wsAll.getCell('A1').value = 'CHECKLIST COMPLETO - VISTORIA';
@@ -2512,38 +2581,6 @@ async function gerarExcel() {
   wsAll.columns = [{width:14},{width:24},{width:22},{width:34},{width:22},{width:28},{width:34},{width:14}];
   wsAll.autoFilter = { from: { row: hdrAll.number, column: 1 }, to: { row: hdrAll.number, column: 8 } };
   if (linhas.length) aplicarListaSuspensa(wsAll, 'C', primeiraLinhaAll, primeiraLinhaAll + linhas.length - 1, EQUIPE_OPCOES);
-
-  // ── ABA 3: RESUMO POR UNIDADE ──
-  const wsRes = wb.addWorksheet('Resumo por Unidade');
-  wsRes.addRow(['RESUMO DA VISTORIA']).font = { bold: true, size: 14 };
-  wsRes.addRow(['Obra', obra]);
-  wsRes.addRow(['Construtora', construtora]);
-  wsRes.addRow(['Cliente', cliente]);
-  wsRes.addRow(['Data', dataVist]);
-  wsRes.addRow(['Vistoriadora', vistoriadora]);
-  wsRes.addRow([]);
-  const hdrRes = wsRes.addRow(['UNIDADE', 'CONFORMES', 'NAO CONFORMES', 'N/A', 'PENDENTES', 'TOTAL', '% CONFORM.']);
-  estilizarCabecalho(hdrRes);
-  const unidsExcel = [...new Set(linhas.map(l => l.unidade))].sort();
-  unidsExcel.forEach(u => {
-    const sub = linhas.filter(l => l.unidade === u);
-    const c = sub.filter(l => l.status==='conf').length;
-    const n = sub.filter(l => l.status==='nc').length;
-    const na = sub.filter(l => l.status==='na').length;
-    const p2 = sub.filter(l => l.status==='').length;
-    const t = sub.length;
-    wsRes.addRow([u, c, n, na, p2, t, t>0 ? Math.round(c/t*100)+'%' : '0%']);
-  });
-  const tC = linhas.filter(l=>l.status==='conf').length;
-  const tN = linhas.filter(l=>l.status==='nc').length;
-  const tA = linhas.filter(l=>l.status==='na').length;
-  const tP = linhas.filter(l=>l.status==='').length;
-  const tT = linhas.length;
-  wsRes.addRow([]);
-  const totalRow = wsRes.addRow(['TOTAL GERAL', tC, tN, tA, tP, tT, tT>0?Math.round(tC/tT*100)+'%':'0%']);
-  totalRow.font = { bold: true };
-  wsRes.columns = [{width:20},{width:12},{width:16},{width:10},{width:12},{width:10},{width:12}];
-  wsRes.autoFilter = { from: { row: hdrRes.number, column: 1 }, to: { row: hdrRes.number, column: 7 } };
 
   const buffer = await wb.xlsx.writeBuffer();
   const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });

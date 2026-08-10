@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VistoriaApp — Beatriz Lunardi</title>
+<title>Vistoria — Beatriz Lunardi</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <style>
 :root{
   --bg:#F5F3EE;--surface:#FFF;--surface2:#F0EDE8;--border:#E2DDD6;
@@ -168,7 +168,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 @media(max-width:860px){.rel-layout{grid-template-columns:1fr}}
 .rel-doc{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden}
 .rel-head{background:var(--accent);color:#fff;padding:22px 28px;display:flex;align-items:center;gap:14px}
-.rel-logo{width:46px;height:46px;border-radius:12px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
 .rel-sec{padding:20px 28px;border-bottom:1px solid var(--border)}
 .rel-sec:last-child{border-bottom:none}
 .rel-sec-t{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px}
@@ -272,7 +271,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <div class="login-screen" id="login-screen">
   <div class="login-box">
     <div class="login-logo">
-      <div style="font-size:36px;margin-bottom:8px">📐</div>
       <div class="login-logo-t">Vistoria</div>
       <div class="login-logo-s">Entrega de Obra</div>
     </div>
@@ -286,12 +284,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     </div>
     <button class="login-btn" id="login-btn" onclick="fazerLogin()">Entrar →</button>
     <div class="login-err" id="login-err"></div>
-    <div class="login-version">VistoriaApp v3.1 · BL Engenharia Civil</div>
+    <div class="login-version">Vistoria v3.1 · BL Engenharia Civil</div>
   </div>
 </div>
 
 <div class="loading-screen" id="loading">
-  <div class="loading-logo">📐 VistoriaApp</div>
+  <div class="loading-logo">Vistoria</div>
   <div class="spinner"></div>
   <div class="loading-sub" id="loading-msg">Conectando ao banco de dados...</div>
 </div>
@@ -300,7 +298,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <div class="shell">
 
 <aside class="sidebar" id="sidebar">
-  <div class="sb-logo"><div class="sb-logo-t">📐 VistoriaApp</div><div class="sb-logo-s">Entrega de obra</div></div>
+  <div class="sb-logo"><div class="sb-logo-t">Vistoria</div><div class="sb-logo-s">Entrega de obra</div></div>
   <div class="sb-user">
     <div class="avatar">BL</div>
     <div style="flex:1"><div class="av-name" id="sb-name">Beatriz Lunardi</div><div class="av-role" id="sb-email">Engenheira Civil</div></div>
@@ -317,7 +315,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="sb-dot dot-wait" id="sb-dot"></div>
     <span id="sb-status-txt" style="color:rgba(255,255,255,.5);font-size:11px">Conectando...</span>
   </div>
-  <div class="sb-foot">VistoriaApp v3.1 · Supabase</div>
+  <div class="sb-foot">Vistoria v3.1 · Supabase</div>
 </aside>
 
 <div class="main">
@@ -405,10 +403,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <div class="rel-layout">
         <div class="rel-doc">
           <div class="rel-head">
-            <div class="rel-logo">📐</div>
             <div>
               <div style="font-size:17px;font-weight:700">Relatório de Vistoria de Entrega</div>
-              <div style="font-size:12px;opacity:.65;margin-top:2px" id="rel-sub">VistoriaApp</div>
+              <div style="font-size:12px;opacity:.65;margin-top:2px" id="rel-sub">Vistoria</div>
             </div>
           </div>
           <div class="rel-sec">
@@ -1378,7 +1375,7 @@ async function gerarRel() {
   document.getElementById('r-nc').textContent = nc;
   document.getElementById('r-na').textContent = na;
   const now = new Date();
-  document.getElementById('rel-sub').textContent = 'VistoriaApp · ' + now.toLocaleDateString('pt-BR') + ' às ' + now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('rel-sub').textContent = 'Vistoria · ' + now.toLocaleDateString('pt-BR') + ' às ' + now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
   let html = ''; let algum = false;
   comodos.forEach(cm => {
     const ncsCm = ncPorComodo[cm.id];
@@ -1933,7 +1930,7 @@ function pdfSetup() {
       doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...CINZA);
       const nome = document.getElementById('cfg-nome')?.value || 'Beatriz Lunardi';
       const crea = document.getElementById('cfg-crea')?.value || '';
-      doc.text('VistoriaApp  |  ' + nome + (crea ? '  |  ' + crea : ''), ML, PH - 5);
+      doc.text('Vistoria  |  ' + nome + (crea ? '  |  ' + crea : ''), ML, PH - 5);
       doc.text('Pag. ' + i + ' / ' + pageCount, PW - MR, PH - 5, { align: 'right' });
     }
   }
@@ -2355,8 +2352,46 @@ async function gerarPDFUnidade() {
 // ============================================================
 // EXCEL — busca no banco todas as unidades, com coluna de unidade
 // ============================================================
+const STATUS_OPCOES = ['Pendente', 'Em andamento', 'Resolvido', 'Aprovado sob concessão'];
+const STATUS_CORES = {
+  'Pendente': 'FFF8D7DA',
+  'Em andamento': 'FFFFF3CD',
+  'Resolvido': 'FFD4EDDA',
+  'Aprovado sob concessão': 'FFD1ECF1',
+};
+
+function estilizarCabecalho(row) {
+  row.font = { bold: true };
+  row.eachCell(c => {
+    c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEDEBE6' } };
+    c.border = { bottom: { style: 'thin', color: { argb: 'FFCCC7BE' } } };
+  });
+}
+
+// Cria validação (lista suspensa) + formatação condicional por cor no intervalo de status
+function aplicarStatusInterativo(ws, colLetra, primeiraLinha, ultimaLinha) {
+  if (ultimaLinha < primeiraLinha) return;
+  for (let r = primeiraLinha; r <= ultimaLinha; r++) {
+    ws.getCell(colLetra + r).dataValidation = {
+      type: 'list',
+      allowBlank: false,
+      formulae: ['"' + STATUS_OPCOES.join(',') + '"'],
+      showErrorMessage: true,
+      error: 'Escolha um valor da lista.',
+    };
+  }
+  const ref = colLetra + primeiraLinha + ':' + colLetra + ultimaLinha;
+  ws.addConditionalFormatting({
+    ref,
+    rules: STATUS_OPCOES.map((texto, i) => ({
+      type: 'containsText', operator: 'containsText', text: texto, priority: i + 1,
+      style: { fill: { type: 'pattern', pattern: 'solid', bgColor: { argb: STATUS_CORES[texto] } } },
+    })),
+  });
+}
+
 async function gerarExcel() {
-  if (!window.XLSX) { showToast('Aguarde, carregando Excel...'); return; }
+  if (!window.ExcelJS) { showToast('Aguarde, carregando Excel...'); return; }
   if (!vistoriaAtiva) { showToast('Abra uma vistoria primeiro!'); return; }
   showToast('Gerando planilha...');
 
@@ -2398,59 +2433,54 @@ async function gerarExcel() {
   });
   linhas.sort((a, b) => a._ord - b._ord || a.unidade.localeCompare(b.unidade));
 
-  const wb = XLSX.utils.book_new();
+  const wb = new ExcelJS.Workbook();
 
-  // ── ABA 1: PENDENCIAS — NCs com coluna de unidade ──
-  // Ordenar por serviço primeiro, depois unidade
+  // ── ABA 1: PENDENCIAS — NCs com coluna de unidade, filtro e status interativo ──
   const linhasNC = linhas.filter(l => l.status === 'nc')
     .sort((a,b) => (a.servico||'zzz').localeCompare(b.servico||'zzz') || a.unidade.localeCompare(b.unidade));
 
-  const rowsNC = [
-    ['CHECK LIST - VISTORIA DE OBRA'],
-    [],
-    ['Obra:', obra, '', 'Construtora:', construtora],
-    ['Cliente:', cliente, '', 'Data:', dataVist],
-    ['Vistoriadora:', vistoriadora],
-    [],
-    ['UNIDADE / APTO', 'SERVICO / EQUIPE', 'ITEM', 'AMBIENTE', 'CRITERIO', 'OBSERVACAO DO VISTORIADOR', 'RESPONSAVEL', 'STATUS'],
-  ];
-  linhasNC.forEach(l => {
-    rowsNC.push([l.unidade, l.servico||'—', l.item, l.comodo, l.criterio, l.obs, '', 'Pendente']);
-  });
-  if (rowsNC.length === 8) rowsNC.push(['Nenhuma nao conformidade registrada.']);
-  const wsNC = XLSX.utils.aoa_to_sheet(rowsNC);
-  wsNC['!cols'] = [{ wch: 14 }, { wch: 24 }, { wch: 34 }, { wch: 22 }, { wch: 28 }, { wch: 34 }, { wch: 18 }, { wch: 12 }];
-  wsNC['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 7 } }];
-  XLSX.utils.book_append_sheet(wb, wsNC, 'Pendencias');
+  const wsNC = wb.addWorksheet('Pendencias');
+  wsNC.mergeCells('A1:H1');
+  wsNC.getCell('A1').value = 'CHECK LIST - VISTORIA DE OBRA';
+  wsNC.getCell('A1').font = { bold: true, size: 14 };
+  wsNC.addRow([]);
+  wsNC.addRow(['Obra:', obra, '', 'Construtora:', construtora]);
+  wsNC.addRow(['Cliente:', cliente, '', 'Data:', dataVist]);
+  wsNC.addRow(['Vistoriadora:', vistoriadora]);
+  wsNC.addRow([]);
+  const hdrNC = wsNC.addRow(['UNIDADE / APTO', 'SERVICO / EQUIPE', 'ITEM', 'AMBIENTE', 'CRITERIO', 'OBSERVACAO DO VISTORIADOR', 'RESPONSAVEL', 'STATUS']);
+  estilizarCabecalho(hdrNC);
+  const primeiraLinhaNC = hdrNC.number + 1;
+  linhasNC.forEach(l => wsNC.addRow([l.unidade, l.servico||'—', l.item, l.comodo, l.criterio, l.obs, '', 'Pendente']));
+  if (!linhasNC.length) wsNC.addRow(['Nenhuma nao conformidade registrada.']);
+  wsNC.columns = [{width:14},{width:24},{width:34},{width:22},{width:28},{width:34},{width:18},{width:16}];
+  wsNC.autoFilter = { from: { row: hdrNC.number, column: 1 }, to: { row: hdrNC.number, column: 8 } };
+  if (linhasNC.length) aplicarStatusInterativo(wsNC, 'H', primeiraLinhaNC, primeiraLinhaNC + linhasNC.length - 1);
 
   // ── ABA 2: CHECKLIST COMPLETO — com coluna de unidade e serviço ──
-  const rowsAll = [
-    ['CHECKLIST COMPLETO - VISTORIA'],
-    [],
-    ['Obra:', obra, '', 'Data:', dataVist],
-    [],
-    ['UNIDADE / APTO', 'SERVICO / EQUIPE', 'ITEM', 'AMBIENTE', 'CRITERIO', 'OBSERVACAO DO VISTORIADOR', 'STATUS'],
-  ];
-  linhas.forEach(l => {
-    rowsAll.push([l.unidade, l.servico||'—', l.item, l.comodo, l.criterio, l.obs, statusLabel[l.status]]);
-  });
-  const wsAll = XLSX.utils.aoa_to_sheet(rowsAll);
-  wsAll['!cols'] = [{ wch: 14 }, { wch: 24 }, { wch: 34 }, { wch: 22 }, { wch: 28 }, { wch: 34 }, { wch: 14 }];
-  wsAll['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 6 } }];
-  XLSX.utils.book_append_sheet(wb, wsAll, 'Checklist Completo');
+  const wsAll = wb.addWorksheet('Checklist Completo');
+  wsAll.mergeCells('A1:G1');
+  wsAll.getCell('A1').value = 'CHECKLIST COMPLETO - VISTORIA';
+  wsAll.getCell('A1').font = { bold: true, size: 14 };
+  wsAll.addRow(['Obra:', obra, '', 'Data:', dataVist]);
+  wsAll.addRow([]);
+  const hdrAll = wsAll.addRow(['UNIDADE / APTO', 'SERVICO / EQUIPE', 'ITEM', 'AMBIENTE', 'CRITERIO', 'OBSERVACAO DO VISTORIADOR', 'STATUS']);
+  estilizarCabecalho(hdrAll);
+  linhas.forEach(l => wsAll.addRow([l.unidade, l.servico||'—', l.item, l.comodo, l.criterio, l.obs, statusLabel[l.status]]));
+  wsAll.columns = [{width:14},{width:24},{width:34},{width:22},{width:28},{width:34},{width:14}];
+  wsAll.autoFilter = { from: { row: hdrAll.number, column: 1 }, to: { row: hdrAll.number, column: 7 } };
 
   // ── ABA 3: RESUMO POR UNIDADE ──
-  const rowsRes = [
-    ['RESUMO DA VISTORIA'],
-    [],
-    ['Obra', obra],
-    ['Construtora', construtora],
-    ['Cliente', cliente],
-    ['Data', dataVist],
-    ['Vistoriadora', vistoriadora],
-    [],
-    ['UNIDADE', 'CONFORMES', 'NAO CONFORMES', 'N/A', 'PENDENTES', 'TOTAL', '% CONFORM.'],
-  ];
+  const wsRes = wb.addWorksheet('Resumo por Unidade');
+  wsRes.addRow(['RESUMO DA VISTORIA']).font = { bold: true, size: 14 };
+  wsRes.addRow(['Obra', obra]);
+  wsRes.addRow(['Construtora', construtora]);
+  wsRes.addRow(['Cliente', cliente]);
+  wsRes.addRow(['Data', dataVist]);
+  wsRes.addRow(['Vistoriadora', vistoriadora]);
+  wsRes.addRow([]);
+  const hdrRes = wsRes.addRow(['UNIDADE', 'CONFORMES', 'NAO CONFORMES', 'N/A', 'PENDENTES', 'TOTAL', '% CONFORM.']);
+  estilizarCabecalho(hdrRes);
   const unidsExcel = [...new Set(linhas.map(l => l.unidade))].sort();
   unidsExcel.forEach(u => {
     const sub = linhas.filter(l => l.unidade === u);
@@ -2459,20 +2489,27 @@ async function gerarExcel() {
     const na = sub.filter(l => l.status==='na').length;
     const p2 = sub.filter(l => l.status==='').length;
     const t = sub.length;
-    rowsRes.push([u, c, n, na, p2, t, t>0 ? Math.round(c/t*100)+'%' : '0%']);
+    wsRes.addRow([u, c, n, na, p2, t, t>0 ? Math.round(c/t*100)+'%' : '0%']);
   });
   const tC = linhas.filter(l=>l.status==='conf').length;
   const tN = linhas.filter(l=>l.status==='nc').length;
   const tA = linhas.filter(l=>l.status==='na').length;
   const tP = linhas.filter(l=>l.status==='').length;
   const tT = linhas.length;
-  rowsRes.push([]);
-  rowsRes.push(['TOTAL GERAL', tC, tN, tA, tP, tT, tT>0?Math.round(tC/tT*100)+'%':'0%']);
-  const wsRes = XLSX.utils.aoa_to_sheet(rowsRes);
-  wsRes['!cols'] = [{ wch: 20 }, { wch: 12 }, { wch: 16 }, { wch: 10 }, { wch: 12 }, { wch: 10 }, { wch: 12 }];
-  XLSX.utils.book_append_sheet(wb, wsRes, 'Resumo por Unidade');
+  wsRes.addRow([]);
+  const totalRow = wsRes.addRow(['TOTAL GERAL', tC, tN, tA, tP, tT, tT>0?Math.round(tC/tT*100)+'%':'0%']);
+  totalRow.font = { bold: true };
+  wsRes.columns = [{width:20},{width:12},{width:16},{width:10},{width:12},{width:10},{width:12}];
+  wsRes.autoFilter = { from: { row: hdrRes.number, column: 1 }, to: { row: hdrRes.number, column: 7 } };
 
-  XLSX.writeFile(wb, 'Checklist_' + obra.replace(/[^a-zA-Z0-9]/g,'_') + '_' + new Date().toLocaleDateString('pt-BR').replace(/\//g,'-') + '.xlsx');
+  const buffer = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'Checklist_' + obra.replace(/[^a-zA-Z0-9]/g,'_') + '_' + new Date().toLocaleDateString('pt-BR').replace(/\//g,'-') + '.xlsx';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
   showToast('Planilha Excel gerada!');
 }
 </script>

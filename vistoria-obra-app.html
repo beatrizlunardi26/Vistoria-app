@@ -428,7 +428,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
             </div>
           </div>
           <div class="rel-sec">
-            <div class="rel-sec-t">Não conformidades por local</div>
+            <div class="rel-sec-t">Não conformidades por ambientes</div>
             <div id="rel-nc-body"><div class="rel-empty">✅ Nenhuma não conformidade registrada.</div></div>
           </div>
           <div class="rel-sec">
@@ -450,7 +450,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
           <div class="send-panel">
             <div class="sp-head">Exportar relatório</div>
             <button class="si" onclick="gerarPDFApto()"><div><div class="si-n">PDF — Parecer Geral (Checklist Completo)</div><div class="si-d">Todos os itens do checklist, com o status de cada um</div></div><span class="si-arr">›</span></button>
-            <button class="si" onclick="gerarPDF()"><div><div class="si-n">PDF — Não Conformidades Gerais</div><div class="si-d">Lista das pendências encontradas, agrupadas por local</div></div><span class="si-arr">›</span></button>
+            <button class="si" onclick="gerarPDF()"><div><div class="si-n">PDF — Não Conformidades Gerais por Ambientes</div><div class="si-d">Lista das pendências encontradas, agrupadas por ambientes</div></div><span class="si-arr">›</span></button>
             <button class="si" onclick="gerarPDFUnidade()"><div><div class="si-n">PDF — Não conformidades por unidade</div><div class="si-d">Pendências agrupadas por apartamento</div></div><span class="si-arr">›</span></button>
             <button class="si" onclick="gerarExcel()"><div><div class="si-n">Excel — Checklist de pendências</div><div class="si-d">Planilha com serviços e unidades</div></div><span class="si-arr">›</span></button>
           </div>
@@ -2125,10 +2125,10 @@ async function gerarPDF() {
   const p = pdfSetup();
   const { doc, ML, MR, PW, CW, VERDE, DANGER, CINZA, CINZA_CLARO, TEXTO } = p;
   const obra = document.getElementById('rel-obra')?.textContent || 'Vistoria';
-  p.cabecalho('Relatorio de Nao Conformidades Gerais', 'BL Engenharia Civil  |  ' + obra);
+  p.cabecalho('Relatorio de Nao Conformidades Gerais por Ambientes', 'BL Engenharia Civil  |  ' + obra);
   p.blocoIdent();
   p.blocoResumo();
-  p.tituloGrande('Não conformidades por local', 'Todas as unidades');
+  p.tituloGrande('Não conformidades por ambientes', 'Todas as unidades');
 
   const ncPorComodo = {};
   let totalNc = 0;
@@ -2368,18 +2368,54 @@ function estilizarCabecalho(row) {
   });
 }
 
-// Cria validação (lista suspensa) + formatação condicional por cor no intervalo de status
-function aplicarStatusInterativo(ws, colLetra, primeiraLinha, ultimaLinha) {
+// Categorias amplas de "frente de serviço" (contrato/equipe) — mais gerais que o
+// campo "serviço" detalhado do item. Classificação é uma pré-seleção automática
+// por palavra-chave; a coluna fica com lista suspensa para a usuária corrigir.
+const EQUIPE_OPCOES = ['Revestimento','Pintura','Elétrica','Hidráulica','Esquadrias','Impermeabilização','Marcenaria','Serralheria','Elevadores','PPCI/Segurança','Gás','Automação','Paisagismo','Limpeza','Acabamento Geral'];
+
+function classificarEquipe(nomeItem, servico, comodoNome) {
+  const textoItem = ((nomeItem||'') + ' ' + (servico||'')).toLowerCase();
+  const textoComCm = textoItem + ' ' + (comodoNome||'').toLowerCase();
+  const regras = [
+    [/portã[oe] automátic|portao automatic|portõe.{0,3}automátic|automaç|automac/, 'Automação'],
+    [/guarda-corpo|guarda corpo|grade|\bmuro|gradil|portã[oe]|portao|portoe/, 'Serralheria'],
+    [/elétric|eletric|tomada|interruptor|quadro elétrico|quadro eletrico|circuito|iluminaç|iluminac|ponto de luz|aterramento|gerador|central de mediç|central de medic|entrada de energia|interfone/, 'Elétrica'],
+    [/\bgás\b|\bgas\b/, 'Gás'],
+    [/hidráulic|hidraulic|torneira|registro|sifão|sifao|\bralo|caixa de|bomba|reservatório|reservatorio|barrilete|booster|\btanque|vaso sanitário|vaso sanitario|lavatório|lavatorio|\bcuba|drenagem|máquina de lavar|maquina de lavar|aquecedor|metais\b/, 'Hidráulica'],
+    [/extintor|ppci|corta-fogo|corta fogo|hidrante|mangotinho|alarme|detecç|detecc|rota de fuga|sinalização ppci|sinalizacao ppci|luz de emergência|luz de emergencia/, 'PPCI/Segurança'],
+    [/elevador/, 'Elevadores'],
+    [/impermeabiliz|platibanda|\blaje|rufo|calha|telha/, 'Impermeabilização'],
+    [/\bpiso|revestimento|cerâmic|ceramic|rodapé|rodape|soleira|baguete|caimento|escoamento/, 'Revestimento'],
+    [/pintura/, 'Pintura'],
+    [/\bporta|janela|esquadria|vidro/, 'Esquadrias'],
+    [/bancada|marcenaria/, 'Marcenaria'],
+    [/jardim|paisagismo|calçada|calcada|área externa|area externa/, 'Paisagismo'],
+    [/limpeza/, 'Limpeza'],
+  ];
+  // Prioriza o texto do próprio item; o nome do cômodo só entra como último
+  // recurso, pra não deixar um cômodo que mistura assuntos (ex: "Gás,
+  // interfone e acessos automatizados") arrastar itens vizinhos pro rumo errado.
+  for (const [re, cat] of regras) if (re.test(textoItem)) return cat;
+  for (const [re, cat] of regras) if (re.test(textoComCm)) return cat;
+  return 'Acabamento Geral';
+}
+
+// Aplica lista suspensa simples (sem cor) num intervalo de células
+function aplicarListaSuspensa(ws, colLetra, primeiraLinha, ultimaLinha, opcoes) {
   if (ultimaLinha < primeiraLinha) return;
   for (let r = primeiraLinha; r <= ultimaLinha; r++) {
     ws.getCell(colLetra + r).dataValidation = {
-      type: 'list',
-      allowBlank: false,
-      formulae: ['"' + STATUS_OPCOES.join(',') + '"'],
-      showErrorMessage: true,
-      error: 'Escolha um valor da lista.',
+      type: 'list', allowBlank: false,
+      formulae: ['"' + opcoes.join(',') + '"'],
+      showErrorMessage: true, error: 'Escolha um valor da lista.',
     };
   }
+}
+
+// Cria validação (lista suspensa) + formatação condicional por cor no intervalo de status
+function aplicarStatusInterativo(ws, colLetra, primeiraLinha, ultimaLinha) {
+  if (ultimaLinha < primeiraLinha) return;
+  aplicarListaSuspensa(ws, colLetra, primeiraLinha, ultimaLinha, STATUS_OPCOES);
   const ref = colLetra + primeiraLinha + ':' + colLetra + ultimaLinha;
   ws.addConditionalFormatting({
     ref,
@@ -2417,16 +2453,17 @@ async function gerarExcel() {
   comodos.forEach(cm => {
     cm.itens.forEach(it => {
       const respItem = (todasRespostas||[]).filter(r => r.item_id === it.id && r.item_ativo !== false);
+      const equipe = classificarEquipe(it.nome, it.servico, cm.nome);
       if (!respItem.length) {
         // sem resposta → pendente geral
         linhas.push({ unidade: unidades.length ? 'Geral' : '—', comodo: cm.nome,
-          item: it.nome, servico: it.servico||'', criterio: it.criterio||'', obs: '', status: '', _ord: 3 });
+          item: it.nome, servico: it.servico||'', equipe, criterio: it.criterio||'', obs: '', status: '', _ord: 3 });
       } else {
         respItem.forEach(r => {
           const st = statusDbParaLocal(r.status);
           const unidNome = r.unidade_id ? (nomeUnid[r.unidade_id] || r.unidade_id) : 'Geral';
           linhas.push({ unidade: unidNome, comodo: cm.nome, item: it.nome,
-            servico: it.servico||'', criterio: it.criterio||'', obs: r.observacao||'', status: st, _ord: ordemStatus[st] });
+            servico: it.servico||'', equipe, criterio: it.criterio||'', obs: r.observacao||'', status: st, _ord: ordemStatus[st] });
         });
       }
     });
@@ -2440,7 +2477,7 @@ async function gerarExcel() {
     .sort((a,b) => (a.servico||'zzz').localeCompare(b.servico||'zzz') || a.unidade.localeCompare(b.unidade));
 
   const wsNC = wb.addWorksheet('Pendencias');
-  wsNC.mergeCells('A1:H1');
+  wsNC.mergeCells('A1:I1');
   wsNC.getCell('A1').value = 'CHECK LIST - VISTORIA DE OBRA';
   wsNC.getCell('A1').font = { bold: true, size: 14 };
   wsNC.addRow([]);
@@ -2448,27 +2485,33 @@ async function gerarExcel() {
   wsNC.addRow(['Cliente:', cliente, '', 'Data:', dataVist]);
   wsNC.addRow(['Vistoriadora:', vistoriadora]);
   wsNC.addRow([]);
-  const hdrNC = wsNC.addRow(['UNIDADE / APTO', 'SERVICO / EQUIPE', 'ITEM', 'AMBIENTE', 'CRITERIO', 'OBSERVACAO DO VISTORIADOR', 'RESPONSAVEL', 'STATUS']);
+  const hdrNC = wsNC.addRow(['UNIDADE / APTO', 'SERVIÇO', 'FRENTE DE SERVIÇO (EQUIPE)', 'ITEM', 'AMBIENTE', 'CRITERIO', 'OBSERVACAO DO VISTORIADOR', 'RESPONSAVEL', 'STATUS']);
   estilizarCabecalho(hdrNC);
   const primeiraLinhaNC = hdrNC.number + 1;
-  linhasNC.forEach(l => wsNC.addRow([l.unidade, l.servico||'—', l.item, l.comodo, l.criterio, l.obs, '', 'Pendente']));
+  linhasNC.forEach(l => wsNC.addRow([l.unidade, l.servico||'—', l.equipe, l.item, l.comodo, l.criterio, l.obs, '', 'Pendente']));
   if (!linhasNC.length) wsNC.addRow(['Nenhuma nao conformidade registrada.']);
-  wsNC.columns = [{width:14},{width:24},{width:34},{width:22},{width:28},{width:34},{width:18},{width:16}];
-  wsNC.autoFilter = { from: { row: hdrNC.number, column: 1 }, to: { row: hdrNC.number, column: 8 } };
-  if (linhasNC.length) aplicarStatusInterativo(wsNC, 'H', primeiraLinhaNC, primeiraLinhaNC + linhasNC.length - 1);
+  wsNC.columns = [{width:14},{width:24},{width:22},{width:34},{width:22},{width:28},{width:34},{width:18},{width:16}];
+  wsNC.autoFilter = { from: { row: hdrNC.number, column: 1 }, to: { row: hdrNC.number, column: 9 } };
+  if (linhasNC.length) {
+    const ultimaLinhaNC = primeiraLinhaNC + linhasNC.length - 1;
+    aplicarListaSuspensa(wsNC, 'C', primeiraLinhaNC, ultimaLinhaNC, EQUIPE_OPCOES);
+    aplicarStatusInterativo(wsNC, 'I', primeiraLinhaNC, ultimaLinhaNC);
+  }
 
-  // ── ABA 2: CHECKLIST COMPLETO — com coluna de unidade e serviço ──
+  // ── ABA 2: CHECKLIST COMPLETO — com coluna de unidade, serviço e equipe ──
   const wsAll = wb.addWorksheet('Checklist Completo');
-  wsAll.mergeCells('A1:G1');
+  wsAll.mergeCells('A1:H1');
   wsAll.getCell('A1').value = 'CHECKLIST COMPLETO - VISTORIA';
   wsAll.getCell('A1').font = { bold: true, size: 14 };
   wsAll.addRow(['Obra:', obra, '', 'Data:', dataVist]);
   wsAll.addRow([]);
-  const hdrAll = wsAll.addRow(['UNIDADE / APTO', 'SERVICO / EQUIPE', 'ITEM', 'AMBIENTE', 'CRITERIO', 'OBSERVACAO DO VISTORIADOR', 'STATUS']);
+  const hdrAll = wsAll.addRow(['UNIDADE / APTO', 'SERVIÇO', 'FRENTE DE SERVIÇO (EQUIPE)', 'ITEM', 'AMBIENTE', 'CRITERIO', 'OBSERVACAO DO VISTORIADOR', 'STATUS']);
   estilizarCabecalho(hdrAll);
-  linhas.forEach(l => wsAll.addRow([l.unidade, l.servico||'—', l.item, l.comodo, l.criterio, l.obs, statusLabel[l.status]]));
-  wsAll.columns = [{width:14},{width:24},{width:34},{width:22},{width:28},{width:34},{width:14}];
-  wsAll.autoFilter = { from: { row: hdrAll.number, column: 1 }, to: { row: hdrAll.number, column: 7 } };
+  const primeiraLinhaAll = hdrAll.number + 1;
+  linhas.forEach(l => wsAll.addRow([l.unidade, l.servico||'—', l.equipe, l.item, l.comodo, l.criterio, l.obs, statusLabel[l.status]]));
+  wsAll.columns = [{width:14},{width:24},{width:22},{width:34},{width:22},{width:28},{width:34},{width:14}];
+  wsAll.autoFilter = { from: { row: hdrAll.number, column: 1 }, to: { row: hdrAll.number, column: 8 } };
+  if (linhas.length) aplicarListaSuspensa(wsAll, 'C', primeiraLinhaAll, primeiraLinhaAll + linhas.length - 1, EQUIPE_OPCOES);
 
   // ── ABA 3: RESUMO POR UNIDADE ──
   const wsRes = wb.addWorksheet('Resumo por Unidade');

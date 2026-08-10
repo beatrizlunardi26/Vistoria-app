@@ -284,7 +284,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     </div>
     <button class="login-btn" id="login-btn" onclick="fazerLogin()">Entrar →</button>
     <div class="login-err" id="login-err"></div>
-    <div class="login-version">Vistoria v3.1 · BL Engenharia Civil</div>
+    <div class="login-version">Vistoria v3.1 · Puel Engenharia</div>
   </div>
 </div>
 
@@ -492,11 +492,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <div class="cfg-card">
           <div class="cfg-head">🏢 Escritório</div>
           <div class="cfg-body">
-            <div class="fl">Nome</div><input class="fi" value="BL Engenharia Civil">
-            <div class="fl">CNPJ</div><input class="fi" value="00.000.000/0001-00">
-            <div class="fl">Cidade</div><input class="fi" value="Florianópolis, SC">
+            <div class="fl">Nome</div><input class="fi" id="esc-nome" value="">
+            <div class="fl">CNPJ</div><input class="fi" id="esc-cnpj" value="">
+            <div class="fl">Cidade</div><input class="fi" id="esc-cidade" value="">
             <div class="fl">Logotipo</div>
-            <button class="btn" style="width:100%;justify-content:center;margin-top:4px" onclick="showToast('📎 Upload em breve!')">+ Carregar logotipo</button>
+            <img id="esc-logo-preview" style="max-width:100%;max-height:70px;border-radius:6px;margin-bottom:6px;display:none">
+            <input type="file" id="esc-logo-file" accept="image/*" style="display:none" onchange="onLogoSelected(event)">
+            <button class="btn" style="width:100%;justify-content:center;margin-top:4px" id="esc-logo-btn" onclick="document.getElementById('esc-logo-file').click()">+ Carregar logotipo</button>
           </div>
         </div>
         <div class="cfg-card">
@@ -652,6 +654,7 @@ let unidadeAtiva = null;
 let engId = null;
 let engRole = 'usuario';
 let adminModeloAtual = null;
+let escritorio = { nome: 'Puel Engenharia', cnpj: '', cidade: '', logo_url: '' };
 
 function isAdmin() { return engRole === 'admin'; }
 
@@ -697,6 +700,8 @@ async function init() {
       }
     }
     setStatus(true);
+    setLoading('Carregando dados do escritório...');
+    await carregarEscritorio();
     setLoading('Carregando modelos de checklist...');
     await carregarModelos();
     setLoading('Carregando obras...');
@@ -1652,7 +1657,54 @@ async function salvarConfiguracoes() {
   const { error } = await db.from('engenheiras').update({ nome }).eq('id', engId);
   if (error) { showToast('❌ Erro ao salvar: ' + error.message); return; }
   updNome(nome);
+  await salvarEscritorio();
   showToast('✅ Configurações salvas!');
+}
+
+// ============================================================
+// ESCRITÓRIO — dados/nome/logo da empresa, compartilhados por todas as
+// engenheiras (linha única na tabela `escritorio`, id fixo = 1)
+// ============================================================
+async function carregarEscritorio() {
+  const { data, error } = await db.from('escritorio').select('*').eq('id', 1).maybeSingle();
+  if (error) { console.warn('Tabela escritorio ainda não existe/foi migrada:', error.message); return; }
+  if (!data) return;
+  escritorio = { nome: data.nome || 'Puel Engenharia', cnpj: data.cnpj || '', cidade: data.cidade || '', logo_url: data.logo_url || '' };
+  document.getElementById('esc-nome').value = escritorio.nome;
+  document.getElementById('esc-cnpj').value = escritorio.cnpj;
+  document.getElementById('esc-cidade').value = escritorio.cidade;
+  if (escritorio.logo_url) {
+    document.getElementById('esc-logo-preview').src = escritorio.logo_url;
+    document.getElementById('esc-logo-preview').style.display = 'block';
+    document.getElementById('esc-logo-btn').textContent = '↻ Trocar logotipo';
+  }
+}
+
+async function salvarEscritorio() {
+  const nome = document.getElementById('esc-nome')?.value.trim() || 'Puel Engenharia';
+  const cnpj = document.getElementById('esc-cnpj')?.value.trim() || '';
+  const cidade = document.getElementById('esc-cidade')?.value.trim() || '';
+  const { error } = await db.from('escritorio').upsert({ id: 1, nome, cnpj, cidade });
+  if (error) { console.warn('Erro ao salvar escritorio:', error.message); return; }
+  escritorio.nome = nome; escritorio.cnpj = cnpj; escritorio.cidade = cidade;
+}
+
+async function onLogoSelected(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  showToast('📤 Enviando logotipo...');
+  const path = 'escritorio/logo.jpg';
+  const { error } = await db.storage.from(FOTOS_BUCKET).upload(path, file, { contentType: file.type || 'image/jpeg', upsert: true });
+  if (error) { showToast('❌ Erro ao enviar logotipo: ' + error.message); return; }
+  const { data: pub } = db.storage.from(FOTOS_BUCKET).getPublicUrl(path);
+  const url = pub.publicUrl + '?t=' + Date.now();
+  const { error: updErr } = await db.from('escritorio').upsert({ id: 1, logo_url: url });
+  if (updErr) { showToast('❌ Erro ao salvar logotipo: ' + updErr.message); return; }
+  escritorio.logo_url = url;
+  document.getElementById('esc-logo-preview').src = url;
+  document.getElementById('esc-logo-preview').style.display = 'block';
+  document.getElementById('esc-logo-btn').textContent = '↻ Trocar logotipo';
+  showToast('✅ Logotipo salvo!');
 }
 
 // ============================================================
@@ -2125,7 +2177,7 @@ async function gerarPDF() {
   const p = pdfSetup();
   const { doc, ML, MR, PW, CW, VERDE, DANGER, CINZA, CINZA_CLARO, TEXTO } = p;
   const obra = document.getElementById('rel-obra')?.textContent || 'Vistoria';
-  p.cabecalho('Relatorio de Nao Conformidades Gerais por Ambientes', 'BL Engenharia Civil  |  ' + obra);
+  p.cabecalho('Relatorio de Nao Conformidades Gerais por Ambientes', escritorio.nome + '  |  ' + obra);
   p.blocoIdent();
   p.blocoResumo();
   p.tituloGrande('Não conformidades por ambientes', 'Todas as unidades');
@@ -2185,7 +2237,7 @@ async function gerarPDFApto() {
   const p = pdfSetup();
   const { doc, ML, MR, PW, CW, VERDE, DANGER, CINZA, CINZA_CLARO, TEXTO } = p;
   const obra = document.getElementById('rel-obra')?.textContent || 'Vistoria';
-  p.cabecalho('Parecer Geral - Checklist Completo', 'BL Engenharia Civil  |  ' + obra);
+  p.cabecalho('Parecer Geral - Checklist Completo', escritorio.nome + '  |  ' + obra);
   p.blocoIdent();
   p.blocoResumo();
 
@@ -2279,7 +2331,7 @@ async function gerarPDFUnidade() {
   const p = pdfSetup();
   const { doc, ML, MR, PW, CW, VERDE, DANGER, CINZA, CINZA_CLARO, TEXTO } = p;
   const obra = document.getElementById('rel-obra')?.textContent || 'Vistoria';
-  p.cabecalho('Nao Conformidades por Unidade', 'BL Engenharia Civil  |  ' + obra + '  |  Apenas itens nao conformes');
+  p.cabecalho('Nao Conformidades por Unidade', escritorio.nome + '  |  ' + obra + '  |  Apenas itens nao conformes');
   p.blocoIdent();
 
   // aviso: este relatório lista apenas não conformidades

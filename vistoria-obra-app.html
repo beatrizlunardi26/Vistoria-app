@@ -1423,22 +1423,30 @@ function renderAdminBody() {
   modelo.comodos.forEach(cm => {
     html += `<div class="admin-comodo">
       <div class="admin-comodo-head"><span>${cm.nome}</span></div>
-      <div style="display:grid;grid-template-columns:1fr 220px 180px auto;gap:0;background:var(--surface2);padding:6px 16px;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">
-        <span>Item de verificação</span><span>Serviço / Equipe</span><span>Critério</span><span></span>
+      <div style="display:grid;grid-template-columns:1fr 200px 170px 180px auto;gap:0;background:var(--surface2);padding:6px 16px;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">
+        <span>Item de verificação</span><span>Serviço / Equipe</span><span>Frente de serviço</span><span>Critério</span><span></span>
       </div>`;
     cm.itens.forEach(it => {
       const servico = (it.servico||'').replace(/"/g,'&quot;');
       const criterio = (it.criterio||'').replace(/"/g,'&quot;');
-      html += `<div class="admin-item-row" style="grid-template-columns:1fr 220px 180px auto;display:grid;align-items:center;gap:8px">
+      const equipeAtual = it.equipe || classificarEquipe(it.nome, it.servico, cm.nome);
+      html += `<div class="admin-item-row" style="grid-template-columns:1fr 200px 170px 180px auto;display:grid;align-items:center;gap:8px">
         <input class="admin-item-edit-input" value="${it.nome.replace(/"/g,'&quot;')}" placeholder="Nome do item" onchange="editarItemCampo('${it.id}','nome',this.value)">
         <input class="admin-item-edit-input" value="${servico}" placeholder="Ex: Revestimento cerâmico" onchange="editarItemCampo('${it.id}','servico',this.value)" style="font-size:12px">
+        <select class="admin-item-edit-input" onchange="editarItemCampo('${it.id}','equipe',this.value)" style="font-size:12px">
+          ${EQUIPE_OPCOES.map(op => `<option value="${op}" ${op===equipeAtual?'selected':''}>${op}</option>`).join('')}
+        </select>
         <input class="admin-item-edit-input" value="${criterio}" placeholder="Critério técnico..." onchange="editarItemCampo('${it.id}','criterio',this.value)" style="font-size:11px;color:var(--text2)">
         ${isAdmin() ? `<button class="btn btn-sm btn-danger" onclick="removerItemModelo('${it.id}','${cm.id}')">✕</button>` : '<span></span>'}
       </div>`;
     });
-    html += `<div class="admin-add-item" style="display:grid;grid-template-columns:1fr 220px 180px auto;gap:8px;align-items:center">
+    html += `<div class="admin-add-item" style="display:grid;grid-template-columns:1fr 200px 170px 180px auto;gap:8px;align-items:center">
       <input type="text" placeholder="Nome do novo item..." id="newitem-${cm.id}" style="font-size:12px">
       <input type="text" placeholder="Serviço / Equipe..." id="newserv-${cm.id}" style="font-size:12px;font-family:inherit;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;outline:none">
+      <select id="newequipe-${cm.id}" style="font-size:12px;font-family:inherit;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;outline:none">
+        <option value="">Frente (auto)</option>
+        ${EQUIPE_OPCOES.map(op => `<option value="${op}">${op}</option>`).join('')}
+      </select>
       <input type="text" placeholder="Critério..." id="newcrit-${cm.id}" style="font-size:12px;font-family:inherit;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;outline:none">
       <button class="btn btn-sm btn-p" onclick="adicionarItemModelo('${cm.id}')">+ Add</button>
     </div></div>`;
@@ -1466,20 +1474,23 @@ async function removerItemModelo(itemId, comodoId) {
 async function adicionarItemModelo(comodoId) {
   const input = document.getElementById('newitem-'+comodoId);
   const inpServ = document.getElementById('newserv-'+comodoId);
+  const inpEquipe = document.getElementById('newequipe-'+comodoId);
   const inpCrit = document.getElementById('newcrit-'+comodoId);
   const nome = input.value.trim();
   if (!nome) { showToast('⚠️ Digite o nome do item'); return; }
   const modelo = modelos.find(m=>m.id===adminModeloAtual);
   const comodo = modelo.comodos.find(c=>c.id===comodoId);
   const ordem = comodo.itens.length + 1;
+  const servico = inpServ?.value.trim() || '';
+  const equipe = inpEquipe?.value || classificarEquipe(nome, servico, comodo.nome);
   const { data, error } = await db.from('itens_checklist').insert({
     comodo_id: comodoId, nome, ordem,
-    servico: inpServ?.value.trim() || '',
+    servico, equipe,
     criterio: inpCrit?.value.trim() || ''
   }).select().single();
   if (!error && data) {
     comodo.itens.push(data);
-    input.value = ''; if(inpServ) inpServ.value = ''; if(inpCrit) inpCrit.value = '';
+    input.value = ''; if(inpServ) inpServ.value = ''; if(inpEquipe) inpEquipe.value = ''; if(inpCrit) inpCrit.value = '';
     renderAdminBody();
     showToast('✅ Item adicionado ao modelo!');
   }
@@ -2505,7 +2516,7 @@ async function gerarExcel() {
   comodos.forEach(cm => {
     cm.itens.forEach(it => {
       const respItem = (todasRespostas||[]).filter(r => r.item_id === it.id && r.item_ativo !== false);
-      const equipe = classificarEquipe(it.nome, it.servico, cm.nome);
+      const equipe = it.equipe || classificarEquipe(it.nome, it.servico, cm.nome);
       if (!respItem.length) {
         // sem resposta → pendente geral
         linhas.push({ unidade: unidades.length ? 'Geral' : '—', comodo: cm.nome,

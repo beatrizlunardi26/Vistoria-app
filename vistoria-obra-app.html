@@ -2282,34 +2282,47 @@ function pdfSetup() {
     y += 2; hLine();
   }
 
-  // Barra discreta com o nome do ambiente/cômodo (ou unidade)
+  // Barra de destaque com o nome do grupo (frente de serviço, ambiente ou
+  // unidade) — faixa verde à esquerda + texto na cor da marca, mais
+  // proeminente que os itens abaixo dela.
   function blocoAmbiente(nome, statsTxt) {
-    checkY(15);
-    const h = 9;
+    checkY(16);
+    const h = 10;
     doc.setFillColor(244, 242, 238);
-    doc.roundedRect(ML, y, CW, h, 1.3, 1.3, 'F');
-    doc.setFontSize(13); doc.setFont('helvetica', 'bold'); doc.setTextColor(...TEXTO);
-    doc.text(nome, ML + 4, y + 6);
+    doc.rect(ML, y, CW, h, 'F');
+    doc.setFillColor(...VERDE);
+    doc.rect(ML, y, 2.5, h, 'F');
+    doc.setFontSize(13.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...VERDE);
+    doc.text(nome, ML + 7, y + 6.8);
     if (statsTxt) {
       doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...CINZA);
-      doc.text(statsTxt, PW - MR - 3, y + 6, { align: 'right' });
+      doc.text(statsTxt, PW - MR - 4, y + 6.8, { align: 'right' });
     }
-    y += h + 4;
+    y += h + 5;
   }
 
-  // Cartão de uma não conformidade: título + critério + observação + fotos
-  async function blocoNCItem(unidNome, itNome, criterio, obs, fotos) {
-    checkY(20);
-    const titulo = (unidNome ? unidNome + ' · ' : '') + formatarNomeItem(itNome);
-    const headH = 9.5;
-    doc.setFillColor(253, 238, 238);
-    doc.roundedRect(ML, y, CW, headH, 1.3, 1.3, 'F');
-    doc.setFontSize(12.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...DANGER);
-    doc.text(doc.splitTextToSize(titulo, CW - 34)[0], ML + 4, y + 6.3);
-    doc.setFontSize(8.5); doc.setFillColor(...DANGER); doc.setTextColor(255, 255, 255);
-    doc.roundedRect(PW - MR - 27, y + 2.2, 27, 5.5, 2, 2, 'F');
-    doc.text('NÃO CONFORME', PW - MR - 13.5, y + 6, { align: 'center' });
-    y += headH + 3;
+  // Cartão de uma não conformidade: título + critério + observação + fotos.
+  // Sem vermelho/badge — o relatório inteiro já é só de não conformidades,
+  // não precisa repetir isso em cada item. Só a unidade (se houver) fica em
+  // negrito, pra saber rápido de qual apto é, sem competir com a faixa
+  // verde da frente de serviço/ambiente acima.
+  async function blocoNCItem(unidNome, ambNome, itNome, criterio, obs, fotos) {
+    checkY(16);
+    doc.setFontSize(11.5); doc.setTextColor(...TEXTO);
+    let cx = ML;
+    if (unidNome) {
+      doc.setFont('helvetica', 'bold');
+      doc.text(unidNome, cx, y + 5.5);
+      cx += doc.getTextWidth(unidNome) + 2;
+      doc.setFont('helvetica', 'normal'); doc.setTextColor(...CINZA);
+      doc.text('·', cx, y + 5.5);
+      cx += 4;
+      doc.setTextColor(...TEXTO);
+    }
+    const resto = [ambNome, formatarNomeItem(itNome)].filter(Boolean).join(' · ');
+    doc.setFont('helvetica', 'normal');
+    doc.text(doc.splitTextToSize(resto, CW - (cx - ML))[0], cx, y + 5.5);
+    y += 9;
     if (criterio) {
       doc.setFontSize(9.5); doc.setFont('helvetica', 'italic'); doc.setTextColor(...CINZA);
       const lc = doc.splitTextToSize('Critério: ' + criterio, CW - 4);
@@ -2414,8 +2427,7 @@ async function gerarPDF() {
       const ncs = ncPorFrente[frente];
       p.blocoAmbiente(frente, ncs.length + ' não conforme' + (ncs.length > 1 ? 's' : ''));
       for (const {it, unidNome, ambNome, obs, fotos} of ncs) {
-        const prefixo = [unidNome, ambNome].filter(Boolean).join(' · ');
-        await p.blocoNCItem(prefixo, it.nome, it.criterio, obs, fotos);
+        await p.blocoNCItem(unidNome, ambNome, it.nome, it.criterio, obs, fotos);
       }
     }
   }
@@ -2597,7 +2609,7 @@ async function gerarPDFUnidade() {
       p.blocoAmbiente(cm.nome, ncsCm.length + ' não conforme' + (ncsCm.length > 1 ? 's' : ''));
       for (const it of ncsCm) {
         const e = mapa[it.id];
-        await p.blocoNCItem(null, it.nome, it.criterio, e.obs, e.fotos);
+        await p.blocoNCItem(null, null, it.nome, it.criterio, e.obs, e.fotos);
       }
     }
     p.y += 4;

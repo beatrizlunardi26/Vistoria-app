@@ -1426,6 +1426,7 @@ function renderAdminBody() {
       <div style="display:grid;grid-template-columns:1fr 200px 170px 180px auto;gap:0;background:var(--surface2);padding:6px 16px;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">
         <span>Item de verificação</span><span>Serviço / Equipe</span><span>Frente de serviço</span><span>Critério</span><span></span>
       </div>`;
+    const frentesOpts = frentesDisponiveis();
     cm.itens.forEach(it => {
       const servico = (it.servico||'').replace(/"/g,'&quot;');
       const criterio = (it.criterio||'').replace(/"/g,'&quot;');
@@ -1433,8 +1434,9 @@ function renderAdminBody() {
       html += `<div class="admin-item-row" style="grid-template-columns:1fr 200px 170px 180px auto;display:grid;align-items:center;gap:8px">
         <input class="admin-item-edit-input" value="${it.nome.replace(/"/g,'&quot;')}" placeholder="Nome do item" onchange="editarItemCampo('${it.id}','nome',this.value)">
         <input class="admin-item-edit-input" value="${servico}" placeholder="Ex: Revestimento cerâmico" onchange="editarItemCampo('${it.id}','servico',this.value)" style="font-size:12px">
-        <select class="admin-item-edit-input" onchange="editarItemCampo('${it.id}','equipe',this.value)" style="font-size:12px">
-          ${EQUIPE_OPCOES.map(op => `<option value="${op}" ${op===equipeAtual?'selected':''}>${op}</option>`).join('')}
+        <select class="admin-item-edit-input" onchange="onEquipeSelecionada(this,'${it.id}')" style="font-size:12px">
+          ${frentesOpts.map(op => `<option value="${op}" ${op===equipeAtual?'selected':''}>${op}</option>`).join('')}
+          <option value="__nova__">+ Nova frente...</option>
         </select>
         <input class="admin-item-edit-input" value="${criterio}" placeholder="Critério técnico..." onchange="editarItemCampo('${it.id}','criterio',this.value)" style="font-size:11px;color:var(--text2)">
         ${isAdmin() ? `<button class="btn btn-sm btn-danger" onclick="removerItemModelo('${it.id}','${cm.id}')">✕</button>` : '<span></span>'}
@@ -1443,9 +1445,10 @@ function renderAdminBody() {
     html += `<div class="admin-add-item" style="display:grid;grid-template-columns:1fr 200px 170px 180px auto;gap:8px;align-items:center">
       <input type="text" placeholder="Nome do novo item..." id="newitem-${cm.id}" style="font-size:12px">
       <input type="text" placeholder="Serviço / Equipe..." id="newserv-${cm.id}" style="font-size:12px;font-family:inherit;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;outline:none">
-      <select id="newequipe-${cm.id}" style="font-size:12px;font-family:inherit;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;outline:none">
+      <select id="newequipe-${cm.id}" onchange="onEquipeSelecionada(this,null)" style="font-size:12px;font-family:inherit;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;outline:none">
         <option value="">Frente (auto)</option>
-        ${EQUIPE_OPCOES.map(op => `<option value="${op}">${op}</option>`).join('')}
+        ${frentesOpts.map(op => `<option value="${op}">${op}</option>`).join('')}
+        <option value="__nova__">+ Nova frente...</option>
       </select>
       <input type="text" placeholder="Critério..." id="newcrit-${cm.id}" style="font-size:12px;font-family:inherit;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;outline:none">
       <button class="btn btn-sm btn-p" onclick="adicionarItemModelo('${cm.id}')">+ Add</button>
@@ -1460,6 +1463,37 @@ async function editarItemCampo(itemId, campo, valor) {
   await db.from('itens_checklist').update(upd).eq('id', itemId);
   modelos.forEach(m => m.comodos.forEach(c => c.itens.forEach(i => { if(i.id===itemId) i[campo] = valor; })));
   showSaveInd('✓ Salvo');
+}
+
+// Frentes de serviço = as 15 fixas + qualquer frente "nova" que já tenha sido
+// usada em algum item carregado — assim, uma frente digitada uma vez fica
+// disponível pra escolher em qualquer outro item, sem precisar de tabela própria.
+function frentesDisponiveis() {
+  const extras = new Set();
+  modelos.forEach(m => (m.comodos||[]).forEach(c => (c.itens||[]).forEach(it => {
+    if (it.equipe && !EQUIPE_OPCOES.includes(it.equipe)) extras.add(it.equipe);
+  })));
+  return [...EQUIPE_OPCOES, ...[...extras].sort((a,b) => a.localeCompare(b))];
+}
+
+// Lida com a opção "+ Nova frente..." tanto no select de um item existente
+// (itemId presente, salva direto) quanto no select de novo item (itemId nulo,
+// só injeta a opção no próprio <select> pra ser lida na hora de adicionar).
+async function onEquipeSelecionada(selectEl, itemId) {
+  if (selectEl.value !== '__nova__') {
+    if (itemId) await editarItemCampo(itemId, 'equipe', selectEl.value);
+    return;
+  }
+  const nome = (prompt('Nome da nova frente de serviço:') || '').trim();
+  if (!nome) { if (itemId) renderAdminBody(); else selectEl.value = ''; return; }
+  if (itemId) {
+    await editarItemCampo(itemId, 'equipe', nome);
+    renderAdminBody();
+  } else {
+    const opt = document.createElement('option');
+    opt.value = nome; opt.textContent = nome; opt.selected = true;
+    selectEl.insertBefore(opt, selectEl.lastElementChild);
+  }
 }
 
 async function removerItemModelo(itemId, comodoId) {

@@ -1416,9 +1416,7 @@ function selecionarTodasObrasDash() {
 }
 
 function toggleObraDash(obraId) {
-  obrasSelecionadasDash = obrasSelecionadasDash.includes(obraId)
-    ? obrasSelecionadasDash.filter(id => id !== obraId)
-    : [...obrasSelecionadasDash, obraId];
+  obrasSelecionadasDash = [obraId];
   gerarDashboard();
 }
 

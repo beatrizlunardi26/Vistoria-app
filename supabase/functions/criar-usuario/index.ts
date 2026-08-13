@@ -66,6 +66,13 @@ Deno.serve(async (req) => {
       if (!emailAlvo) throw new Error('E-mail do usuário não informado')
       if (emailAlvo === user.email) throw new Error('Você não pode excluir a própria conta')
 
+      const { data: engAlvo } = await admin
+        .from('engenheiras')
+        .select('role')
+        .eq('email', emailAlvo)
+        .single()
+      if (engAlvo?.role === 'admin') throw new Error('Não é possível excluir uma conta admin — rebaixe para usuário primeiro')
+
       const { data: listaUsers, error: listErr } = await admin.auth.admin.listUsers()
       if (listErr) throw new Error(listErr.message)
       const alvo = listaUsers.users.find((u: { email?: string }) => u.email === emailAlvo)

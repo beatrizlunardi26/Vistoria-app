@@ -1941,7 +1941,7 @@ function renderListaUsuarios(usuarios) {
       <div style="flex:1"><strong>${u.nome||'—'}</strong><br><span style="color:var(--text2)">${u.email}</span></div>
       <span class="badge ${u.role==='admin'?'b-mod':'b-pend'}">${u.role==='admin'?'Admin':'Usuário'}</span>
       ${u.email !== meuEmail ? `<button class="btn btn-sm" onclick="toggleRoleUsuario('${u.email}','${u.role==='admin'?'usuario':'admin'}')">${u.role==='admin'?'Rebaixar':'Promover'}</button>` : ''}
-      ${u.email !== meuEmail ? `<button class="btn btn-sm btn-danger" onclick="excluirUsuario('${u.email}')">Excluir</button>` : ''}
+      ${u.email !== meuEmail && u.role !== 'admin' ? `<button class="btn btn-sm btn-danger" onclick="excluirUsuario('${u.email}')">Excluir</button>` : ''}
     </div>`).join('');
 }
 

@@ -461,6 +461,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
     <!-- INDICADORES -->
     <div class="page" id="p-dashboard">
+      <div id="dash-obra-selector" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px"></div>
       <div id="dash-empty" style="display:none;text-align:center;padding:40px 24px;font-size:13px;color:var(--text3)">Abra uma vistoria para ver os indicadores.</div>
       <div id="dash-content">
         <div class="stats-row">
@@ -1437,38 +1438,103 @@ function escapeHtml(s) {
 }
 
 // ============================================================
-// DASHBOARD — indicadores da vistoria ativa
+// DASHBOARD — indicadores, agregados pelas obras selecionadas
 // ============================================================
+let obrasSelecionadasDash = [];
+
+function renderDashObraChips() {
+  const el = document.getElementById('dash-obra-selector');
+  if (!el) return;
+  const todas = obras.length > 0 && obrasSelecionadasDash.length === obras.length;
+  let html = `<button class="btn btn-sm ${todas?'btn-p':''}" onclick="selecionarTodasObrasDash()">Todas as obras</button>`;
+  html += obras.map(o => {
+    const ativo = obrasSelecionadasDash.includes(o.id);
+    return `<button class="btn btn-sm ${ativo?'btn-p':''}" onclick="toggleObraDash('${o.id}')">${escapeHtml(o.nome)}</button>`;
+  }).join('');
+  el.innerHTML = html;
+}
+
+function selecionarTodasObrasDash() {
+  obrasSelecionadasDash = obras.map(o => o.id);
+  gerarDashboard();
+}
+
+function toggleObraDash(obraId) {
+  obrasSelecionadasDash = obrasSelecionadasDash.includes(obraId)
+    ? obrasSelecionadasDash.filter(id => id !== obraId)
+    : [...obrasSelecionadasDash, obraId];
+  gerarDashboard();
+}
+
 async function gerarDashboard() {
   const empty = document.getElementById('dash-empty');
   const content = document.getElementById('dash-content');
-  if (!vistoriaAtiva) { empty.style.display = ''; content.style.display = 'none'; return; }
-  empty.style.display = 'none'; content.style.display = '';
 
-  const porUnidade = await buscarTodasRespostasPorUnidade();
-  const comodoPorId = {}; comodos.forEach(cm => comodoPorId[cm.id] = cm.nome);
+  if (!obras.length) {
+    empty.textContent = 'Cadastre uma obra para ver os indicadores.';
+    empty.style.display = ''; content.style.display = 'none';
+    renderDashObraChips();
+    return;
+  }
+  if (!obrasSelecionadasDash.length) obrasSelecionadasDash = obras.map(o => o.id);
+  renderDashObraChips();
+
+  const selecionadas = obras.filter(o => obrasSelecionadasDash.includes(o.id));
+  const multiplasObras = selecionadas.length > 1;
   let conf = 0, nc = 0, na = 0, pend = 0;
   const ncPorFrente = {}, ncPorAmbiente = {}, ncPorItem = {}, ncPorUnidade = {};
+  let algumaVistoria = false;
 
-  Object.keys(porUnidade).forEach(chave => {
-    const unidNome = nomeUnidadePorChave(chave) || 'Geral';
-    itens.forEach(it => {
-      const e = porUnidade[chave][it.id];
-      if (!e || e.ativo === false) return;
-      if (e.status === 'conf') conf++;
-      else if (e.status === 'na') na++;
-      else if (e.status === '') pend++;
-      else if (e.status === 'nc') {
-        nc++;
-        const ambNome = comodoPorId[it.comodo_id] || '—';
-        const frente = it.equipe || classificarEquipe(it.nome, it.servico, ambNome);
-        ncPorFrente[frente] = (ncPorFrente[frente]||0) + 1;
-        ncPorAmbiente[ambNome] = (ncPorAmbiente[ambNome]||0) + 1;
-        ncPorItem[it.nome] = (ncPorItem[it.nome]||0) + 1;
-        ncPorUnidade[unidNome] = (ncPorUnidade[unidNome]||0) + 1;
-      }
+  for (const o of selecionadas) {
+    const modelo = modelos.find(m => m.id === o.modelo_checklist_id);
+    if (!modelo) continue;
+    const itensObra = modelo.comodos.flatMap(c => c.itens);
+    const comodoPorId = {}; modelo.comodos.forEach(cm => comodoPorId[cm.id] = cm.nome);
+
+    const { data: visRows } = await db.from('vistorias').select('id').eq('obra_id', o.id).eq('status','em_andamento').limit(1);
+    if (!visRows || !visRows.length) continue;
+    algumaVistoria = true;
+
+    const { data: unidsObra } = await db.from('unidades').select('id,nome').eq('obra_id', o.id);
+    const nomeUnidPorId = {}; (unidsObra||[]).forEach(u => nomeUnidPorId[u.id] = u.nome);
+
+    const { data: todasResp } = await db.from('respostas_itens').select('*').eq('vistoria_id', visRows[0].id);
+    const porUnidade = {};
+    (todasResp||[]).forEach(r => {
+      const key = r.unidade_id || '__geral__';
+      if (!porUnidade[key]) porUnidade[key] = {};
+      porUnidade[key][r.item_id] = { status: statusDbParaLocal(r.status), ativo: r.item_ativo !== false };
     });
-  });
+
+    Object.keys(porUnidade).forEach(chave => {
+      let unidNome = chave === '__geral__' ? ((unidsObra||[]).length ? 'Geral' : '') : (nomeUnidPorId[chave] || chave);
+      if (!unidNome) unidNome = 'Geral';
+      if (multiplasObras) unidNome = o.nome + ' — ' + unidNome;
+      itensObra.forEach(it => {
+        const e = porUnidade[chave][it.id];
+        if (!e || e.ativo === false) return;
+        if (e.status === 'conf') conf++;
+        else if (e.status === 'na') na++;
+        else if (e.status === '') pend++;
+        else if (e.status === 'nc') {
+          nc++;
+          const ambNome = comodoPorId[it.comodo_id] || '—';
+          const frente = it.equipe || classificarEquipe(it.nome, it.servico, ambNome);
+          ncPorFrente[frente] = (ncPorFrente[frente]||0) + 1;
+          ncPorAmbiente[ambNome] = (ncPorAmbiente[ambNome]||0) + 1;
+          ncPorItem[it.nome] = (ncPorItem[it.nome]||0) + 1;
+          ncPorUnidade[unidNome] = (ncPorUnidade[unidNome]||0) + 1;
+        }
+      });
+    });
+  }
+
+  if (!algumaVistoria) {
+    empty.textContent = 'Nenhuma das obras selecionadas tem vistoria aberta ainda.';
+    empty.style.display = ''; content.style.display = 'none';
+    return;
+  }
+  empty.style.display = 'none'; content.style.display = '';
 
   const total = conf + nc + na + pend;
   document.getElementById('dash-pct').textContent = (total>0 ? Math.round(conf/total*100) : 0) + '%';

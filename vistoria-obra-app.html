@@ -431,7 +431,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
           <div class="send-panel">
             <div class="sp-head">Exportar relatório</div>
             <button class="si" onclick="gerarPDFApto()"><div><div class="si-n">PDF — Parecer Geral (Checklist Completo)</div><div class="si-d">Todos os itens do checklist, com o status de cada um</div></div><span class="si-arr">›</span></button>
-            <button class="si" onclick="gerarPDF()"><div><div class="si-n">PDF — Não Conformidades Gerais por Ambientes</div><div class="si-d">Lista das pendências encontradas, agrupadas por ambientes</div></div><span class="si-arr">›</span></button>
+            <button class="si" onclick="gerarPDF()"><div><div class="si-n">PDF — Não Conformidades Gerais por Frente de Serviço</div><div class="si-d">Lista das pendências encontradas, agrupadas por frente de serviço</div></div><span class="si-arr">›</span></button>
             <button class="si" onclick="gerarPDFUnidade()"><div><div class="si-n">PDF — Não conformidades por unidade</div><div class="si-d">Pendências agrupadas por apartamento</div></div><span class="si-arr">›</span></button>
             <button class="si" onclick="gerarExcel()"><div><div class="si-n">Excel — Checklist de pendências</div><div class="si-d">Planilha com serviços e unidades</div></div><span class="si-arr">›</span></button>
           </div>
@@ -2194,7 +2194,7 @@ function pdfSetup() {
     }
   }
   function blocoIdent() {
-    secTitle('IDENTIFICACAO');
+    secTitle('IDENTIFICAÇÃO');
     const fields = [
       ['Obra', document.getElementById('rel-obra')?.textContent || ''],
       ['Construtora', document.getElementById('rel-const')?.textContent || ''],
@@ -2224,8 +2224,8 @@ function pdfSetup() {
     const bw = (CW - 8) / 3;
     const boxes = [
       { label: 'Conformes', val: conf, cor: [46,106,79], fundo: [232,245,238] },
-      { label: 'Nao conformes', val: nc, cor: [181,48,48], fundo: [253,238,238] },
-      { label: 'N/Aplicavel', val: na, cor: [90,74,140], fundo: [238,237,254] },
+      { label: 'Não conformes', val: nc, cor: [181,48,48], fundo: [253,238,238] },
+      { label: 'N/Aplicável', val: na, cor: [90,74,140], fundo: [238,237,254] },
     ];
     boxes.forEach((b, i) => {
       const bx = ML + i * (bw + 4);
@@ -2384,12 +2384,12 @@ async function gerarPDF() {
   const p = pdfSetup();
   const { doc, ML, MR, PW, CW, VERDE, DANGER, CINZA, CINZA_CLARO, TEXTO } = p;
   const obra = document.getElementById('rel-obra')?.textContent || 'Vistoria';
-  p.cabecalho('Relatorio de Nao Conformidades Gerais por Ambientes', escritorio.nome + '  |  ' + obra);
+  p.cabecalho('Relatório de Não Conformidades por Frente de Serviço', escritorio.nome + '  |  ' + obra);
   p.blocoIdent();
   p.blocoResumo();
-  p.tituloGrande('Não conformidades por ambientes', 'Todas as unidades');
+  p.tituloGrande('Não conformidades por frente de serviço', 'Todas as unidades');
 
-  const ncPorComodo = {};
+  const ncPorFrente = {};
   let totalNc = 0;
   Object.keys(porUnidade).forEach(chave => {
     const unidNome = nomeUnidadePorChave(chave);
@@ -2397,22 +2397,25 @@ async function gerarPDF() {
       const e = porUnidade[chave][it.id];
       if (!e || e.ativo === false || e.status !== 'nc') return;
       totalNc++;
-      (ncPorComodo[it.comodo_id] ||= []).push({ it, unidNome, obs: e.obs, fotos: e.fotos });
+      const cm = comodos.find(c => c.id === it.comodo_id);
+      const frente = it.equipe || classificarEquipe(it.nome, it.servico, cm?.nome || '');
+      (ncPorFrente[frente] ||= []).push({ it, unidNome, ambNome: cm?.nome || '', obs: e.obs, fotos: e.fotos });
     });
   });
 
   if (totalNc === 0) {
     doc.setFillColor(232,245,238); doc.roundedRect(ML, p.y, CW, 12, 3, 3, 'F');
     doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(...VERDE);
-    doc.text('Nenhuma nao conformidade registrada!', ML + CW / 2, p.y + 8, { align: 'center' });
+    doc.text('Nenhuma não conformidade registrada!', ML + CW / 2, p.y + 8, { align: 'center' });
     p.y += 18;
   } else {
-    for (const cm of comodos) {
-      const ncs = ncPorComodo[cm.id];
-      if (!ncs || !ncs.length) continue;
-      p.blocoAmbiente(cm.nome, ncs.length + ' não conforme' + (ncs.length > 1 ? 's' : ''));
-      for (const {it, unidNome, obs, fotos} of ncs) {
-        await p.blocoNCItem(unidNome, it.nome, it.criterio, obs, fotos);
+    const frentesOrdenadas = Object.keys(ncPorFrente).sort((a, b) => ncPorFrente[b].length - ncPorFrente[a].length);
+    for (const frente of frentesOrdenadas) {
+      const ncs = ncPorFrente[frente];
+      p.blocoAmbiente(frente, ncs.length + ' não conforme' + (ncs.length > 1 ? 's' : ''));
+      for (const {it, unidNome, ambNome, obs, fotos} of ncs) {
+        const prefixo = [unidNome, ambNome].filter(Boolean).join(' · ');
+        await p.blocoNCItem(prefixo, it.nome, it.criterio, obs, fotos);
       }
     }
   }
@@ -2538,14 +2541,14 @@ async function gerarPDFUnidade() {
   const p = pdfSetup();
   const { doc, ML, MR, PW, CW, VERDE, DANGER, CINZA, CINZA_CLARO, TEXTO } = p;
   const obra = document.getElementById('rel-obra')?.textContent || 'Vistoria';
-  p.cabecalho('Nao Conformidades por Unidade', escritorio.nome + '  |  ' + obra + '  |  Apenas itens nao conformes');
+  p.cabecalho('Não Conformidades por Unidade', escritorio.nome + '  |  ' + obra + '  |  Apenas itens não conformes');
   p.blocoIdent();
 
   // aviso: este relatório lista apenas não conformidades
   const { doc: _d, ML: _ML, CW: _CW, DANGER: _DG } = p;
   _d.setFillColor(253,238,238); _d.roundedRect(_ML, p.y, _CW, 9, 2, 2, 'F');
   _d.setFontSize(8); _d.setFont('helvetica','bold'); _d.setTextColor(..._DG);
-  _d.text('ATENCAO: Este documento lista exclusivamente os itens classificados como Nao Conforme.', _ML + _CW/2, p.y+6, {align:'center'});
+  _d.text('ATENÇÃO: Este documento lista exclusivamente os itens classificados como Não Conforme.', _ML + _CW/2, p.y+6, {align:'center'});
   p.y += 14;
 
   for (let ui = 0; ui < unidades.length; ui++) {
@@ -2584,7 +2587,7 @@ async function gerarPDFUnidade() {
     if (!ncs.length) {
       doc.setFillColor(232,245,238); doc.roundedRect(ML, p.y, CW, 10, 2, 2, 'F');
       doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(46,106,79);
-      doc.text('Sem nao conformidades!', ML+CW/2, p.y+7, {align:'center'});
+      doc.text('Sem não conformidades!', ML+CW/2, p.y+7, {align:'center'});
       p.y += 14; continue;
     }
 

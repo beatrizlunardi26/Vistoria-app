@@ -1543,7 +1543,7 @@ function renderAdminTabs() {
   const tabs = document.getElementById('admin-tabs');
   tabs.innerHTML = modelos.map(m =>
     `<button class="admin-tab ${m.id===adminModeloAtual?'active':''}" onclick="selecionarAdminModelo('${m.id}')">${m.nome}</button>`
-  ).join('') + `<button class="admin-tab" style="border-style:dashed" onclick="novoModelo()">+ Novo modelo</button>`;
+  ).join('') + (isAdmin() ? `<button class="admin-tab" style="border-style:dashed" onclick="novoModelo()">+ Novo modelo</button>` : '');
 }
 function selecionarAdminModelo(id) { adminModeloAtual = id; renderAdminTabs(); renderAdminBody(); }
 
@@ -1559,37 +1559,44 @@ function renderAdminBody() {
         <span>Item de verificação</span><span>Serviço / Equipe</span><span>Frente de serviço</span><span>Critério</span><span></span>
       </div>`;
     const frentesOpts = frentesDisponiveis();
+    const podeEditar = isAdmin();
+    const dis = podeEditar ? '' : 'disabled';
     cm.itens.forEach(it => {
       const servico = (it.servico||'').replace(/"/g,'&quot;');
       const criterio = (it.criterio||'').replace(/"/g,'&quot;');
       const equipeAtual = it.equipe || classificarEquipe(it.nome, it.servico, cm.nome);
       html += `<div class="admin-item-row" style="grid-template-columns:1fr 200px 170px 180px auto;display:grid;align-items:center;gap:8px">
-        <input class="admin-item-edit-input" value="${it.nome.replace(/"/g,'&quot;')}" placeholder="Nome do item" onchange="editarItemCampo('${it.id}','nome',this.value)">
-        <input class="admin-item-edit-input" value="${servico}" placeholder="Ex: Revestimento cerâmico" onchange="editarItemCampo('${it.id}','servico',this.value)" style="font-size:12px">
-        <select class="admin-item-edit-input" onchange="onEquipeSelecionada(this,'${it.id}')" style="font-size:12px">
+        <input class="admin-item-edit-input" value="${it.nome.replace(/"/g,'&quot;')}" placeholder="Nome do item" onchange="editarItemCampo('${it.id}','nome',this.value)" ${dis}>
+        <input class="admin-item-edit-input" value="${servico}" placeholder="Ex: Revestimento cerâmico" onchange="editarItemCampo('${it.id}','servico',this.value)" style="font-size:12px" ${dis}>
+        <select class="admin-item-edit-input" onchange="onEquipeSelecionada(this,'${it.id}')" style="font-size:12px" ${dis}>
           ${frentesOpts.map(op => `<option value="${op}" ${op===equipeAtual?'selected':''}>${op}</option>`).join('')}
           <option value="__nova__">+ Nova frente...</option>
         </select>
-        <input class="admin-item-edit-input" value="${criterio}" placeholder="Critério técnico..." onchange="editarItemCampo('${it.id}','criterio',this.value)" style="font-size:11px;color:var(--text2)">
-        ${isAdmin() ? `<button class="btn btn-sm btn-danger" onclick="removerItemModelo('${it.id}','${cm.id}')">✕</button>` : '<span></span>'}
+        <input class="admin-item-edit-input" value="${criterio}" placeholder="Critério técnico..." onchange="editarItemCampo('${it.id}','criterio',this.value)" style="font-size:11px;color:var(--text2)" ${dis}>
+        ${podeEditar ? `<button class="btn btn-sm btn-danger" onclick="removerItemModelo('${it.id}','${cm.id}')">✕</button>` : '<span></span>'}
       </div>`;
     });
-    html += `<div class="admin-add-item" style="display:grid;grid-template-columns:1fr 200px 170px 180px auto;gap:8px;align-items:center">
-      <input type="text" placeholder="Nome do novo item..." id="newitem-${cm.id}" style="font-size:12px">
-      <input type="text" placeholder="Serviço / Equipe..." id="newserv-${cm.id}" style="font-size:12px;font-family:inherit;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;outline:none">
-      <select id="newequipe-${cm.id}" onchange="onEquipeSelecionada(this,null)" style="font-size:12px;font-family:inherit;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;outline:none">
-        <option value="">Frente (auto)</option>
-        ${frentesOpts.map(op => `<option value="${op}">${op}</option>`).join('')}
-        <option value="__nova__">+ Nova frente...</option>
-      </select>
-      <input type="text" placeholder="Critério..." id="newcrit-${cm.id}" style="font-size:12px;font-family:inherit;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;outline:none">
-      <button class="btn btn-sm btn-p" onclick="adicionarItemModelo('${cm.id}')">+ Add</button>
-    </div></div>`;
+    if (podeEditar) {
+      html += `<div class="admin-add-item" style="display:grid;grid-template-columns:1fr 200px 170px 180px auto;gap:8px;align-items:center">
+        <input type="text" placeholder="Nome do novo item..." id="newitem-${cm.id}" style="font-size:12px">
+        <input type="text" placeholder="Serviço / Equipe..." id="newserv-${cm.id}" style="font-size:12px;font-family:inherit;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;outline:none">
+        <select id="newequipe-${cm.id}" onchange="onEquipeSelecionada(this,null)" style="font-size:12px;font-family:inherit;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;outline:none">
+          <option value="">Frente (auto)</option>
+          ${frentesOpts.map(op => `<option value="${op}">${op}</option>`).join('')}
+          <option value="__nova__">+ Nova frente...</option>
+        </select>
+        <input type="text" placeholder="Critério..." id="newcrit-${cm.id}" style="font-size:12px;font-family:inherit;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;outline:none">
+        <button class="btn btn-sm btn-p" onclick="adicionarItemModelo('${cm.id}')">+ Add</button>
+      </div>`;
+    }
+    html += `</div>`;
   });
+  if (!isAdmin()) html = '<div style="font-size:12px;color:var(--text3);margin-bottom:14px">👁️ Modo de visualização — apenas administradores podem editar o modelo de checklist.</div>' + html;
   body.innerHTML = html;
 }
 
 async function editarItemCampo(itemId, campo, valor) {
+  if (!isAdmin()) { showToast('❌ Apenas administradores podem editar o modelo de checklist'); renderAdminBody(); return; }
   const upd = {};
   upd[campo] = valor;
   await db.from('itens_checklist').update(upd).eq('id', itemId);
@@ -1612,6 +1619,7 @@ function frentesDisponiveis() {
 // (itemId presente, salva direto) quanto no select de novo item (itemId nulo,
 // só injeta a opção no próprio <select> pra ser lida na hora de adicionar).
 async function onEquipeSelecionada(selectEl, itemId) {
+  if (itemId && !isAdmin()) { showToast('❌ Apenas administradores podem editar o modelo de checklist'); renderAdminBody(); return; }
   if (selectEl.value !== '__nova__') {
     if (itemId) await editarItemCampo(itemId, 'equipe', selectEl.value);
     return;
@@ -1638,6 +1646,7 @@ async function removerItemModelo(itemId, comodoId) {
 }
 
 async function adicionarItemModelo(comodoId) {
+  if (!isAdmin()) { showToast('❌ Apenas administradores podem editar o modelo de checklist'); return; }
   const input = document.getElementById('newitem-'+comodoId);
   const inpServ = document.getElementById('newserv-'+comodoId);
   const inpEquipe = document.getElementById('newequipe-'+comodoId);
@@ -1663,6 +1672,7 @@ async function adicionarItemModelo(comodoId) {
 }
 
 async function novoModelo() {
+  if (!isAdmin()) { showToast('❌ Apenas administradores podem criar modelos de checklist'); return; }
   const nome = prompt('Nome do novo modelo de checklist:');
   if (!nome) return;
   const { data, error } = await db.from('modelos_checklist').insert({ engenheira_id: engId, nome, descricao:'' }).select().single();
@@ -1931,6 +1941,7 @@ function renderListaUsuarios(usuarios) {
       <div style="flex:1"><strong>${u.nome||'—'}</strong><br><span style="color:var(--text2)">${u.email}</span></div>
       <span class="badge ${u.role==='admin'?'b-mod':'b-pend'}">${u.role==='admin'?'Admin':'Usuário'}</span>
       ${u.email !== meuEmail ? `<button class="btn btn-sm" onclick="toggleRoleUsuario('${u.email}','${u.role==='admin'?'usuario':'admin'}')">${u.role==='admin'?'Rebaixar':'Promover'}</button>` : ''}
+      ${u.email !== meuEmail ? `<button class="btn btn-sm btn-danger" onclick="excluirUsuario('${u.email}')">Excluir</button>` : ''}
     </div>`).join('');
 }
 
@@ -1939,6 +1950,15 @@ async function toggleRoleUsuario(email, novoRole) {
   const { error } = await db.from('engenheiras').update({ role: novoRole }).eq('email', email);
   if (error) { showToast('❌ Erro: ' + error.message); return; }
   showToast('✅ Perfil atualizado!');
+  carregarListaUsuarios();
+}
+
+async function excluirUsuario(email) {
+  if (!isAdmin()) { showToast('❌ Apenas administradores podem excluir usuários'); return; }
+  if (!confirm('Excluir permanentemente o usuário ' + email + '? Essa ação não pode ser desfeita.')) return;
+  const { data, error } = await db.functions.invoke('criar-usuario', { body: { action: 'delete', email } });
+  if (error || data?.error) { showToast('❌ ' + (data?.error || error.message)); return; }
+  showToast('🗑️ Usuário excluído!');
   carregarListaUsuarios();
 }
 

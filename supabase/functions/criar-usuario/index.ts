@@ -50,13 +50,39 @@ Deno.serve(async (req) => {
       .single()
 
     if (!engCaller || engCaller.role !== 'admin') {
-      return new Response(JSON.stringify({ error: 'Apenas administradores podem criar usuários' }), {
+      return new Response(JSON.stringify({ error: 'Apenas administradores podem gerenciar usuários' }), {
         status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
-    const { email, senha, nome, role } = await req.json()
+    const body = await req.json()
+
+    // Exclusão: apaga a conta de login (Auth) + a linha em engenheiras.
+    // A API admin do Supabase só exclui por id, então primeiro acha o
+    // usuário na lista do Auth pelo e-mail.
+    if (body.action === 'delete') {
+      const emailAlvo = body.email
+      if (!emailAlvo) throw new Error('E-mail do usuário não informado')
+      if (emailAlvo === user.email) throw new Error('Você não pode excluir a própria conta')
+
+      const { data: listaUsers, error: listErr } = await admin.auth.admin.listUsers()
+      if (listErr) throw new Error(listErr.message)
+      const alvo = listaUsers.users.find((u: { email?: string }) => u.email === emailAlvo)
+      if (alvo) {
+        const { error: delAuthErr } = await admin.auth.admin.deleteUser(alvo.id)
+        if (delAuthErr) throw new Error(delAuthErr.message)
+      }
+
+      const { error: delEngErr } = await admin.from('engenheiras').delete().eq('email', emailAlvo)
+      if (delEngErr) throw new Error(delEngErr.message)
+
+      return new Response(JSON.stringify({ ok: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    const { email, senha, nome, role } = body
     if (!email || !senha || !nome) throw new Error('Preencha nome, e-mail e senha')
     if (senha.length < 6) throw new Error('A senha precisa ter pelo menos 6 caracteres')
 

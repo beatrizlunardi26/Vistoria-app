@@ -467,6 +467,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
           <div class="stat-card"><div class="stat-num" id="dash-pct">—</div><div class="stat-label">Conformidade geral</div></div>
           <div class="stat-card"><div class="stat-num" id="dash-conf" style="color:var(--ok)">—</div><div class="stat-label">Conformes</div></div>
           <div class="stat-card"><div class="stat-num" id="dash-nc" style="color:var(--danger)">—</div><div class="stat-label">Não conformes</div></div>
+          <div class="stat-card"><div class="stat-num" id="dash-pend" style="color:var(--text2)">—</div><div class="stat-label">Falta verificar</div></div>
           <div class="stat-card"><div class="stat-num" id="dash-total">—</div><div class="stat-label">Itens avaliados</div></div>
         </div>
         <div class="cfg-grid">
@@ -841,7 +842,7 @@ function renderObras() {
     const div = document.createElement('div');
     div.className = 'obra-card';
     div.innerHTML = `
-      ${o.capa_url ? `<img src="${o.capa_url}" style="width:100%;height:110px;object-fit:cover;border-radius:10px;margin-bottom:12px" alt="Capa da obra">` : ''}
+      ${o.capa_url ? `<img src="${o.capa_url}" style="width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:10px;margin-bottom:12px" alt="Capa da obra">` : ''}
       <div class="obra-header">
         <div class="obra-icon">${o.icone||'🏢'}</div>
         <div><div class="obra-name">${o.nome}</div><div class="obra-sub">${o.construtora||'—'}</div></div>
@@ -1473,6 +1474,7 @@ async function gerarDashboard() {
   document.getElementById('dash-pct').textContent = (total>0 ? Math.round(conf/total*100) : 0) + '%';
   document.getElementById('dash-conf').textContent = conf;
   document.getElementById('dash-nc').textContent = nc;
+  document.getElementById('dash-pend').textContent = pend;
   document.getElementById('dash-total').textContent = total;
 
   renderRankingDashboard('dash-frentes', ncPorFrente);

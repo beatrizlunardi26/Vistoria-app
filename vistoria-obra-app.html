@@ -428,24 +428,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
               <div class="sum-box" style="background:var(--na-light)"><div class="sum-n" id="r-na" style="color:var(--na)">0</div><div class="sum-l" style="color:var(--na)">N/Aplicável</div></div>
             </div>
           </div>
-          <div class="rel-sec">
-            <div class="rel-sec-t">Não conformidades por ambientes</div>
-            <div id="rel-nc-body"><div class="rel-empty">✅ Nenhuma não conformidade registrada.</div></div>
-          </div>
-          <div class="rel-sec">
-            <div class="rel-sec-t">Assinaturas</div>
-            <div class="sig-grid">
-              <div>
-                <div class="sig-lbl" id="sig-const-lbl">Construtora</div>
-                <div class="sig-area" onclick="showToast('✍️ Assinatura digital — em breve!')"><span style="font-size:12px;color:var(--text3)">+ Adicionar assinatura</span></div>
-                <div style="font-size:10px;color:var(--text3);margin-top:5px;text-align:center" id="rel-data2">—</div>
-              </div>
-              <div>
-                <div class="sig-lbl" id="sig-cli-lbl">Cliente</div>
-                <div class="sig-area" onclick="showToast('✍️ Assinatura digital — em breve!')"><span style="font-size:12px;color:var(--text3)">+ Adicionar assinatura</span></div>
-              </div>
-            </div>
-          </div>
         </div>
         <div style="display:flex;flex-direction:column;gap:14px">
           <div class="send-panel">
@@ -907,12 +889,7 @@ async function abrirVistoria(obraId) {
   document.getElementById('rel-const').textContent = obraAtiva.construtora || '—';
   document.getElementById('rel-cliente').textContent = obraAtiva.cliente || '—';
   document.getElementById('rel-data').textContent = fmtData(obraAtiva.data_vistoria);
-  document.getElementById('rel-data2').textContent = fmtData(obraAtiva.data_vistoria);
   document.getElementById('rel-modelo').textContent = nomeModelo(modeloAtivoId);
-  const sigConst = document.getElementById('sig-const-lbl');
-  const sigCli = document.getElementById('sig-cli-lbl');
-  if (sigConst) sigConst.textContent = obraAtiva.construtora || 'Construtora';
-  if (sigCli) sigCli.textContent = 'Cliente — ' + (obraAtiva.cliente || '');
   atualizarVhHeader();
   renderUnidadeBar();
   goTo('p-vistoria', document.getElementById('ni-vistoria'));
@@ -1396,18 +1373,13 @@ async function gerarRel() {
   if (!vistoriaAtiva) return;
   const porUnidade = await buscarTodasRespostasPorUnidade();
   let conf = 0, nc = 0, na = 0;
-  const ncPorComodo = {};
   Object.keys(porUnidade).forEach(chave => {
-    const unidNome = nomeUnidadePorChave(chave);
     itens.forEach(it => {
       const e = porUnidade[chave][it.id];
       if (!e || e.ativo === false) return;
       if (e.status === 'conf') conf++;
       else if (e.status === 'na') na++;
-      else if (e.status === 'nc') {
-        nc++;
-        (ncPorComodo[it.comodo_id] ||= []).push({ it, unidNome, obs: e.obs, fotos: e.fotos });
-      }
+      else if (e.status === 'nc') nc++;
     });
   });
   document.getElementById('r-conf').textContent = conf;
@@ -1415,22 +1387,6 @@ async function gerarRel() {
   document.getElementById('r-na').textContent = na;
   const now = new Date();
   document.getElementById('rel-sub').textContent = 'Vistoria · ' + now.toLocaleDateString('pt-BR') + ' às ' + now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-  let html = ''; let algum = false;
-  comodos.forEach(cm => {
-    const ncsCm = ncPorComodo[cm.id];
-    if (!ncsCm || !ncsCm.length) return;
-    algum = true;
-    html += `<div class="rel-comodo-block"><div class="rel-comodo-title">${cm.nome}</div>`;
-    ncsCm.forEach(({it, unidNome, obs, fotos}) => {
-      const obsTxt = obs?.trim() || 'Sem observação registrada.';
-      const photos = fotos?.length ? fotos.map(f=>`<div class="rel-photo" style="position:relative;overflow:hidden"><img src="${f.url||f.data}" style="width:100%;height:100%;object-fit:cover;border-radius:7px">${f.legenda?`<span style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.6);color:#fff;font-size:9px;padding:2px 4px;text-align:center">${f.legenda}</span>`:''}</div>`).join('') : '<span style="font-size:12px;color:var(--text3)">Nenhuma foto</span>';
-      const unidBadge = unidNome ? `<span class="item-tag tag-na" style="margin-right:8px">${unidNome}</span>` : '';
-      html += `<div class="rel-nc-item"><div class="rel-nc-head">${unidBadge}<span style="color:var(--danger)">✗</span><span class="rel-nc-name">${it.nome}</span><span class="rel-nc-badge">NÃO CONFORME</span></div><div class="rel-nc-body"><div class="rel-nc-obs">📝 ${obsTxt}</div><div class="rel-nc-photos">${photos}</div></div></div>`;
-    });
-    html += '</div>';
-  });
-  if (!algum) html = '<div class="rel-empty">✅ Nenhuma não conformidade registrada.</div>';
-  document.getElementById('rel-nc-body').innerHTML = html;
 }
 
 function escapeHtml(s) {

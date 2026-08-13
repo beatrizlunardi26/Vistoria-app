@@ -1953,11 +1953,22 @@ async function toggleRoleUsuario(email, novoRole) {
   carregarListaUsuarios();
 }
 
+// supabase-js só devolve "Edge Function returned a non-2xx status code" em
+// error.message quando a função responde com erro — a mensagem real fica no
+// corpo da resposta (error.context é o Response cru do fetch).
+async function mensagemErroEdgeFunction(data, error) {
+  if (data?.error) return data.error;
+  if (error?.context?.json) {
+    try { const body = await error.context.json(); if (body?.error) return body.error; } catch (_e) {}
+  }
+  return error?.message || 'Erro desconhecido';
+}
+
 async function excluirUsuario(email) {
   if (!isAdmin()) { showToast('❌ Apenas administradores podem excluir usuários'); return; }
   if (!confirm('Excluir permanentemente o usuário ' + email + '? Essa ação não pode ser desfeita.')) return;
   const { data, error } = await db.functions.invoke('criar-usuario', { body: { action: 'delete', email } });
-  if (error || data?.error) { showToast('❌ ' + (data?.error || error.message)); return; }
+  if (error || data?.error) { showToast('❌ ' + await mensagemErroEdgeFunction(data, error)); return; }
   showToast('🗑️ Usuário excluído!');
   carregarListaUsuarios();
 }
@@ -1973,7 +1984,7 @@ async function criarUsuarioForm() {
   btn.disabled = true; btn.textContent = 'Criando...';
   const { data, error } = await db.functions.invoke('criar-usuario', { body: { nome, email, senha, role } });
   btn.disabled = false; btn.textContent = '+ Criar usuário';
-  if (error || data?.error) { showToast('❌ ' + (data?.error || error.message)); return; }
+  if (error || data?.error) { showToast('❌ ' + await mensagemErroEdgeFunction(data, error)); return; }
   document.getElementById('nu-nome').value = '';
   document.getElementById('nu-email').value = '';
   document.getElementById('nu-senha').value = '';

@@ -308,6 +308,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <button class="ni active" id="ni-home" onclick="goTo('p-home',this)"><span class="ico">🏠</span>Início</button>
     <button class="ni" id="ni-vistoria" onclick="goTo('p-vistoria',this)"><span class="ico">📋</span>Checklist</button>
     <button class="ni" id="ni-relatorio" onclick="goTo('p-relatorio',this);gerarRel()"><span class="ico">📄</span>Relatório</button>
+    <button class="ni" id="ni-dashboard" onclick="goTo('p-dashboard',this);gerarDashboard()"><span class="ico">📊</span>Indicadores</button>
     <button class="ni" id="ni-admin" onclick="abrirAdminChecklist();goTo('p-admin',this)"><span class="ico">🛠️</span>Modelos de Checklist</button>
     <button class="ni" id="ni-config" onclick="goTo('p-config',this)"><span class="ico">⚙️</span>Configurações</button>
   </nav>
@@ -453,6 +454,37 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
             <button class="si" onclick="gerarPDF()"><div><div class="si-n">PDF — Não Conformidades Gerais por Ambientes</div><div class="si-d">Lista das pendências encontradas, agrupadas por ambientes</div></div><span class="si-arr">›</span></button>
             <button class="si" onclick="gerarPDFUnidade()"><div><div class="si-n">PDF — Não conformidades por unidade</div><div class="si-d">Pendências agrupadas por apartamento</div></div><span class="si-arr">›</span></button>
             <button class="si" onclick="gerarExcel()"><div><div class="si-n">Excel — Checklist de pendências</div><div class="si-d">Planilha com serviços e unidades</div></div><span class="si-arr">›</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INDICADORES -->
+    <div class="page" id="p-dashboard">
+      <div id="dash-empty" style="display:none;text-align:center;padding:40px 24px;font-size:13px;color:var(--text3)">Abra uma vistoria para ver os indicadores.</div>
+      <div id="dash-content">
+        <div class="stats-row">
+          <div class="stat-card"><div class="stat-num" id="dash-pct">—</div><div class="stat-label">Conformidade geral</div></div>
+          <div class="stat-card"><div class="stat-num" id="dash-conf" style="color:var(--ok)">—</div><div class="stat-label">Conformes</div></div>
+          <div class="stat-card"><div class="stat-num" id="dash-nc" style="color:var(--danger)">—</div><div class="stat-label">Não conformes</div></div>
+          <div class="stat-card"><div class="stat-num" id="dash-total">—</div><div class="stat-label">Itens avaliados</div></div>
+        </div>
+        <div class="cfg-grid">
+          <div class="cfg-card">
+            <div class="cfg-head">🔧 Frentes de serviço com mais problemas</div>
+            <div class="cfg-body" id="dash-frentes"></div>
+          </div>
+          <div class="cfg-card">
+            <div class="cfg-head">🚪 Ambientes com mais problemas</div>
+            <div class="cfg-body" id="dash-ambientes"></div>
+          </div>
+          <div class="cfg-card">
+            <div class="cfg-head">🔁 Itens mais recorrentes</div>
+            <div class="cfg-body" id="dash-itens"></div>
+          </div>
+          <div class="cfg-card">
+            <div class="cfg-head">🏢 Unidades com mais pendências</div>
+            <div class="cfg-body" id="dash-unidades"></div>
           </div>
         </div>
       </div>
@@ -1399,6 +1431,72 @@ async function gerarRel() {
   document.getElementById('rel-nc-body').innerHTML = html;
 }
 
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ============================================================
+// DASHBOARD — indicadores da vistoria ativa
+// ============================================================
+async function gerarDashboard() {
+  const empty = document.getElementById('dash-empty');
+  const content = document.getElementById('dash-content');
+  if (!vistoriaAtiva) { empty.style.display = ''; content.style.display = 'none'; return; }
+  empty.style.display = 'none'; content.style.display = '';
+
+  const porUnidade = await buscarTodasRespostasPorUnidade();
+  const comodoPorId = {}; comodos.forEach(cm => comodoPorId[cm.id] = cm.nome);
+  let conf = 0, nc = 0, na = 0, pend = 0;
+  const ncPorFrente = {}, ncPorAmbiente = {}, ncPorItem = {}, ncPorUnidade = {};
+
+  Object.keys(porUnidade).forEach(chave => {
+    const unidNome = nomeUnidadePorChave(chave) || 'Geral';
+    itens.forEach(it => {
+      const e = porUnidade[chave][it.id];
+      if (!e || e.ativo === false) return;
+      if (e.status === 'conf') conf++;
+      else if (e.status === 'na') na++;
+      else if (e.status === '') pend++;
+      else if (e.status === 'nc') {
+        nc++;
+        const ambNome = comodoPorId[it.comodo_id] || '—';
+        const frente = it.equipe || classificarEquipe(it.nome, it.servico, ambNome);
+        ncPorFrente[frente] = (ncPorFrente[frente]||0) + 1;
+        ncPorAmbiente[ambNome] = (ncPorAmbiente[ambNome]||0) + 1;
+        ncPorItem[it.nome] = (ncPorItem[it.nome]||0) + 1;
+        ncPorUnidade[unidNome] = (ncPorUnidade[unidNome]||0) + 1;
+      }
+    });
+  });
+
+  const total = conf + nc + na + pend;
+  document.getElementById('dash-pct').textContent = (total>0 ? Math.round(conf/total*100) : 0) + '%';
+  document.getElementById('dash-conf').textContent = conf;
+  document.getElementById('dash-nc').textContent = nc;
+  document.getElementById('dash-total').textContent = total;
+
+  renderRankingDashboard('dash-frentes', ncPorFrente);
+  renderRankingDashboard('dash-ambientes', ncPorAmbiente);
+  renderRankingDashboard('dash-itens', ncPorItem);
+  renderRankingDashboard('dash-unidades', ncPorUnidade);
+}
+
+function renderRankingDashboard(containerId, dataObj, topN = 5) {
+  const el = document.getElementById(containerId);
+  const entries = Object.entries(dataObj).sort((a,b) => b[1]-a[1]).slice(0, topN);
+  if (!entries.length) { el.innerHTML = '<div style="font-size:12px;color:var(--text3)">Nenhuma não conformidade registrada.</div>'; return; }
+  const max = entries[0][1];
+  el.innerHTML = entries.map(([nome, count]) => `
+    <div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;margin-bottom:4px">
+        <span>${escapeHtml(nome)}</span><span style="font-weight:700;color:var(--danger);flex-shrink:0">${count}</span>
+      </div>
+      <div style="background:var(--surface2);border-radius:6px;height:8px;overflow:hidden">
+        <div style="background:var(--danger);height:100%;width:${Math.max(6, Math.round(count/max*100))}%"></div>
+      </div>
+    </div>`).join('');
+}
+
 // ============================================================
 // ADMIN — MODELOS
 // ============================================================
@@ -1674,7 +1772,7 @@ async function delObra(id) {
 // ============================================================
 // NAVEGAÇÃO
 // ============================================================
-const PT = { 'p-home':'Início','p-vistoria':'Checklist','p-relatorio':'Relatório','p-admin':'Modelos de Checklist','p-config':'Configurações' };
+const PT = { 'p-home':'Início','p-vistoria':'Checklist','p-relatorio':'Relatório','p-dashboard':'Indicadores','p-admin':'Modelos de Checklist','p-config':'Configurações' };
 function goTo(id, ni) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById(id).classList.add('active');

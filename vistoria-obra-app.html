@@ -334,8 +334,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <div class="stats-row">
         <div class="stat-card"><div class="stat-num" id="h-obras">—</div><div class="stat-label">Obras cadastradas</div></div>
         <div class="stat-card"><div class="stat-num" id="h-vis">—</div><div class="stat-label">Modelos de checklist</div></div>
-        <div class="stat-card"><div class="stat-num" id="h-pct">—</div><div class="stat-label">Vistoria atual</div></div>
-        <div class="stat-card"><div class="stat-num" id="h-ncs">—</div><div class="stat-label">Não conformidades</div></div>
       </div>
       <div class="sec-label">Obras</div>
       <div class="obras-grid" id="obras-grid">
@@ -414,7 +412,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
             <div class="rel-grid2">
               <div class="rel-r"><span class="rk">Obra</span><span class="rv" id="rel-obra">—</span></div>
               <div class="rel-r"><span class="rk">Construtora</span><span class="rv" id="rel-const">—</span></div>
-              <div class="rel-r"><span class="rk">Cliente</span><span class="rv" id="rel-cliente">—</span></div>
+              <div class="rel-r" id="rel-row-cliente"><span class="rk">Cliente</span><span class="rv" id="rel-cliente">—</span></div>
               <div class="rel-r"><span class="rk">Vistoriadora</span><span class="rv" id="rel-nome">Engª Beatriz Lunardi — CREA/SC</span></div>
               <div class="rel-r"><span class="rk">Data</span><span class="rv" id="rel-data">—</span></div>
               <div class="rel-r"><span class="rk">Modelo</span><span class="rv" id="rel-modelo">—</span></div>
@@ -550,10 +548,23 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <input type="hidden" id="mo-id">
     <div class="fl">Nome da obra / unidade</div><input class="fi" id="mo-nome" placeholder="Ex: Edifício Central — Apto 301">
     <div class="fl">Construtora</div><input class="fi" id="mo-const" placeholder="Ex: Construtora Horizonte">
-    <div class="fl">Cliente</div><input class="fi" id="mo-cli" placeholder="Ex: João da Silva">
-    <div class="fl">Endereço</div><input class="fi" id="mo-end" placeholder="Ex: Rua das Flores, 100">
-    <div class="fl">E-mail da construtora</div><input class="fi" id="mo-email" type="email">
-    <div class="fl">WhatsApp do cliente</div><input class="fi" id="mo-wpp" placeholder="(48) 99999-0000">
+    <div id="mo-group-cliente">
+      <div class="fl" style="display:flex;justify-content:space-between;align-items:center">Cliente<button type="button" onclick="ocultarCampoObra('cliente')" title="Remover este campo do formulário" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:2px 4px">✕</button></div>
+      <input class="fi" id="mo-cli" placeholder="Ex: João da Silva">
+    </div>
+    <div id="mo-group-endereco">
+      <div class="fl" style="display:flex;justify-content:space-between;align-items:center">Endereço<button type="button" onclick="ocultarCampoObra('endereco')" title="Remover este campo do formulário" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:2px 4px">✕</button></div>
+      <input class="fi" id="mo-end" placeholder="Ex: Rua das Flores, 100">
+    </div>
+    <div id="mo-group-email_const">
+      <div class="fl" style="display:flex;justify-content:space-between;align-items:center">E-mail da construtora<button type="button" onclick="ocultarCampoObra('email_const')" title="Remover este campo do formulário" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:2px 4px">✕</button></div>
+      <input class="fi" id="mo-email" type="email">
+    </div>
+    <div id="mo-group-whatsapp_cli">
+      <div class="fl" style="display:flex;justify-content:space-between;align-items:center">WhatsApp do cliente<button type="button" onclick="ocultarCampoObra('whatsapp_cli')" title="Remover este campo do formulário" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:2px 4px">✕</button></div>
+      <input class="fi" id="mo-wpp" placeholder="(48) 99999-0000">
+    </div>
+    <div id="mo-restaurar-campos" style="display:none;font-size:12px;color:var(--accent2);cursor:pointer;margin-top:8px" onclick="restaurarCamposObra()">+ Mostrar campos ocultos (<span id="mo-restaurar-count">0</span>)</div>
     <div class="fl">Data da vistoria</div><input class="fi" id="mo-data" type="date">
     <div class="fl">Modelo de checklist</div>
     <select class="fsel" id="mo-modelo"></select>
@@ -671,6 +682,7 @@ let engId = null;
 let engRole = 'usuario';
 let adminModeloAtual = null;
 let escritorio = { nome: 'Puel Engenharia', cnpj: '', cidade: '', logo_url: '' };
+let camposObraOcultos = [];
 
 function isAdmin() { return engRole === 'admin'; }
 
@@ -1308,8 +1320,6 @@ function updProgress() {
   document.getElementById('pp-bar').style.width = pct+'%';
   document.getElementById('pp-done').textContent = done + ' de ' + total + ' itens';
   document.getElementById('pp-pct').textContent = pct+'%';
-  document.getElementById('h-pct').textContent = pct+'%';
-  document.getElementById('h-ncs').textContent = nc;
   const unidLabelEl = document.getElementById('pp-unidade-label');
   if (unidLabelEl) {
     const nomeUnid = unidades.find(u => u.id === unidadeAtiva)?.nome;
@@ -1385,6 +1395,8 @@ async function gerarRel() {
   document.getElementById('r-conf').textContent = conf;
   document.getElementById('r-nc').textContent = nc;
   document.getElementById('r-na').textContent = na;
+  const relRowCliente = document.getElementById('rel-row-cliente');
+  if (relRowCliente) relRowCliente.style.display = camposObraOcultos.includes('cliente') ? 'none' : '';
   const now = new Date();
   document.getElementById('rel-sub').textContent = 'Vistoria · ' + now.toLocaleDateString('pt-BR') + ' às ' + now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
 }
@@ -1667,6 +1679,34 @@ async function novoModelo() {
 // ============================================================
 // MODAL OBRA
 // ============================================================
+// Campos opcionais do formulário de obra que a usuária pode remover
+// (ex: escritório não usa "Cliente"/"Endereço") — lista compartilhada,
+// salva em escritorio.campos_obra_ocultos, some também dos relatórios.
+function aplicarCamposObraOcultos() {
+  ['cliente','endereco','email_const','whatsapp_cli'].forEach(campo => {
+    const el = document.getElementById('mo-group-' + campo);
+    if (el) el.style.display = camposObraOcultos.includes(campo) ? 'none' : '';
+  });
+  const restaurar = document.getElementById('mo-restaurar-campos');
+  if (restaurar) {
+    restaurar.style.display = camposObraOcultos.length ? '' : 'none';
+    document.getElementById('mo-restaurar-count').textContent = camposObraOcultos.length;
+  }
+}
+
+async function ocultarCampoObra(campo) {
+  if (camposObraOcultos.includes(campo)) return;
+  camposObraOcultos = [...camposObraOcultos, campo];
+  aplicarCamposObraOcultos();
+  await db.from('escritorio').upsert({ id: 1, campos_obra_ocultos: camposObraOcultos });
+}
+
+async function restaurarCamposObra() {
+  camposObraOcultos = [];
+  aplicarCamposObraOcultos();
+  await db.from('escritorio').upsert({ id: 1, campos_obra_ocultos: [] });
+}
+
 function openObra(id) {
   const o = id ? obras.find(x=>x.id===id) : null;
   document.getElementById('mo-title').textContent = o ? 'Editar obra' : 'Nova obra';
@@ -1677,6 +1717,7 @@ function openObra(id) {
   document.getElementById('mo-end').value = o?.endereco || '';
   document.getElementById('mo-email').value = o?.email_const || '';
   document.getElementById('mo-wpp').value = o?.whatsapp_cli || '';
+  aplicarCamposObraOcultos();
   document.getElementById('mo-data').value = o?.data_vistoria || new Date().toISOString().slice(0,10);
   document.getElementById('mo-modelo').value = o?.modelo_checklist_id || (modelos[0] && modelos[0].id) || '';
   const icoSel = o?.icone || '🏢';
@@ -1835,6 +1876,7 @@ async function carregarEscritorio() {
   if (error) { console.warn('Tabela escritorio ainda não existe/foi migrada:', error.message); return; }
   if (!data) return;
   escritorio = { nome: data.nome || 'Puel Engenharia', cnpj: data.cnpj || '', cidade: data.cidade || '', logo_url: data.logo_url || '' };
+  camposObraOcultos = Array.isArray(data.campos_obra_ocultos) ? data.campos_obra_ocultos : [];
   document.getElementById('esc-nome').value = escritorio.nome;
   document.getElementById('esc-cnpj').value = escritorio.cnpj;
   document.getElementById('esc-cidade').value = escritorio.cidade;
@@ -2156,7 +2198,7 @@ function pdfSetup() {
     const fields = [
       ['Obra', document.getElementById('rel-obra')?.textContent || ''],
       ['Construtora', document.getElementById('rel-const')?.textContent || ''],
-      ['Cliente', document.getElementById('rel-cliente')?.textContent || ''],
+      ...(camposObraOcultos.includes('cliente') ? [] : [['Cliente', document.getElementById('rel-cliente')?.textContent || '']]),
       ['Vistoriadora', (document.getElementById('cfg-nome')?.value||'Beatriz Lunardi') + (document.getElementById('cfg-crea')?.value ? '  ' + document.getElementById('cfg-crea').value : '')],
       ['Data', document.getElementById('rel-data')?.textContent || ''],
       ['Modelo', document.getElementById('rel-modelo')?.textContent || ''],
@@ -2699,7 +2741,8 @@ async function gerarExcel() {
   wsNC.getCell('A1').font = { bold: true, size: 14 };
   wsNC.addRow([]);
   wsNC.addRow(['Obra:', obra, '', 'Construtora:', construtora]);
-  wsNC.addRow(['Cliente:', cliente, '', 'Data:', dataVist]);
+  if (camposObraOcultos.includes('cliente')) wsNC.addRow(['Data:', dataVist]);
+  else wsNC.addRow(['Cliente:', cliente, '', 'Data:', dataVist]);
   wsNC.addRow(['Vistoriadora:', vistoriadora]);
   wsNC.addRow([]);
   const hdrNC = wsNC.addRow(['UNIDADE / APTO', 'SERVIÇO', 'FRENTE DE SERVIÇO (EQUIPE)', 'RESPONSAVEL', 'ITEM', 'AMBIENTE', 'CRITERIO', 'OBSERVACAO DO VISTORIADOR', 'STATUS']);
@@ -2724,7 +2767,7 @@ async function gerarExcel() {
   wsRes.addRow(['RESUMO DA VISTORIA']).font = { bold: true, size: 14 };
   wsRes.addRow(['Obra', obra]);
   wsRes.addRow(['Construtora', construtora]);
-  wsRes.addRow(['Cliente', cliente]);
+  if (!camposObraOcultos.includes('cliente')) wsRes.addRow(['Cliente', cliente]);
   wsRes.addRow(['Data', dataVist]);
   wsRes.addRow(['Vistoriadora', vistoriadora]);
   wsRes.addRow([]);

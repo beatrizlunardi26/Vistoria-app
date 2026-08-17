@@ -214,6 +214,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .admin-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 .admin-comodo{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:14px;overflow:hidden}
 .admin-comodo-head{padding:12px 16px;background:var(--surface2);font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px}
+.admin-comodo-edit-input{flex:1;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;color:var(--text);border:1.5px solid transparent;border-radius:6px;padding:6px 8px;background:transparent;outline:none}
+.admin-comodo-edit-input:hover{border-color:var(--border)}
+.admin-comodo-edit-input:focus{border-color:var(--accent2);background:var(--surface)}
 .admin-item-row{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--surface2)}
 .admin-item-row:last-child{border-bottom:none}
 .admin-item-edit-input{width:100%;font-family:'DM Sans',sans-serif;font-size:13px;border:1.5px solid var(--border);border-radius:6px;padding:6px 10px;background:var(--bg);outline:none}
@@ -1552,14 +1555,18 @@ function renderAdminBody() {
   const modelo = modelos.find(m => m.id === adminModeloAtual);
   if (!modelo) { body.innerHTML = '<div style="color:var(--text3);font-size:13px">Nenhum modelo selecionado.</div>'; return; }
   let html = `<div style="font-size:13px;color:var(--text2);margin-bottom:14px">${modelo.descricao||''}</div>`;
+  const podeEditarModelo = isAdmin();
   modelo.comodos.forEach(cm => {
+    const nomeComodo = cm.nome.replace(/"/g,'&quot;');
     html += `<div class="admin-comodo">
-      <div class="admin-comodo-head"><span>${cm.nome}</span></div>
+      <div class="admin-comodo-head">${podeEditarModelo
+        ? `<input class="admin-comodo-edit-input" value="${nomeComodo}" onchange="editarComodoCampo('${cm.id}','nome',this.value)">`
+        : `<span>${cm.nome}</span>`}</div>
       <div style="display:grid;grid-template-columns:1fr 200px 170px 180px auto;gap:0;background:var(--surface2);padding:6px 16px;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">
         <span>Item de verificação</span><span>Serviço / Equipe</span><span>Frente de serviço</span><span>Critério</span><span></span>
       </div>`;
     const frentesOpts = frentesDisponiveis();
-    const podeEditar = isAdmin();
+    const podeEditar = podeEditarModelo;
     const dis = podeEditar ? '' : 'disabled';
     cm.itens.forEach(it => {
       const servico = (it.servico||'').replace(/"/g,'&quot;');
@@ -1601,6 +1608,15 @@ async function editarItemCampo(itemId, campo, valor) {
   upd[campo] = valor;
   await db.from('itens_checklist').update(upd).eq('id', itemId);
   modelos.forEach(m => m.comodos.forEach(c => c.itens.forEach(i => { if(i.id===itemId) i[campo] = valor; })));
+  showSaveInd('✓ Salvo');
+}
+
+async function editarComodoCampo(comodoId, campo, valor) {
+  if (!isAdmin()) { showToast('❌ Apenas administradores podem editar o modelo de checklist'); renderAdminBody(); return; }
+  const upd = {};
+  upd[campo] = valor;
+  await db.from('comodos').update(upd).eq('id', comodoId);
+  modelos.forEach(m => m.comodos.forEach(c => { if (c.id===comodoId) c[campo] = valor; }));
   showSaveInd('✓ Salvo');
 }
 

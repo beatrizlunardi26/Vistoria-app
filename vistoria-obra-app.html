@@ -262,11 +262,32 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .modal-close{position:absolute;top:14px;right:14px;background:var(--surface2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:15px;color:var(--text2)}
 .modal-title{font-size:16px;font-weight:600;margin-bottom:16px}
 .modal-actions{display:flex;gap:8px;margin-top:20px;justify-content:flex-end}
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--text);color:#fff;border-radius:var(--radius-sm);padding:12px 20px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:10px;box-shadow:0 8px 30px rgba(0,0,0,.25);z-index:9999;opacity:0;transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .25s;white-space:nowrap}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--text);color:#fff;border-radius:var(--radius-sm);padding:12px 20px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:10px;box-shadow:0 8px 30px rgba(0,0,0,.25);z-index:20001;opacity:0;transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .25s;white-space:nowrap}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 @media(max-width:720px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.main{margin-left:0}.topbar{padding:0 16px}.content{padding:16px}.mob-btn{display:flex!important}.obras-grid{grid-template-columns:1fr}.sb-ov{display:block!important}}
 .mob-btn{display:none;background:none;border:none;cursor:pointer;font-size:22px;color:var(--text2);padding:4px}
 .sb-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:99}
+
+/* ===== TERMO DE ENTREGA — página pública isolada (sem login, sem menu) ===== */
+.termo-page{position:fixed;inset:0;background:var(--bg);overflow-y:auto;z-index:20000;display:none}
+.termo-page.open{display:block}
+.termo-wrap{max-width:480px;margin:0 auto;padding:28px 20px 60px}
+.termo-logo{text-align:center;margin-bottom:22px}
+.termo-logo-t{font-size:20px;font-weight:700;color:var(--accent)}
+.termo-logo-s{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+.termo-card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px 20px;margin-bottom:16px}
+.termo-title{font-size:17px;font-weight:700;margin-bottom:4px}
+.termo-sub{font-size:13px;color:var(--text2);margin-bottom:18px}
+.termo-decl{display:flex;gap:10px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--border);font-size:13.5px;line-height:1.5}
+.termo-decl:first-of-type{border-top:none}
+.termo-decl input[type=checkbox]{width:20px;height:20px;flex-shrink:0;margin-top:1px;accent-color:var(--accent)}
+.termo-sign-wrap{border:1.5px dashed var(--border);border-radius:10px;overflow:hidden;background:#fff;touch-action:none}
+.termo-sign-wrap canvas{display:block;width:100%;height:160px}
+.termo-sign-actions{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.termo-foto-preview{width:100%;max-height:220px;object-fit:cover;border-radius:10px;display:none;margin-bottom:8px}
+.termo-status-box{text-align:center;padding:40px 20px}
+.termo-status-icon{font-size:44px;margin-bottom:12px}
+.termo-loading{text-align:center;padding:60px 20px;color:var(--text3);font-size:13px}
 </style>
 </head>
 <body>
@@ -298,6 +319,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 </div>
 
 <div class="sb-ov" id="sb-ov" onclick="closeSB()"></div>
+
+<!-- PÁGINA PÚBLICA — TERMO DE ENTREGA (sem login, acessada só por link com token) -->
+<div class="termo-page" id="termo-page">
+  <div class="termo-wrap">
+    <div class="termo-logo">
+      <div class="termo-logo-t">Vistoria</div>
+      <div class="termo-logo-s">Termo de Entrega</div>
+    </div>
+    <div id="termo-conteudo"><div class="termo-loading">Carregando...</div></div>
+  </div>
+</div>
+
 <div class="shell">
 
 <aside class="sidebar" id="sidebar">
@@ -358,6 +391,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
           <option value="">Carregando...</option>
         </select>
         <button class="unid-add-btn" onclick="abrirModalUnidades()">✏️ Editar unidades</button>
+        <button class="unid-add-btn" onclick="abrirModalTermo()">📝 Termo de entrega</button>
       </div>
       <div class="cl-layout">
         <div id="cl-main"><div style="padding:20px;color:var(--text3);font-size:13px">Selecione uma obra para iniciar.</div></div>
@@ -653,6 +687,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <button class="modal-close" onclick="fecharModalTrocarModelo()">✕</button>
     <div class="modal-title">📋 Trocar modelo de checklist</div>
     <div id="tm-modelo-list"></div>
+  </div>
+</div>
+
+<!-- MODAL TERMO DE ENTREGA (link para o cliente assinar) -->
+<div class="modal-ov" id="modal-termo" onclick="if(event.target===this)fecharModalTermo()">
+  <div class="modal-box">
+    <button class="modal-close" onclick="fecharModalTermo()">✕</button>
+    <div class="modal-title">📝 Termo de entrega</div>
+    <div id="termo-modal-body"><div style="font-size:13px;color:var(--text3)">Carregando...</div></div>
   </div>
 </div>
 
@@ -954,6 +997,66 @@ function abrirModalTrocarModelo() {
 
 function fecharModalTrocarModelo() {
   document.getElementById('modal-trocar-modelo').classList.remove('open');
+}
+
+// ============================================================
+// TERMO DE ENTREGA — geração/consulta do link (lado admin)
+// ============================================================
+function linkTermo(token) { return location.origin + location.pathname + '?termo=' + token; }
+
+async function abrirModalTermo() {
+  if (!obraAtiva || !unidadeAtiva) { showToast('⚠️ Selecione uma unidade primeiro'); return; }
+  document.getElementById('modal-termo').classList.add('open');
+  document.getElementById('termo-modal-body').innerHTML = '<div style="font-size:13px;color:var(--text3)">Carregando...</div>';
+  const { data } = await db.from('termos_entrega').select('*')
+    .eq('obra_id', obraAtiva.id).eq('unidade_id', unidadeAtiva).maybeSingle();
+  renderModalTermo(data);
+}
+
+function fecharModalTermo() {
+  document.getElementById('modal-termo').classList.remove('open');
+}
+
+function renderModalTermo(termo) {
+  const body = document.getElementById('termo-modal-body');
+  if (!termo) {
+    body.innerHTML = `
+      <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Gere um link único para o cliente desta unidade assinar o termo de entrega pelo próprio celular — sem precisar entrar no sistema.</div>
+      <button class="btn btn-p" style="width:100%;justify-content:center" onclick="gerarLinkTermo()">+ Gerar link</button>`;
+    return;
+  }
+  if (termo.status === 'assinado') {
+    const dt = termo.assinado_em ? new Date(termo.assinado_em).toLocaleString('pt-BR') : '—';
+    body.innerHTML = `
+      <div style="font-size:13px;color:var(--ok);font-weight:600;margin-bottom:10px">✅ Assinado</div>
+      <div class="rel-r"><span class="rk">Assinado por</span><span class="rv">${escapeHtml(termo.nome_signatario||'—')}</span></div>
+      <div class="rel-r"><span class="rk">Data</span><span class="rv">${dt}</span></div>
+      ${termo.assinatura_url ? `<div class="fl" style="margin-top:14px">Assinatura</div><img src="${termo.assinatura_url}" style="max-width:100%;border:1px solid var(--border);border-radius:8px;background:#fff">` : ''}
+      ${termo.foto_rosto_url ? `<div class="fl" style="margin-top:14px">Foto de identificação</div><img src="${termo.foto_rosto_url}" style="max-width:100%;border-radius:8px">` : ''}
+    `;
+    return;
+  }
+  const link = linkTermo(termo.token);
+  body.innerHTML = `
+    <div style="font-size:13px;color:var(--warn);font-weight:600;margin-bottom:10px">⏳ Aguardando assinatura</div>
+    <input class="fi" readonly value="${link}" onclick="this.select()" style="font-size:12px;margin-bottom:10px">
+    <div style="display:flex;gap:8px">
+      <button class="btn" style="flex:1;justify-content:center" onclick="copiarLinkTermo('${link}')">📋 Copiar link</button>
+      <a class="btn" style="flex:1;justify-content:center;text-decoration:none" target="_blank" href="https://wa.me/?text=${encodeURIComponent(link)}">💬 WhatsApp</a>
+    </div>`;
+}
+
+async function gerarLinkTermo() {
+  const { data, error } = await db.from('termos_entrega').insert({
+    obra_id: obraAtiva.id, unidade_id: unidadeAtiva, criado_por: engId,
+  }).select().single();
+  if (error) { showToast('❌ Erro ao gerar link: ' + error.message); return; }
+  renderModalTermo(data);
+  showToast('✅ Link gerado!');
+}
+
+function copiarLinkTermo(link) {
+  navigator.clipboard.writeText(link).then(() => showToast('📋 Link copiado!'));
 }
 
 async function selecionarModeloNoModal(novoModeloId) {
@@ -2044,7 +2147,180 @@ async function fazerLogout() {
   location.reload();
 }
 
-checkLogin();
+// ============================================================
+// TERMO DE ENTREGA — página pública isolada, aberta por link com
+// token (sem login). Cliente confirma declarações fixas, assina com
+// o dedo e tira uma foto de rosto; tudo passa pela Edge Function
+// termo-entrega (nunca acessa a tabela termos_entrega direto —
+// RLS bloqueia anônimo nela de propósito, é dado sensível).
+// ============================================================
+const DECLARACOES_TERMO = [
+  'Recebi as chaves e vistoriei pessoalmente o imóvel/unidade descrito acima.',
+  'Fui informado(a) sobre eventuais pendências identificadas na vistoria e estou ciente delas.',
+  'Declaro que as informações fornecidas neste termo são verdadeiras.',
+];
+
+let termoToken = null;
+let termoFotoBase64 = null;
+let termoSignCtx = null;
+let termoSignDesenhando = false;
+let termoSignTemTraco = false;
+
+function iniciarPaginaTermo(token) {
+  termoToken = token;
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('termo-page').classList.add('open');
+  carregarTermo();
+}
+
+async function carregarTermo() {
+  const cont = document.getElementById('termo-conteudo');
+  const { data, error } = await db.functions.invoke('termo-entrega', { body: { action: 'buscar', token: termoToken } });
+  if (error || data?.error) {
+    cont.innerHTML = `<div class="termo-card termo-status-box"><div class="termo-status-icon">⚠️</div><div style="font-weight:600;margin-bottom:6px">Link inválido</div><div style="font-size:13px;color:var(--text2)">${escapeHtml(await mensagemErroEdgeFunction(data, error))}</div></div>`;
+    return;
+  }
+  if (data.status === 'assinado') {
+    const dt = data.assinadoEm ? new Date(data.assinadoEm).toLocaleDateString('pt-BR') : '';
+    cont.innerHTML = `<div class="termo-card termo-status-box"><div class="termo-status-icon">✅</div><div style="font-weight:600;margin-bottom:6px">Termo já assinado</div><div style="font-size:13px;color:var(--text2)">Este termo de entrega já foi preenchido${dt ? ' em ' + dt : ''}.</div></div>`;
+    return;
+  }
+  renderFormularioTermo(data);
+}
+
+function renderFormularioTermo(data) {
+  const cont = document.getElementById('termo-conteudo');
+  cont.innerHTML = `
+    <div class="termo-card">
+      <div class="termo-title">${escapeHtml(data.obra || 'Termo de Entrega')}</div>
+      <div class="termo-sub">${escapeHtml([data.construtora, data.unidade].filter(Boolean).join(' · '))}</div>
+      ${DECLARACOES_TERMO.map((texto, i) => `
+        <label class="termo-decl">
+          <input type="checkbox" id="termo-decl-${i}">
+          <span>${escapeHtml(texto)}</span>
+        </label>`).join('')}
+    </div>
+    <div class="termo-card">
+      <div class="fl">Nome completo</div>
+      <input class="fi" id="termo-nome" placeholder="Digite seu nome completo">
+    </div>
+    <div class="termo-card">
+      <div class="fl">Assinatura</div>
+      <div class="termo-sign-wrap"><canvas id="termo-sign-canvas"></canvas></div>
+      <div class="termo-sign-actions">
+        <span style="font-size:11px;color:var(--text3)">Assine com o dedo</span>
+        <button class="btn btn-sm" onclick="limparAssinaturaTermo()">Limpar</button>
+      </div>
+    </div>
+    <div class="termo-card">
+      <div class="fl">Foto de rosto <span style="font-size:11px;color:var(--text3);font-weight:400">(registro de identificação)</span></div>
+      <img id="termo-foto-preview" class="termo-foto-preview">
+      <input type="file" accept="image/*" capture="user" id="termo-foto-input" style="display:none" onchange="onFotoTermoSelecionada(event)">
+      <button class="btn" style="width:100%;justify-content:center" id="termo-foto-btn" onclick="document.getElementById('termo-foto-input').click()">📷 Tirar foto</button>
+    </div>
+    <button class="btn btn-p" style="width:100%;justify-content:center;padding:13px;font-size:14px" id="termo-enviar-btn" onclick="enviarTermo()">Assinar e enviar</button>
+  `;
+  iniciarCanvasAssinatura();
+}
+
+function iniciarCanvasAssinatura() {
+  const canvas = document.getElementById('termo-sign-canvas');
+  const wrap = canvas.parentElement;
+  const dpr = window.devicePixelRatio || 1;
+  const rect = wrap.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = 160 * dpr;
+  termoSignCtx = canvas.getContext('2d');
+  termoSignCtx.scale(dpr, dpr);
+  termoSignCtx.lineWidth = 2.2;
+  termoSignCtx.lineCap = 'round';
+  termoSignCtx.strokeStyle = '#1A1714';
+  termoSignTemTraco = false;
+
+  function pos(e) {
+    const r = canvas.getBoundingClientRect();
+    const p = e.touches ? e.touches[0] : e;
+    return { x: p.clientX - r.left, y: p.clientY - r.top };
+  }
+  function iniciar(e) {
+    e.preventDefault();
+    termoSignDesenhando = true;
+    const { x, y } = pos(e);
+    termoSignCtx.beginPath();
+    termoSignCtx.moveTo(x, y);
+  }
+  function mover(e) {
+    if (!termoSignDesenhando) return;
+    e.preventDefault();
+    const { x, y } = pos(e);
+    termoSignCtx.lineTo(x, y);
+    termoSignCtx.stroke();
+    termoSignTemTraco = true;
+  }
+  function parar() { termoSignDesenhando = false; }
+
+  canvas.addEventListener('mousedown', iniciar);
+  canvas.addEventListener('mousemove', mover);
+  window.addEventListener('mouseup', parar);
+  canvas.addEventListener('touchstart', iniciar, { passive: false });
+  canvas.addEventListener('touchmove', mover, { passive: false });
+  canvas.addEventListener('touchend', parar);
+}
+
+function limparAssinaturaTermo() {
+  const canvas = document.getElementById('termo-sign-canvas');
+  if (!canvas || !termoSignCtx) return;
+  const dpr = window.devicePixelRatio || 1;
+  termoSignCtx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+  termoSignTemTraco = false;
+}
+
+function onFotoTermoSelecionada(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    termoFotoBase64 = reader.result;
+    const img = document.getElementById('termo-foto-preview');
+    img.src = termoFotoBase64;
+    img.style.display = 'block';
+    document.getElementById('termo-foto-btn').textContent = '↻ Tirar outra foto';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function enviarTermo() {
+  const nome = document.getElementById('termo-nome').value.trim();
+  if (!nome) { showToast('⚠️ Informe seu nome completo'); return; }
+  const faltando = DECLARACOES_TERMO.some((_, i) => !document.getElementById('termo-decl-' + i).checked);
+  if (faltando) { showToast('⚠️ Confirme todas as declarações acima'); return; }
+  if (!termoSignTemTraco) { showToast('⚠️ Assine no campo indicado'); return; }
+  if (!termoFotoBase64) { showToast('⚠️ Tire a foto de identificação'); return; }
+
+  const btn = document.getElementById('termo-enviar-btn');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+
+  const canvas = document.getElementById('termo-sign-canvas');
+  const assinaturaBase64 = canvas.toDataURL('image/png');
+
+  const { data, error } = await db.functions.invoke('termo-entrega', {
+    body: {
+      action: 'assinar', token: termoToken, nome,
+      assinaturaBase64, fotoBase64: termoFotoBase64,
+      declaracoes: DECLARACOES_TERMO,
+    }
+  });
+  if (error || data?.error) {
+    showToast('❌ ' + await mensagemErroEdgeFunction(data, error));
+    btn.disabled = false; btn.textContent = 'Assinar e enviar';
+    return;
+  }
+  document.getElementById('termo-conteudo').innerHTML = `<div class="termo-card termo-status-box"><div class="termo-status-icon">✅</div><div style="font-weight:600;margin-bottom:6px">Termo enviado com sucesso!</div><div style="font-size:13px;color:var(--text2)">Obrigado, ${escapeHtml(nome.split(' ')[0])}. Seu termo de entrega foi registrado.</div></div>`;
+}
+
+const _termoTokenUrl = new URLSearchParams(location.search).get('termo');
+if (_termoTokenUrl) { iniciarPaginaTermo(_termoTokenUrl); } else { checkLogin(); }
 
 // ============================================================
 // UNIDADES NO MODAL DE OBRA

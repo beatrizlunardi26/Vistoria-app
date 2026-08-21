@@ -75,6 +75,8 @@ Deno.serve(async (req) => {
 
       const nome = (body.nome || '').trim()
       if (!nome) throw new Error('Informe seu nome completo')
+      if (!body.avaliacao) throw new Error('Avalie o imóvel antes de enviar')
+      if (body.avaliacao === 'ressalvas' && !(body.observacoesRessalvas || '').trim()) throw new Error('Descreva as ressalvas encontradas')
       if (!body.assinaturaBase64) throw new Error('Assinatura obrigatória')
       if (!body.fotoBase64) throw new Error('Foto obrigatória')
 
@@ -95,6 +97,8 @@ Deno.serve(async (req) => {
       const { error: updErr } = await admin.from('termos_entrega').update({
         status: 'assinado',
         nome_signatario: nome,
+        avaliacao: body.avaliacao,
+        observacoes_ressalvas: body.avaliacao === 'ressalvas' ? (body.observacoesRessalvas || '').trim() : '',
         assinatura_url: pubAss.publicUrl + '?t=' + Date.now(),
         foto_rosto_url: pubFoto.publicUrl + '?t=' + Date.now(),
         declaracoes: body.declaracoes || [],

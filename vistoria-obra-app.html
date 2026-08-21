@@ -280,7 +280,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .termo-sub{font-size:13px;color:var(--text2);margin-bottom:18px}
 .termo-decl{display:flex;gap:10px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--border);font-size:13.5px;line-height:1.5}
 .termo-decl:first-of-type{border-top:none}
-.termo-decl input[type=checkbox]{width:20px;height:20px;flex-shrink:0;margin-top:1px;accent-color:var(--accent)}
+.termo-decl input[type=checkbox],.termo-decl input[type=radio]{width:20px;height:20px;flex-shrink:0;margin-top:1px;accent-color:var(--accent)}
 .termo-sign-wrap{border:1.5px dashed var(--border);border-radius:10px;overflow:hidden;background:#fff;touch-action:none}
 .termo-sign-wrap canvas{display:block;width:100%;height:160px}
 .termo-sign-actions{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
@@ -345,6 +345,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <button class="ni" id="ni-vistoria" onclick="goTo('p-vistoria',this)"><span class="ico">📋</span>Checklist</button>
     <button class="ni" id="ni-relatorio" onclick="goTo('p-relatorio',this);gerarRel()"><span class="ico">📄</span>Relatório</button>
     <button class="ni" id="ni-dashboard" onclick="goTo('p-dashboard',this);gerarDashboard()"><span class="ico">📊</span>Indicadores</button>
+    <button class="ni" id="ni-termos" onclick="goTo('p-termos',this);carregarTermosEntrega()"><span class="ico">📝</span>Termos de Entrega</button>
     <button class="ni" id="ni-admin" onclick="abrirAdminChecklist();goTo('p-admin',this)"><span class="ico">🛠️</span>Modelos de Checklist</button>
     <button class="ni" id="ni-config" onclick="goTo('p-config',this)"><span class="ico">⚙️</span>Configurações</button>
   </nav>
@@ -507,6 +508,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- TERMOS DE ENTREGA -->
+    <div class="page" id="p-termos">
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
+        <select class="fsel" id="termos-filtro-obra" style="max-width:280px" onchange="carregarTermosEntrega()">
+          <option value="">Todas as obras</option>
+        </select>
+      </div>
+      <div id="termos-lista"><div style="padding:20px;color:var(--text3);font-size:13px">Carregando...</div></div>
     </div>
 
     <!-- ADMIN -->
@@ -1027,10 +1038,13 @@ function renderModalTermo(termo) {
   }
   if (termo.status === 'assinado') {
     const dt = termo.assinado_em ? new Date(termo.assinado_em).toLocaleString('pt-BR') : '—';
+    const avalTxt = termo.avaliacao === 'ressalvas' ? '⚠️ Aprovado com ressalvas' : termo.avaliacao === 'aprovado' ? '✅ Aprovado sem ressalvas' : '—';
     body.innerHTML = `
       <div style="font-size:13px;color:var(--ok);font-weight:600;margin-bottom:10px">✅ Assinado</div>
       <div class="rel-r"><span class="rk">Assinado por</span><span class="rv">${escapeHtml(termo.nome_signatario||'—')}</span></div>
       <div class="rel-r"><span class="rk">Data</span><span class="rv">${dt}</span></div>
+      <div class="rel-r"><span class="rk">Avaliação</span><span class="rv">${avalTxt}</span></div>
+      ${termo.observacoes_ressalvas ? `<div class="fl" style="margin-top:10px">Ressalvas descritas</div><div style="font-size:13px;color:var(--text2);background:var(--surface2);padding:10px;border-radius:8px">${escapeHtml(termo.observacoes_ressalvas)}</div>` : ''}
       ${termo.assinatura_url ? `<div class="fl" style="margin-top:14px">Assinatura</div><img src="${termo.assinatura_url}" style="max-width:100%;border:1px solid var(--border);border-radius:8px;background:#fff">` : ''}
       ${termo.foto_rosto_url ? `<div class="fl" style="margin-top:14px">Foto de identificação</div><img src="${termo.foto_rosto_url}" style="max-width:100%;border-radius:8px">` : ''}
     `;
@@ -1057,6 +1071,118 @@ async function gerarLinkTermo() {
 
 function copiarLinkTermo(link) {
   navigator.clipboard.writeText(link).then(() => showToast('📋 Link copiado!'));
+}
+
+// ============================================================
+// TERMOS DE ENTREGA — lista geral (todas as obras), pra reunir e
+// baixar os documentos assinados
+// ============================================================
+let termosCarregados = [];
+
+async function carregarTermosEntrega() {
+  const filtroSel = document.getElementById('termos-filtro-obra');
+  if (filtroSel && !filtroSel.dataset.populado) {
+    filtroSel.innerHTML = '<option value="">Todas as obras</option>' +
+      obras.map(o => `<option value="${o.id}">${escapeHtml(o.nome)}</option>`).join('');
+    filtroSel.dataset.populado = '1';
+  }
+  const obraId = filtroSel?.value || '';
+  let query = db.from('termos_entrega').select('*, obras(nome), unidades(nome)').order('criado_em', { ascending: false });
+  if (obraId) query = query.eq('obra_id', obraId);
+  const { data, error } = await query;
+  const lista = document.getElementById('termos-lista');
+  if (error) { lista.innerHTML = '<div style="color:var(--danger);font-size:13px">Erro ao carregar: ' + error.message + '</div>'; return; }
+  termosCarregados = data || [];
+  renderTermosEntrega(termosCarregados);
+}
+
+function renderTermosEntrega(lista) {
+  const el = document.getElementById('termos-lista');
+  if (!lista.length) { el.innerHTML = '<div style="padding:20px;color:var(--text3);font-size:13px">Nenhum termo gerado ainda. Gere um pela tela de Checklist, na barra de unidades.</div>'; return; }
+  el.innerHTML = lista.map(t => {
+    const obraNome = t.obras?.nome || '—';
+    const unidNome = t.unidades?.nome || 'Geral';
+    const assinado = t.status === 'assinado';
+    const dt = assinado
+      ? (t.assinado_em ? new Date(t.assinado_em).toLocaleDateString('pt-BR') : '—')
+      : (t.criado_em ? new Date(t.criado_em).toLocaleDateString('pt-BR') : '—');
+    return `
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border-radius:var(--radius-sm);box-shadow:var(--shadow);margin-bottom:8px;flex-wrap:wrap">
+      <div style="flex:1;min-width:180px">
+        <div style="font-weight:600;font-size:13.5px">${escapeHtml(obraNome)} · ${escapeHtml(unidNome)}</div>
+        <div style="font-size:12px;color:var(--text2)">${assinado ? 'Assinado por ' + escapeHtml(t.nome_signatario||'—') + ' em ' + dt : 'Link gerado em ' + dt}</div>
+      </div>
+      <span class="badge ${assinado?'b-ok':'b-pend'}">${assinado?'✅ Assinado':'⏳ Pendente'}</span>
+      ${assinado ? `<button class="btn btn-sm btn-p" onclick="gerarPDFTermo('${t.id}')">⬇️ Baixar PDF</button>` : `<button class="btn btn-sm" onclick="copiarLinkTermo('${linkTermo(t.token)}')">📋 Copiar link</button>`}
+    </div>`;
+  }).join('');
+}
+
+async function gerarPDFTermo(termoId) {
+  const termo = termosCarregados.find(t => t.id === termoId);
+  if (!termo) { showToast('❌ Termo não encontrado'); return; }
+  showToast('Gerando PDF...');
+  const p = pdfSetup();
+  const { doc, ML, CW, CINZA, TEXTO } = p;
+  const obraNome = termo.obras?.nome || '—';
+  const unidNome = termo.unidades?.nome || 'Geral';
+  p.cabecalho('Termo de Entrega', escritorio.nome + '  |  ' + obraNome + '  |  ' + unidNome);
+
+  doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(...CINZA);
+  doc.text('IDENTIFICAÇÃO', ML, p.y); p.y += 5; p.hLine();
+  [
+    ['Obra', obraNome], ['Unidade', unidNome],
+    ['Assinado por', termo.nome_signatario || '—'],
+    ['Data da assinatura', termo.assinado_em ? new Date(termo.assinado_em).toLocaleString('pt-BR') : '—'],
+  ].forEach(([k, v]) => {
+    doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(...CINZA);
+    doc.text(k + ':', ML, p.y);
+    doc.setFont('helvetica','bold'); doc.setTextColor(...TEXTO);
+    doc.text(String(v), ML + 45, p.y);
+    p.y += 6;
+  });
+  p.y += 4; p.hLine();
+
+  doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(...CINZA);
+  doc.text('AVALIAÇÃO DO CLIENTE', ML, p.y); p.y += 5; p.hLine();
+  const comRessalvas = termo.avaliacao === 'ressalvas';
+  doc.setFontSize(11); doc.setFont('helvetica','bold'); doc.setTextColor(...(comRessalvas ? [181,48,48] : [46,106,79]));
+  doc.text(comRessalvas ? 'Aprovado COM ressalvas' : 'Aprovado SEM ressalvas', ML, p.y); p.y += 7;
+  if (termo.observacoes_ressalvas) {
+    doc.setFontSize(9.5); doc.setFont('helvetica','normal'); doc.setTextColor(...TEXTO);
+    const linhasObs = doc.splitTextToSize(termo.observacoes_ressalvas, CW);
+    doc.text(linhasObs, ML, p.y); p.y += linhasObs.length * 4.6 + 2;
+  }
+  p.y += 2; p.hLine();
+
+  doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(...CINZA);
+  doc.text('DECLARAÇÕES CONFIRMADAS', ML, p.y); p.y += 5; p.hLine();
+  (termo.declaracoes || []).forEach(texto => {
+    doc.setFontSize(9.5); doc.setFont('helvetica','normal'); doc.setTextColor(...TEXTO);
+    const linhas = doc.splitTextToSize('✓ ' + texto, CW);
+    p.checkY(linhas.length * 5 + 2);
+    doc.text(linhas, ML, p.y); p.y += linhas.length * 5 + 2;
+  });
+  p.y += 2; p.hLine();
+
+  if (termo.assinatura_url) {
+    p.checkY(46);
+    doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(...CINZA);
+    doc.text('ASSINATURA', ML, p.y); p.y += 6;
+    const dataUriAss = await fotoParaDataUri({ url: termo.assinatura_url });
+    if (dataUriAss) { doc.addImage(dataUriAss, 'PNG', ML, p.y, 80, 32); p.y += 38; }
+  }
+  if (termo.foto_rosto_url) {
+    p.checkY(66);
+    doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(...CINZA);
+    doc.text('FOTO DE IDENTIFICAÇÃO', ML, p.y); p.y += 6;
+    const dataUriFoto = await fotoParaDataUri({ url: termo.foto_rosto_url });
+    if (dataUriFoto) { doc.addImage(dataUriFoto, 'JPEG', ML, p.y, 55, 55); p.y += 60; }
+  }
+
+  p.rodape();
+  doc.save('TermoDeEntrega_' + obraNome.replace(/[^a-zA-Z0-9]/g,'_') + '_' + unidNome.replace(/[^a-zA-Z0-9]/g,'_') + '.pdf');
+  showToast('✅ PDF gerado!');
 }
 
 async function selecionarModeloNoModal(novoModeloId) {
@@ -1964,7 +2090,7 @@ async function delObra(id) {
 // ============================================================
 // NAVEGAÇÃO
 // ============================================================
-const PT = { 'p-home':'Início','p-vistoria':'Checklist','p-relatorio':'Relatório','p-dashboard':'Indicadores','p-admin':'Modelos de Checklist','p-config':'Configurações' };
+const PT = { 'p-home':'Início','p-vistoria':'Checklist','p-relatorio':'Relatório','p-dashboard':'Indicadores','p-termos':'Termos de Entrega','p-admin':'Modelos de Checklist','p-config':'Configurações' };
 function goTo(id, ni) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -2195,14 +2321,30 @@ function renderFormularioTermo(data) {
     <div class="termo-card">
       <div class="termo-title">${escapeHtml(data.obra || 'Termo de Entrega')}</div>
       <div class="termo-sub">${escapeHtml([data.construtora, data.unidade].filter(Boolean).join(' · '))}</div>
+    </div>
+    <div class="termo-card">
+      <div class="fl" style="margin-top:0">Como você avalia o imóvel após vistoriar pessoalmente?</div>
+      <label class="termo-decl" style="border-top:none">
+        <input type="radio" name="termo-aval" value="aprovado" id="termo-aval-aprovado" onchange="onAvaliacaoTermoChange()">
+        <span>Aprovo sem ressalvas — está tudo conforme esperado.</span>
+      </label>
+      <label class="termo-decl">
+        <input type="radio" name="termo-aval" value="ressalvas" id="termo-aval-ressalvas" onchange="onAvaliacaoTermoChange()">
+        <span>Aprovo com ressalvas — encontrei algo que quero registrar.</span>
+      </label>
+      <div id="termo-ressalvas-wrap" style="display:none;margin-top:8px">
+        <textarea class="fi" id="termo-ressalvas-texto" placeholder="Descreva o que encontrou..." rows="3" style="resize:vertical;font-family:inherit"></textarea>
+      </div>
+    </div>
+    <div class="termo-card">
       ${DECLARACOES_TERMO.map((texto, i) => `
-        <label class="termo-decl">
+        <label class="termo-decl" style="${i===0?'border-top:none':''}">
           <input type="checkbox" id="termo-decl-${i}">
           <span>${escapeHtml(texto)}</span>
         </label>`).join('')}
     </div>
     <div class="termo-card">
-      <div class="fl">Nome completo</div>
+      <div class="fl" style="margin-top:0">Nome completo</div>
       <input class="fi" id="termo-nome" placeholder="Digite seu nome completo">
     </div>
     <div class="termo-card">
@@ -2290,9 +2432,19 @@ function onFotoTermoSelecionada(event) {
   reader.readAsDataURL(file);
 }
 
+function onAvaliacaoTermoChange() {
+  const ressalvas = document.getElementById('termo-aval-ressalvas').checked;
+  document.getElementById('termo-ressalvas-wrap').style.display = ressalvas ? '' : 'none';
+}
+
 async function enviarTermo() {
   const nome = document.getElementById('termo-nome').value.trim();
   if (!nome) { showToast('⚠️ Informe seu nome completo'); return; }
+  const avaliacaoEl = document.querySelector('input[name="termo-aval"]:checked');
+  if (!avaliacaoEl) { showToast('⚠️ Avalie o imóvel antes de enviar'); return; }
+  const avaliacao = avaliacaoEl.value;
+  const observacoesRessalvas = document.getElementById('termo-ressalvas-texto').value.trim();
+  if (avaliacao === 'ressalvas' && !observacoesRessalvas) { showToast('⚠️ Descreva as ressalvas encontradas'); return; }
   const faltando = DECLARACOES_TERMO.some((_, i) => !document.getElementById('termo-decl-' + i).checked);
   if (faltando) { showToast('⚠️ Confirme todas as declarações acima'); return; }
   if (!termoSignTemTraco) { showToast('⚠️ Assine no campo indicado'); return; }
@@ -2307,6 +2459,7 @@ async function enviarTermo() {
   const { data, error } = await db.functions.invoke('termo-entrega', {
     body: {
       action: 'assinar', token: termoToken, nome,
+      avaliacao, observacoesRessalvas,
       assinaturaBase64, fotoBase64: termoFotoBase64,
       declaracoes: DECLARACOES_TERMO,
     }

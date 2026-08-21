@@ -60,6 +60,35 @@ Deno.serve(async (req) => {
     if (!termo) throw new Error('Link inválido ou expirado')
 
     if (body.action === 'buscar') {
+      // Checklist simplificado que o cliente preenche — vem do modelo
+      // marcado eh_termo_entrega=true (editável em "Modelos de Checklist").
+      // A tabela modelos_checklist/comodos/itens_checklist não é liberada
+      // pra "anon" via RLS, então essa leitura só é possível aqui, com a
+      // chave de serviço.
+      const { data: modeloTermo } = await admin
+        .from('modelos_checklist')
+        .select('id')
+        .eq('eh_termo_entrega', true)
+        .limit(1)
+        .maybeSingle()
+
+      let checklist: { comodo: string; itens: { id: string; nome: string; criterio: string }[] }[] = []
+      if (modeloTermo) {
+        const { data: comodosData } = await admin
+          .from('comodos')
+          .select('id, nome, ordem')
+          .eq('modelo_checklist_id', modeloTermo.id)
+          .order('ordem')
+        for (const cm of comodosData || []) {
+          const { data: itensData } = await admin
+            .from('itens_checklist')
+            .select('id, nome, criterio')
+            .eq('comodo_id', cm.id)
+            .order('ordem')
+          checklist.push({ comodo: cm.nome, itens: itensData || [] })
+        }
+      }
+
       return new Response(JSON.stringify({
         ok: true,
         status: termo.status,
@@ -67,6 +96,7 @@ Deno.serve(async (req) => {
         construtora: termo.obras?.construtora || '',
         unidade: termo.unidades?.nome || '',
         assinadoEm: termo.assinado_em,
+        checklist,
       }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
@@ -99,6 +129,7 @@ Deno.serve(async (req) => {
         nome_signatario: nome,
         avaliacao: body.avaliacao,
         observacoes_ressalvas: body.avaliacao === 'ressalvas' ? (body.observacoesRessalvas || '').trim() : '',
+        checklist_respostas: body.checklistRespostas || [],
         assinatura_url: pubAss.publicUrl + '?t=' + Date.now(),
         foto_rosto_url: pubFoto.publicUrl + '?t=' + Date.now(),
         declaracoes: body.declaracoes || [],

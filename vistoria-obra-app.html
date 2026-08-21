@@ -288,6 +288,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .termo-status-box{text-align:center;padding:40px 20px}
 .termo-status-icon{font-size:44px;margin-bottom:12px}
 .termo-loading{text-align:center;padding:60px 20px;color:var(--text3);font-size:13px}
+.termo-check-item{padding:12px 0;border-top:1px solid var(--border)}
+.termo-check-item:first-child{border-top:none}
+.termo-check-name{font-size:13.5px;font-weight:600;margin-bottom:2px}
+.termo-check-crit{font-size:12px;color:var(--text3);margin-bottom:8px}
+.termo-toggle{display:flex;gap:8px}
+.termo-toggle-btn{flex:1;padding:9px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);font-size:12.5px;font-weight:600;cursor:pointer;text-align:center;color:var(--text2);font-family:inherit}
+.termo-toggle-btn.tt-active-ok{border-color:var(--ok);background:var(--ok-light);color:var(--ok)}
+.termo-toggle-btn.tt-active-problema{border-color:var(--danger);background:var(--danger-light);color:var(--danger)}
 </style>
 </head>
 <body>
@@ -825,9 +833,10 @@ async function carregarModelos() {
       c.itens = its || [];
     }
   }
-  document.getElementById('h-vis').textContent = modelos.length;
+  const modelosSelecionaveis = modelos.filter(m => !m.eh_termo_entrega);
+  document.getElementById('h-vis').textContent = modelosSelecionaveis.length;
   const moSel = document.getElementById('mo-modelo');
-  moSel.innerHTML = modelos.map(m=>`<option value="${m.id}">${m.nome}</option>`).join('');
+  moSel.innerHTML = modelosSelecionaveis.map(m=>`<option value="${m.id}">${m.nome}</option>`).join('');
 }
 
 // ============================================================
@@ -999,7 +1008,7 @@ function atualizarVhHeader() {
 
 function abrirModalTrocarModelo() {
   const list = document.getElementById('tm-modelo-list');
-  list.innerHTML = modelos.map(m => `
+  list.innerHTML = modelos.filter(m => !m.eh_termo_entrega).map(m => `
     <button class="tm-modelo-item ${m.id===modeloAtivoId?'tm-active':''}" onclick="selecionarModeloNoModal('${m.id}')">
       <span>${m.nome}</span>${m.id===modeloAtivoId?'<span class="tm-check">✓</span>':''}
     </button>`).join('');
@@ -1045,6 +1054,7 @@ function renderModalTermo(termo) {
       <div class="rel-r"><span class="rk">Data</span><span class="rv">${dt}</span></div>
       <div class="rel-r"><span class="rk">Avaliação</span><span class="rv">${avalTxt}</span></div>
       ${termo.observacoes_ressalvas ? `<div class="fl" style="margin-top:10px">Ressalvas descritas</div><div style="font-size:13px;color:var(--text2);background:var(--surface2);padding:10px;border-radius:8px">${escapeHtml(termo.observacoes_ressalvas)}</div>` : ''}
+      ${(termo.checklist_respostas||[]).length ? `<div class="fl" style="margin-top:10px">Checklist do cliente</div>${(termo.checklist_respostas||[]).map(it => `<div style="display:flex;justify-content:space-between;font-size:12.5px;padding:5px 0;border-bottom:1px solid var(--border)"><span>${escapeHtml(it.nome)}</span><span style="color:${it.status==='problema'?'var(--danger)':'var(--ok)'};font-weight:600">${it.status==='problema'?'⚠️ Problema':'✅ Ok'}</span></div>`).join('')}` : ''}
       ${termo.assinatura_url ? `<div class="fl" style="margin-top:14px">Assinatura</div><img src="${termo.assinatura_url}" style="max-width:100%;border:1px solid var(--border);border-radius:8px;background:#fff">` : ''}
       ${termo.foto_rosto_url ? `<div class="fl" style="margin-top:14px">Foto de identificação</div><img src="${termo.foto_rosto_url}" style="max-width:100%;border-radius:8px">` : ''}
     `;
@@ -1142,6 +1152,21 @@ async function gerarPDFTermo(termoId) {
     p.y += 6;
   });
   p.y += 4; p.hLine();
+
+  if ((termo.checklist_respostas || []).length) {
+    doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(...CINZA);
+    doc.text('CHECKLIST DO CLIENTE', ML, p.y); p.y += 5; p.hLine();
+    termo.checklist_respostas.forEach(it => {
+      p.checkY(6);
+      const problema = it.status === 'problema';
+      doc.setFontSize(9.5); doc.setFont('helvetica','normal'); doc.setTextColor(...TEXTO);
+      doc.text(it.nome, ML, p.y);
+      doc.setFont('helvetica','bold'); doc.setTextColor(...(problema ? [181,48,48] : [46,106,79]));
+      doc.text(problema ? 'PROBLEMA' : 'OK', ML + CW - 20, p.y, { align: 'right' });
+      p.y += 5.5;
+    });
+    p.y += 2; p.hLine();
+  }
 
   doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(...CINZA);
   doc.text('AVALIAÇÃO DO CLIENTE', ML, p.y); p.y += 5; p.hLine();
@@ -1925,7 +1950,7 @@ async function novoModelo() {
     data.comodos = [];
     modelos.push(data);
     adminModeloAtual = data.id;
-    document.getElementById('mo-modelo').innerHTML = modelos.map(m=>`<option value="${m.id}">${m.nome}</option>`).join('');
+    document.getElementById('mo-modelo').innerHTML = modelos.filter(m => !m.eh_termo_entrega).map(m=>`<option value="${m.id}">${m.nome}</option>`).join('');
     renderAdminTabs(); renderAdminBody();
     showToast('✅ Novo modelo criado!');
   }
@@ -2282,12 +2307,13 @@ async function fazerLogout() {
 // ============================================================
 const DECLARACOES_TERMO = [
   'Recebi as chaves e vistoriei pessoalmente o imóvel/unidade descrito acima.',
-  'Fui informado(a) sobre eventuais pendências identificadas na vistoria e estou ciente delas.',
   'Declaro que as informações fornecidas neste termo são verdadeiras.',
 ];
 
 let termoToken = null;
 let termoFotoBase64 = null;
+let termoChecklistRespostas = {};
+let termoChecklistItens = [];
 let termoSignCtx = null;
 let termoSignDesenhando = false;
 let termoSignTemTraco = false;
@@ -2315,6 +2341,37 @@ async function carregarTermo() {
   renderFormularioTermo(data);
 }
 
+// Checklist simplificado (editável em "Modelos de Checklist", modelo
+// marcado eh_termo_entrega) — cada item começa marcado "Ok" (agiliza
+// pro cliente, que só precisa mexer no que estiver errado).
+function renderChecklistTermo(checklist) {
+  termoChecklistRespostas = {};
+  termoChecklistItens = [];
+  let html = '';
+  checklist.forEach(grupo => {
+    (grupo.itens || []).forEach(it => {
+      termoChecklistRespostas[it.id] = 'ok';
+      termoChecklistItens.push({ id: it.id, nome: it.nome, comodo: grupo.comodo });
+      html += `
+        <div class="termo-check-item">
+          <div class="termo-check-name">${escapeHtml(it.nome)}</div>
+          ${it.criterio ? `<div class="termo-check-crit">${escapeHtml(it.criterio)}</div>` : ''}
+          <div class="termo-toggle">
+            <button type="button" class="termo-toggle-btn tt-active-ok" id="termo-check-ok-${it.id}" onclick="setChecklistTermoStatus('${it.id}','ok')">✅ Ok</button>
+            <button type="button" class="termo-toggle-btn" id="termo-check-problema-${it.id}" onclick="setChecklistTermoStatus('${it.id}','problema')">⚠️ Tem problema</button>
+          </div>
+        </div>`;
+    });
+  });
+  return html;
+}
+
+function setChecklistTermoStatus(itemId, status) {
+  termoChecklistRespostas[itemId] = status;
+  document.getElementById('termo-check-ok-' + itemId).classList.toggle('tt-active-ok', status === 'ok');
+  document.getElementById('termo-check-problema-' + itemId).classList.toggle('tt-active-problema', status === 'problema');
+}
+
 function renderFormularioTermo(data) {
   const cont = document.getElementById('termo-conteudo');
   cont.innerHTML = `
@@ -2322,6 +2379,11 @@ function renderFormularioTermo(data) {
       <div class="termo-title">${escapeHtml(data.obra || 'Termo de Entrega')}</div>
       <div class="termo-sub">${escapeHtml([data.construtora, data.unidade].filter(Boolean).join(' · '))}</div>
     </div>
+    ${(data.checklist && data.checklist.length) ? `
+    <div class="termo-card">
+      <div class="fl" style="margin-top:0">Confira cada item abaixo</div>
+      ${renderChecklistTermo(data.checklist)}
+    </div>` : ''}
     <div class="termo-card">
       <div class="fl" style="margin-top:0">Como você avalia o imóvel após vistoriar pessoalmente?</div>
       <label class="termo-decl" style="border-top:none">
@@ -2455,11 +2517,14 @@ async function enviarTermo() {
 
   const canvas = document.getElementById('termo-sign-canvas');
   const assinaturaBase64 = canvas.toDataURL('image/png');
+  const checklistRespostas = termoChecklistItens.map(it => ({
+    id: it.id, nome: it.nome, comodo: it.comodo, status: termoChecklistRespostas[it.id] || 'ok',
+  }));
 
   const { data, error } = await db.functions.invoke('termo-entrega', {
     body: {
       action: 'assinar', token: termoToken, nome,
-      avaliacao, observacoesRessalvas,
+      avaliacao, observacoesRessalvas, checklistRespostas,
       assinaturaBase64, fotoBase64: termoFotoBase64,
       declaracoes: DECLARACOES_TERMO,
     }
